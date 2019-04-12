@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "outDir": "dist",
+    "jsx": "react",
+    "sourceMap": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./typings"
+  ],
+  },
+  "include": [
+    "src",
+    "./typings/**/*.d.ts"
+  ]
+}
