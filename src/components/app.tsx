@@ -5,7 +5,7 @@ import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
 import ReceiveDirect from './receive/direct';
 
-import { BrowserRouter as Router, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
 import Send from './send';
 
 import Hookins from './hookins';
@@ -28,6 +28,8 @@ function NoMatch(params: RouteComponentProps<any>) {
 }
 export default () => {
   const balance = useBalance();
+
+  const Router: any = window.location.protocol === "file:" ? HashRouter : BrowserRouter;
 
   return (
     <Router>

@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "description": "hundredeyes wallet",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
     "dev": "webpack-dev-server",
+    "build": "webpack --config webpack.config.js",
+    "build-cdn": "USE_CDN=true webpack --config webpack.config.js",
     "prettier": "prettier --single-quote --trailing-comma es5 --print-width 160 --write \"src/**/*.{ts,tsx}\"",
-    "publish": "npm run build && cp dist/* ../hundredeyes-dist/"
+    "publish": "npm run build-cdn && cp dist/* ../hundredeyes-dist && cd ../hundredeyes-dist/ && git add -A && git c -m \"Add built files\" && git pull --rebase && git push"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -25,7 +26,8 @@
     "typescript": "^3.4.1",
     "webpack": "^4.29.5",
     "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1"
+    "webpack-dev-server": "^3.2.1",
+    "webpack-subresource-integrity": "^1.3.2"
   },
   "dependencies": {
     "deep-equal": "^1.0.1",

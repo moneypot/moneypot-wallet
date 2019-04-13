@@ -2,7 +2,7 @@ const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-
+const SriPlugin = require('webpack-subresource-integrity');
 
 
 module.exports = {
@@ -10,6 +10,10 @@ module.exports = {
   entry: './src/index.tsx',
   devtool: 'source-map',
   plugins: [
+    new SriPlugin({
+        hashFuncNames: ['sha256'],
+        enabled: true,
+    }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
        title: 'hundredeyes',
@@ -31,7 +35,7 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(gif|png|jpe?g|svg)$/i,
+        test: /\.(png|jpg|svg)$/i,
         use: [
           'file-loader'
         ],
@@ -42,9 +46,10 @@ module.exports = {
     extensions: [ '.tsx', '.ts', '.js', '.css' ]
   },
   output: {
+    crossOriginLoading: 'anonymous',
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: "/"
+    publicPath: process.env.USE_CDN ? "https://wallet.hookedin.com/" : "/"
   },
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
