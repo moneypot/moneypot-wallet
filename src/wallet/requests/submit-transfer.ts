@@ -9,7 +9,7 @@ export default async function(transfer: hi.FullTransfer): Promise<hi.Signature |
     return resp;
   }
 
-  const sig = hi.Signature.fromBech(resp);
+  const sig = hi.Signature.fromPOD(resp);
   if (sig instanceof Error) {
     throw sig;
   }

@@ -27,7 +27,7 @@ export default async function genNonces(count: number, seenNonces: Set<string>):
       throw new Error('seen nonce: ' + nonce + ' multiple times?!');
     }
     seenNonces.add(nonce);
-    const pk = hi.PublicKey.fromBech(nonce);
+    const pk = hi.PublicKey.fromPOD(nonce);
     if (pk instanceof Error) {
       throw pk;
     }

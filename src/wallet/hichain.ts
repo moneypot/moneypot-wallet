@@ -35,25 +35,6 @@ export default class HIChain {
     return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
   }
 
-  public deriveHDChain(index: number) {
-    return this.deriveHDChainRaw(hi.Buffutils.fromUint32(index));
-  }
-
-  public deriveHDChainRaw(b: Uint8Array) {
-    const privSeed = hi.Hash.fromMessage('HIChain.deriveHDChain', this.secretSeed, b);
-    const claimant = hi.PrivateKey.fromBytes(privSeed.buffer);
-    if (claimant instanceof Error) {
-      throw claimant;
-    }
-
-    const hash = claimant.toPublicKey().hash();
-
-    return {
-      claimant,
-      hdchain: new hi.HDChain(null, hi.Params.fundingPublicKey.buffer, hash.buffer),
-    };
-  }
-
   public deriveClaimant(index: number): hi.PrivateKey {
     const privHash = hi.Hash.fromMessage('HIChain.deriveClaimant', this.secretSeed, hi.Buffutils.fromUint64(index));
 

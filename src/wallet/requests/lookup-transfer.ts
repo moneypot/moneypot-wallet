@@ -14,7 +14,10 @@ export default async function lookupTransfer(transferHash: string): Promise<hi.A
     throw res;
   }
 
-  const transfer: hi.AcknowledgedTransfer = hi.Acknowledged.fromPOD(hi.Transfer.fromPOD, res);
+  const transfer: hi.AcknowledgedTransfer | Error = hi.Acknowledged.fromPOD(hi.Transfer.fromPOD, res);
+  if (transfer instanceof Error) {
+    throw transfer;
+  }
 
   return transfer;
 }

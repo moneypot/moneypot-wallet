@@ -19,7 +19,7 @@ export default async function(owner: string) {
 
   const claimedCoin = hi.Coin.fromPOD(res);
 
-  const spendAuthorization = hi.Signature.fromBech(res.spendAuthorization);
+  const spendAuthorization = hi.Signature.fromPOD(res.spendAuthorization);
 
   // TODO: validate the spend authorization
 

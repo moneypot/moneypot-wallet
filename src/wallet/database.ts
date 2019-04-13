@@ -63,7 +63,7 @@ export default class Database extends EventEmitter {
     this.db.on('populate', () => {
       const doc: Docs.Config = {
         one: 1,
-        seed: hi.PrivateKey.fromRand().toBech(),
+        seed: hi.PrivateKey.fromRand().toPOD(),
         baseAPI: 'wallet.hookedin.com' ? 'https://www.hookedin.com/api/dev' : 'http://localhost:3030',
         gapLimit: 10,
       };
@@ -98,7 +98,7 @@ export default class Database extends EventEmitter {
     });
 
     this.hichain = this.getConfig().then(config => {
-      const h = hi.PrivateKey.fromBech(config.seed);
+      const h = hi.PrivateKey.fromPOD(config.seed);
       return new HIChain(util.notError(h));
     });
   }
@@ -114,7 +114,7 @@ export default class Database extends EventEmitter {
     const bounty = new hi.Bounty(amount, claimant, nonce);
 
     const doc: Docs.Bounty = {
-      hash: bounty.hash().toBech(),
+      hash: bounty.hash().toPOD(),
       ...bounty.toPOD(),
     };
 
@@ -147,7 +147,7 @@ export default class Database extends EventEmitter {
 
         const [unblinder, blindedOwner] = hi.blindMessage(blindingSecret, coinClaim.blindingNonce, signer, newOwner.buffer);
 
-        util.mustEqual(blindedOwner.toBech(), coinClaim.blindedOwner.toBech());
+        util.mustEqual(blindedOwner.toPOD(), coinClaim.blindedOwner.toPOD());
 
         const existenceProof = hi.unblind(unblinder, blindedExistenceProof);
 
@@ -156,9 +156,9 @@ export default class Database extends EventEmitter {
         const coin = new hi.Coin(newOwner, coinClaim.magnitude, existenceProof);
 
         await this.coins.put({
-          hash: coin.hash().toBech(),
-          claimHash: claimHash.toBech(),
-          blindingNonce: coinClaim.blindingNonce.toBech(),
+          hash: coin.hash().toPOD(),
+          claimHash: claimHash.toPOD(),
+          blindingNonce: coinClaim.blindingNonce.toPOD(),
           ...coin.toPOD(),
         });
       }
@@ -358,7 +358,7 @@ export default class Database extends EventEmitter {
 
     const hookinInfo = hichain.deriveBitcoinAddress(index);
 
-    const claimant = hookinInfo.claimant.toPublicKey().toBech();
+    const claimant = hookinInfo.claimant.toPublicKey().toPOD();
     const bitcoinAddress = hookinInfo.bitcoinAddress;
 
     const bitcoinAddressDoc: Docs.BitcoinAddress = {
@@ -418,7 +418,7 @@ export default class Database extends EventEmitter {
     const claimantPub = claimant.toPublicKey();
 
     const directAddressDoc: Docs.DirectAddress = {
-      claimant: claimantPub.toBech(),
+      claimant: claimantPub.toPOD(),
       index,
       isInternal,
     };
@@ -435,7 +435,7 @@ export default class Database extends EventEmitter {
       const bounty = util.notError(hi.Bounty.fromPOD(b));
 
       const bountyDoc: Docs.Bounty = {
-        hash: bounty.hash().toBech(),
+        hash: bounty.hash().toPOD(),
         ...bounty.toPOD(),
       };
 
@@ -446,14 +446,13 @@ export default class Database extends EventEmitter {
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
     for (const receive of receives) {
-      const deriveIndex = bitcoinAddressDoc.hdchain ? bitcoinAddressDoc.index : 0;
 
-      const creditToPub = util.notError(hi.PublicKey.fromBech(bitcoinAddressDoc.claimant));
+      const creditToPub = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
 
-      const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, creditToPub, deriveIndex);
+      const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, creditToPub);
 
       let hookinDoc: Docs.Hookin = {
-        hash: hookin.hash().toBech(),
+        hash: hookin.hash().toPOD(),
         bitcoinAddress: bitcoinAddressDoc.address,
         created: new Date(),
         ...hookin.toPOD(),
@@ -499,7 +498,7 @@ export default class Database extends EventEmitter {
       hookout = util.notError(hi.Hookout.fromPOD(h));
     }
 
-    const authorization = util.notError(hi.Signature.fromBech(transferDoc.authorization));
+    const authorization = util.notError(hi.Signature.fromPOD(transferDoc.authorization));
 
     const fullTransfer = new hi.FullTransfer(inputs, bounties, hookout, authorization);
     const acknowledgement = await submitTransfer(fullTransfer);
@@ -522,10 +521,10 @@ export default class Database extends EventEmitter {
           }
 
           const conflictTransferDoc: Docs.Transfer = {
-            hash: conflictTransfer.hash().toBech(),
+            hash: conflictTransfer.hash().toPOD(),
             created: new Date(),
-            status: { kind: 'ACKNOWLEDGED', acknowledgement: conflictTransfer.acknowledgement.toBech() },
-            coinHashes: conflictTransfer.contents.inputs.map(coin => coin.hash().toBech()),
+            status: { kind: 'ACKNOWLEDGED', acknowledgement: conflictTransfer.acknowledgement.toPOD() },
+            coinHashes: conflictTransfer.contents.inputs.map(coin => coin.hash().toPOD()),
             ...conflictTransfer.toPOD(),
           };
           await this.transfers.put(conflictTransferDoc);
@@ -539,7 +538,7 @@ export default class Database extends EventEmitter {
       throw acknowledgement;
     }
 
-    transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toBech() };
+    transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
     await this.transfers.put(transferDoc);
   }
 
@@ -560,7 +559,7 @@ export default class Database extends EventEmitter {
 
       const bounty = new hi.Bounty(amount, to, hi.random(32));
       const bountyDoc: Docs.Bounty = {
-        hash: bounty.hash().toBech(),
+        hash: bounty.hash().toPOD(),
         ...bounty.toPOD(),
       };
       await this.bounties.add(bountyDoc);
@@ -581,9 +580,9 @@ export default class Database extends EventEmitter {
       const owners: hi.PrivateKey[] = [];
 
       for (const coin of inputs) {
-        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toBech()));
-        const claimHash = util.notError(hi.Hash.fromBech(coinDoc.claimHash));
-        const blindingNonce = util.notError(hi.PublicKey.fromBech(coinDoc.blindingNonce));
+        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
+        const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
+        const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
         owners.push(hichain.deriveOwner(claimHash, blindingNonce));
       }
 
@@ -592,10 +591,10 @@ export default class Database extends EventEmitter {
       const transfer = new hi.FullTransfer(inputs, bounties, undefined, sig);
 
       const transferDoc: Docs.Transfer = {
-        hash: transfer.hash().toBech(),
+        hash: transfer.hash().toPOD(),
         status: { kind: 'PENDING' },
         created: new Date(),
-        coinHashes: transfer.inputs.map(coin => coin.hash().toBech()),
+        coinHashes: transfer.inputs.map(coin => coin.hash().toPOD()),
         ...transfer.prune().toPOD(),
       };
 
@@ -627,7 +626,7 @@ export default class Database extends EventEmitter {
 
       const hookout = new hi.Hookout(amount, address, true, hi.random(32));
       const hookoutDoc: Docs.Hookout = {
-        hash: hookout.hash().toBech(),
+        hash: hookout.hash().toPOD(),
         ...hookout.toPOD(),
       };
       await this.hookouts.add(hookoutDoc);
@@ -647,9 +646,9 @@ export default class Database extends EventEmitter {
       const owners: hi.PrivateKey[] = [];
 
       for (const coin of inputs) {
-        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toBech()));
-        const claimHash = util.notError(hi.Hash.fromBech(coinDoc.claimHash));
-        const blindingNonce = util.notError(hi.PublicKey.fromBech(coinDoc.blindingNonce));
+        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
+        const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
+        const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
         owners.push(hichain.deriveOwner(claimHash, blindingNonce));
       }
 
@@ -658,15 +657,15 @@ export default class Database extends EventEmitter {
       const transfer = new hi.FullTransfer(inputs, bounties, hookout, auth);
 
       if (!transfer.isValid()) {
-        console.error('transfer hash is: ', transfer.hash().toBech(), ' and expected: ', transferHash.toBech());
+        console.error('transfer hash is: ', transfer.hash().toPOD(), ' and expected: ', transferHash.toPOD());
         throw new Error('just created transfer is not valid');
       }
 
       const transferDoc: Docs.Transfer = {
-        hash: transferHash.toBech(),
+        hash: transferHash.toPOD(),
         ...transfer.prune().toPOD(),
         created: new Date(),
-        coinHashes: transfer.inputs.map(coin => coin.hash().toBech()),
+        coinHashes: transfer.inputs.map(coin => coin.hash().toPOD()),
         status: { kind: 'PENDING' },
       };
       await this.transfers.add(transferDoc);

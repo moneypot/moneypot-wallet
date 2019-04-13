@@ -59,7 +59,7 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
 
 export default function Transfer(props: RouteComponentProps<{ hash: string }>) {
   const transferHashStr = props.match.params.hash;
-  const transferHash = hi.Hash.fromBech(transferHashStr);
+  const transferHash = hi.Hash.fromPOD(transferHashStr);
 
   if (transferHash instanceof Error) {
     return <h1>Error invalid transfer hash: {transferHash.message}</h1>;
