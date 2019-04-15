@@ -1,60 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import Splash from './splash/splash';
-import BitcoinAddressInfo from './bitcoin-address-info';
-import ReceiveBitcoin from './receive/bitcoin';
-import ReceiveDirect from './receive/direct';
+import WalletDatabase from '../wallet/database';
 
-import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
-import Send from './send';
+import  { setWallet } from '../state/wallet'
+import LoadedApp from './loaded-app';
 
-import Hookins from './hookins';
-import BitcoinAddresses from './bitcoin-addresses';
-import Transfers from './transfers';
-import Bounties from './bounties';
-import Coins from './coins';
-import Transfer from './transfer';
 
-import { useBalance } from '../state/wallet';
-
-function NoMatch(params: RouteComponentProps<any>) {
-  return (
-    <div>
-      <h3>
-        No match for <code>{params.location.pathname}</code>
-      </h3>
-    </div>
-  );
-}
 export default () => {
-  const balance = useBalance();
+  console.log('wallet.app re-rendering');
 
-  const Router: any = window.location.protocol === "file:" ? HashRouter : BrowserRouter;
+  const [walletName, setWalletName] = useState("main");
+  const [password, setPassword] = useState("");
 
-  return (
-    <Router>
-      <div>
-        <Link to="/receive/bitcoin">Receive Bitcoin</Link> | <Link to="/receive/direct">Receive Direct</Link> | <Link to="/send">Send</Link> |{' '}
-        <span>Balance: {balance} satoshis</span>
-      </div>
-      <Switch>
-        <Route path="/" exact component={Splash} />
-        <Route path="/bitcoin-address-info/:id" component={BitcoinAddressInfo} />
-        <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
-        <Route path="/receive/direct" component={ReceiveDirect} />
-        <Route path="/addresses/bitcoin" component={BitcoinAddresses} />
-        <Route path="/send" component={Send} />
-        <Route path="/hookins" component={Hookins} />
-        <Route path="/transfers/:hash" component={Transfer} />
-        <Route path="/transfers" component={Transfers} />
-        <Route path="/bounties" component={Bounties} />
-        <Route path="/coins" component={Coins} />
-        <Route component={NoMatch} />
-      </Switch>
-      <div>
-        Advanced/Debug: <Link to="/transfers">Transfers</Link> | <Link to="/bounties">Bounties</Link> | <Link to="/coins">Coins</Link> |
-        <Link to="/hookins">Hookins</Link>
-      </div>
-    </Router>
-  );
+  const [isWalletSet, setIsWalletSet] = useState<boolean>(false);
+
+  async function createWallet() {
+
+    const db = await WalletDatabase.create(walletName, password);
+    if (db instanceof Error) {
+      alert(db.message);
+      return;
+    }
+
+    setWallet(db);
+    setIsWalletSet(true);
+  }
+
+  async function loadWallet() {
+    const db = new WalletDatabase(walletName);
+    const err = await db.unlock(password);
+    if (err) {
+      alert(err.message);
+      return;
+    }
+
+    setWallet(db);
+    setIsWalletSet(true);
+  }
+
+  if (!isWalletSet) {
+    return (<div>
+      <b>Wallet Name: </b><input type="text" value={walletName} onChange={ e => setWalletName(e.target.value) } /><br />
+      <b>Password: </b><input type="text" value={password} onChange={ e => setPassword(e.target.value) } /><br />
+      <button onClick={ createWallet }>Create Wallet</button>
+      <button onClick={ loadWallet }>Load Wallet</button>
+    </div>)
+  }
+
+  return <LoadedApp />
+
 };

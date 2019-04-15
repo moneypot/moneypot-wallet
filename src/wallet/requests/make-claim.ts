@@ -4,7 +4,10 @@ import makeRequest, { RequestError } from './make-request';
 import HIChain from '../hichain';
 import genNonces from './gen-nonces';
 
-export default async function makeClaim(hichain: HIChain, claimaint: hi.PrivateKey, claim: hi.Bounty | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
+export default async function makeClaim(
+  deriveBlindingSecret: (hash: hi.Hash, pubNonce: hi.PublicKey) => Uint8Array,
+  deriveOwner: (hash: hi.Hash, pubNonce: hi.PublicKey) => hi.PrivateKey,
+  claimaint: hi.PrivateKey, claim: hi.Bounty | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
 
@@ -22,8 +25,8 @@ export default async function makeClaim(hichain: HIChain, claimaint: hi.PrivateK
       const blindingNonce = nonces[i];
       const magnitude = coinsMagnitudes[i];
 
-      const blindingSecret = hichain.deriveBlindingSecret(claimHash, blindingNonce);
-      const newOwner = hichain.deriveOwner(claimHash, blindingNonce);
+      const blindingSecret = deriveBlindingSecret(claimHash, blindingNonce);
+      const newOwner = deriveOwner(claimHash, blindingNonce);
       const newOwnerPub = newOwner.toPublicKey();
 
       const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, hi.Params.blindingCoinPublicKeys[magnitude.n], newOwnerPub.buffer);

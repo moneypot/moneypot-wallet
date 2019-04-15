@@ -5,12 +5,15 @@ import * as Docs from '../wallet/docs';
 import * as util from '../util';
 import Dexie from 'dexie';
 
-const wallet = new WalletDatabase('hundredeyes.2');
-if (window) {
-  (window as any)._wallet = wallet;
-}
 
+const fakeWallet: any = new Error("wallet not initialized");
+let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
 export default wallet;
+
+export function setWallet(wdb: WalletDatabase) {
+  wallet = wdb;
+  (window as any)._window = wdb;
+}
 
 export function useTransfers(): Docs.Transfer[] {
   const [transfers, setTransfers] = useState<Docs.Transfer[]>([]);

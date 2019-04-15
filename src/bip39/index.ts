@@ -1,6 +1,6 @@
 import * as hi from 'hookedin-lib';
 import DEFAULT_WORDLIST from './english';
-import pbkdf2 from './pbkdf2-node'; // in browsers, this switches to pbkdf2-browser!
+import pbkdf2 from './pbkdf2-browser'; // TODO: switching..
 
 
 const INVALID_MNEMONIC = 'Invalid mnemonic';

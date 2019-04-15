@@ -2,7 +2,8 @@ import * as hi from 'hookedin-lib';
 
 export interface Config {
   one: 1; // for indexing
-  seed: string;
+  addressGenerator: string; 
+  mnemonic: string;
   baseAPI: string;
   gapLimit: number;
 }
