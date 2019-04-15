@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "webpack-dev-server",
     "build": "webpack --config webpack.config.js",
-    "build-cdn": "NODE_ENV==production USE_CDN=true webpack --config webpack.config.js",
+    "build-cdn": "NODE_ENV=production USE_CDN=true webpack --config webpack.config.js",
     "prettier": "prettier --single-quote --trailing-comma es5 --print-width 160 --write \"src/**/*.{ts,tsx}\"",
     "publish": "npm run build-cdn && cp dist/* ../hundredeyes-dist && cd ../hundredeyes-dist/ && git add -A && git c -m \"Add built files\" && git pull --rebase && git push"
   },

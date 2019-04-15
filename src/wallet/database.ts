@@ -115,7 +115,12 @@ export default class Database extends EventEmitter {
       gapLimit: 10,
     };
 
-    db.config.add(configDoc);
+    try {
+      await db.config.add(configDoc);
+    } catch (err) {
+      console.error('got error when trying to restore a config', err);
+      return new Error('WALLET_ALREADY_INITIALIZED');
+    }
     db.seed = seed;
 
     return db;
