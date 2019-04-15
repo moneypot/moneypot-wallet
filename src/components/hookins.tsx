@@ -1,6 +1,6 @@
 import React from 'react';
 
-import wallet, { useHookins, useClaimStatus } from '../state/wallet';
+import { wallet, useHookins, useClaimStatus } from '../state/wallet';
 
 import * as Docs from '../wallet/docs';
 

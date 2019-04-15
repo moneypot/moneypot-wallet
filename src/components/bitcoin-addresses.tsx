@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import wallet, { useBitcoinAddresses, useHookinsOfAddress } from '../state/wallet';
+import { wallet, useBitcoinAddresses, useHookinsOfAddress } from '../state/wallet';
 
 import * as Docs from '../wallet/docs';
 import { Link } from 'react-router-dom';

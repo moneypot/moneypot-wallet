@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { TheQr } from 'the-qr';
 
 import * as Docs from '../../wallet/docs';
-import wallet, { useUnusedBitcoinAddress } from '../../state/wallet';
+import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   return (

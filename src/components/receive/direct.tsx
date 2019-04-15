@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { TheQr } from 'the-qr';
 
 import * as Docs from '../../wallet/docs';
-import wallet, { useUnusedDirectAddress } from '../../state/wallet';
+import { wallet, useUnusedDirectAddress } from '../../state/wallet';
 
 function show(addressDoc: Docs.DirectAddress) {
   return (

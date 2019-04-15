@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
 import * as Docs from '../wallet/docs';
-import wallet from '../state/wallet';
+import { wallet } from '../state/wallet';
 import * as Util from '../util';
 
 function render(bitcoinAddress: Docs.BitcoinAddress) {

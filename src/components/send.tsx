@@ -1,7 +1,7 @@
 import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
-import wallet from '../state/wallet';
+import { wallet } from '../state/wallet';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {

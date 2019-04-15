@@ -3,7 +3,7 @@ import { RouteComponentProps } from 'react-router';
 import * as hi from 'hookedin-lib';
 import * as Docs from '../wallet/docs';
 
-import wallet, { useTransfer, useBounties, useHookout } from '../state/wallet';
+import { wallet, useTransfer, useBounties, useHookout } from '../state/wallet';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   const bounties = useBounties(transfer.bountyHashes);

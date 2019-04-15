@@ -1,6 +1,6 @@
 import React from 'react';
 
-import wallet, { useAckdBounties, useClaimStatus } from '../state/wallet';
+import { wallet, useAckdBounties, useClaimStatus } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 
 export default function Bounties() {

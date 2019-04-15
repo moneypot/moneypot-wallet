@@ -1,7 +1,7 @@
 import React from 'react';
 
 import * as Docs from '../wallet/docs';
-import wallet, { useCoins, useTransferByCoin } from '../state/wallet';
+import { useCoins, useTransferByCoin } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 export default function Coins() {

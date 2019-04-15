@@ -7,12 +7,11 @@ import Dexie from 'dexie';
 
 
 const fakeWallet: any = new Error("wallet not initialized");
-let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
-export default wallet;
+export let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
 
 export function setWallet(wdb: WalletDatabase) {
   wallet = wdb;
-  (window as any)._window = wdb;
+  (window as any)._wallet = wdb;
 }
 
 export function useTransfers(): Docs.Transfer[] {
