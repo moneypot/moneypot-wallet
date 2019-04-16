@@ -111,7 +111,7 @@ export default class Database extends EventEmitter {
       one: 1,
       addressGenerator: addressGenerator.toPublicKey().toPOD(),
       mnemonic,
-      baseAPI: 'wallet.hookedin.com' ? 'https://www.hookedin.com/api/dev' : 'http://localhost:3030',
+      baseAPI: true ? 'https://www.hookedin.com/api/dev' : 'http://localhost:3030',
       gapLimit: 10,
     };
 
