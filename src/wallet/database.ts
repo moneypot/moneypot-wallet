@@ -212,19 +212,19 @@ export default class Database extends EventEmitter {
     // TODO: validate ...
   }
 
-  // desiredChangeFor is normally 0, it's just if we need specific coins when claiming
-  public async claimBounty(bountyDoc: Docs.Bounty, desiredChangeFor: number = 0) {
-    util.isTrue(Number.isSafeInteger(desiredChangeFor));
-    util.isTrue(desiredChangeFor >= 0);
-    util.isTrue(desiredChangeFor <= bountyDoc.amount);
+  public async claimBounty(bountyDoc: Docs.Bounty) {
+    const address = util.mustExist(await this.directAddresses.get(bountyDoc.claimant));
+    return this.claimBountyWithAddress(bountyDoc, address);
+  }
 
+
+  private async claimBountyWithAddress(bountyDoc: Docs.Bounty, address: Docs.DirectAddress) {
     const claim = await this.claims.get(bountyDoc.hash);
     if (claim) {
       console.log('bounty: ', bountyDoc.hash, ' already claimed, no need to reclaim', claim);
       return;
     }
 
-    const address = util.mustExist(await this.directAddresses.get(bountyDoc.claimant));
     const claimant = this.deriveClaimantIndex(address.index);
 
     const bounty = util.notError(hi.Bounty.fromPOD(bountyDoc));
@@ -382,10 +382,7 @@ export default class Database extends EventEmitter {
     });
   }
 
-  public async newBitcoinAddress(hdchain?: string): Promise<Docs.BitcoinAddress> {
-    if (hdchain !== undefined) {
-      throw new Error('TODO: support hdchains ...');
-    }
+  public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
 
     return await this.db.transaction('rw', this.bitcoinAddresses, async () => {
       const maxIndex = await this.bitcoinAddresses.orderBy('index').last();
@@ -405,7 +402,6 @@ export default class Database extends EventEmitter {
     const bitcoinAddressDoc: Docs.BitcoinAddress = {
       address: bitcoinAddress,
       claimant,
-      hdchain: undefined,
       index,
     };
 
@@ -480,7 +476,7 @@ export default class Database extends EventEmitter {
       };
 
       await this.bounties.add(bountyDoc);
-      await this.claimBounty(bountyDoc);
+      await this.claimBountyWithAddress(bountyDoc, directAddressDoc);
     }
   }
 
@@ -526,10 +522,10 @@ export default class Database extends EventEmitter {
 
     const inputs = transferDoc.inputs.map(i => util.notError(hi.Coin.fromPOD(i)));
 
-    const bounties: hi.Bounty[] = [];
+    const bountyDocs: Docs.Bounty[] = [];
     for (const bountyHash of transferDoc.bountyHashes) {
       const b = util.mustExist(await this.bounties.get(bountyHash));
-      bounties.push(util.notError(hi.Bounty.fromPOD(b)));
+      bountyDocs.push(b);
     }
 
     let hookout: hi.Hookout | undefined = undefined;
@@ -540,7 +536,7 @@ export default class Database extends EventEmitter {
 
     const authorization = util.notError(hi.Signature.fromPOD(transferDoc.authorization));
 
-    const fullTransfer = new hi.FullTransfer(inputs, bounties, hookout, authorization);
+    const fullTransfer = new hi.FullTransfer(inputs, bountyDocs.map(b => util.notError(hi.Bounty.fromPOD(b))), hookout, authorization);
     const acknowledgement = await submitTransfer(fullTransfer);
 
     if (acknowledgement instanceof RequestError) {
@@ -578,8 +574,24 @@ export default class Database extends EventEmitter {
       throw acknowledgement;
     }
 
+    // succeeded. So in the background, we should be trying to claim all the bounties
+
+    (async () => {
+      for (const bounty of bountyDocs) {
+        const address = await this.directAddresses.get(bounty.claimant);
+        if (address === undefined) {
+          continue;
+        }
+        await this.claimBountyWithAddress(bounty, address);
+      }
+    })().catch(err => {
+      console.error('could not claim bounties, got error: ', err);
+    });
+
+
     transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
     await this.transfers.put(transferDoc);
+
   }
 
   public async sendDirect(to: hi.PublicKey, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {

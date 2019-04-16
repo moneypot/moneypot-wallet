@@ -36,7 +36,6 @@ export interface BitcoinAddress {
   address: string; // the actual bitcoin address
   claimant: string; // bech encoded
   index: number;
-  hdchain?: string; // base58 encoded chain
 }
 
 export interface DirectAddress {
