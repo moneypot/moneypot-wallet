@@ -107,18 +107,37 @@ export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
 
 export function useHookins(): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
-  const getHookins = async () => {
-    const addresses = await wallet.hookins.toArray();
-    addresses.sort((a, b) => a.created.getTime() - b.created.getTime());
-    setHookins(addresses);
+
+  async function getAndSet() {
+    const hs = await wallet.hookins.orderBy('created').reverse().toArray();
+    //hs.sort((a, b) => a.created.getTime() - b.created.getTime());
+    setHookins(hs);
   };
+
   useEffect(() => {
-    const cleanup = wallet.on('table:hookins', getHookins);
-    getHookins();
+    const cleanup = wallet.on('table:hookins', getAndSet);
+    getAndSet();
     return cleanup;
   }, []);
 
   return hookins;
+}
+
+export function useHookouts(): Docs.Hookout[] {
+  const [hookouts, setHookouts] = useState<Docs.Hookout[]>([]);
+
+  async function getAndSet() {
+    const hs = await wallet.hookouts.orderBy('created').reverse().toArray();
+    setHookouts(hs);
+  };
+
+  useEffect(() => {
+    const cleanup = wallet.on('table:hookouts', getAndSet);
+    getAndSet();
+    return cleanup;
+  }, []);
+
+  return hookouts;
 }
 
 function useTableKey<TableType>(table: Dexie.Table<TableType, string>, key?: string) {

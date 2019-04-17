@@ -48,6 +48,7 @@ export interface DirectAddress {
 
 export interface Hookout extends hi.POD.Hookout {
   hash: string;
+  created: Date;
 }
 
 export interface Transfer extends hi.POD.Transfer {

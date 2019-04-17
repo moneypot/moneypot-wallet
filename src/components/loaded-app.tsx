@@ -15,6 +15,7 @@ import Bounties from './bounties';
 import Coins from './coins';
 import Transfer from './transfer';
 import Config from './config';
+import Hookouts from './hookouts';
 
 import { useBalance } from '../state/wallet';
 
@@ -46,6 +47,7 @@ export default () => {
         <Route path="/addresses/bitcoin" component={BitcoinAddresses} />
         <Route path="/send" component={Send} />
         <Route path="/hookins" component={Hookins} />
+        <Route path="/hookouts" component={Hookouts} />
         <Route path="/transfers/:hash" component={Transfer} />
         <Route path="/transfers" component={Transfers} />
         <Route path="/bounties" component={Bounties} />
@@ -55,7 +57,7 @@ export default () => {
       </Switch>
       <div>
         Advanced/Debug: <Link to="/transfers">Transfers</Link> | <Link to="/bounties">Bounties</Link> | <Link to="/coins">Coins</Link> |{' '}
-        <Link to="/hookins">Hookins</Link> | <Link to="/config">Config</Link>
+        <Link to="/hookins">Hookins</Link> | <Link to="/config">Config</Link> | <Link to="/hookouts">Hookouts</Link>
       </div>
     </Router>
   );

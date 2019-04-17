@@ -28,7 +28,7 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Hookin }) {
     } else {
       return (
         <span>
-          Spent by <code>{spentStatus.claimRequest.claim}</code>
+          Claimed by <code>{spentStatus.claimRequest.claim}</code>
         </span>
       );
     }

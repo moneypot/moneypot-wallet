@@ -47,8 +47,8 @@ export default class Database extends EventEmitter {
       coins: 'hash, claimHash',
       claims: 'claimRequest.claim', // is the claimHash...
       directAddresses: 'claimant, &index',
-      hookins: 'hash, bitcoinAddress',
-      hookouts: 'hash',
+      hookins: 'hash, bitcoinAddress, created',
+      hookouts: 'hash, created',
       transfers: 'hash, input, *coinHashes, output, kind, status.kind, created',
     });
 
@@ -659,6 +659,7 @@ export default class Database extends EventEmitter {
       const hookout = new hi.Hookout(amount, address, true, hi.random(32));
       const hookoutDoc: Docs.Hookout = {
         hash: hookout.hash().toPOD(),
+        created: new Date(),
         ...hookout.toPOD(),
       };
       await this.hookouts.add(hookoutDoc);
