@@ -5,7 +5,6 @@ import * as util from '../util';
 
 import * as bip39 from '../bip39';
 
-import HIChain from './hichain';
 import 'dexie-observable';
 
 import submitTransfer from './requests/submit-transfer';

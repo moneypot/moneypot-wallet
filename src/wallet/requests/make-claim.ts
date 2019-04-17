@@ -1,7 +1,6 @@
 import * as hi from 'hookedin-lib';
 import * as config from '../config';
 import makeRequest, { RequestError } from './make-request';
-import HIChain from '../hichain';
 import genNonces from './gen-nonces';
 
 export default async function makeClaim(
