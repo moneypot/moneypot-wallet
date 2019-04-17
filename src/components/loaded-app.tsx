@@ -14,6 +14,7 @@ import Transfers from './transfers';
 import Bounties from './bounties';
 import Coins from './coins';
 import Transfer from './transfer';
+import Config from './config';
 
 import { useBalance } from '../state/wallet';
 
@@ -29,7 +30,7 @@ function NoMatch(params: RouteComponentProps<any>) {
 export default () => {
   const balance = useBalance();
 
-  const Router: any = window.location.protocol === "file:" ? HashRouter : BrowserRouter;
+  const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
   return (
     <Router>
@@ -49,11 +50,12 @@ export default () => {
         <Route path="/transfers" component={Transfers} />
         <Route path="/bounties" component={Bounties} />
         <Route path="/coins" component={Coins} />
+        <Route path="/config" component={Config} />
         <Route component={NoMatch} />
       </Switch>
       <div>
-        Advanced/Debug: <Link to="/transfers">Transfers</Link> | <Link to="/bounties">Bounties</Link> | <Link to="/coins">Coins</Link> |
-        <Link to="/hookins">Hookins</Link>
+        Advanced/Debug: <Link to="/transfers">Transfers</Link> | <Link to="/bounties">Bounties</Link> | <Link to="/coins">Coins</Link> |{' '}
+        <Link to="/hookins">Hookins</Link> | <Link to="/config">Config</Link>
       </div>
     </Router>
   );

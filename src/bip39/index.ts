@@ -2,7 +2,6 @@ import * as hi from 'hookedin-lib';
 import DEFAULT_WORDLIST from './english';
 import pbkdf2 from './pbkdf2-browser'; // TODO: switching..
 
-
 const INVALID_MNEMONIC = 'Invalid mnemonic';
 const INVALID_ENTROPY = 'Invalid entropy';
 const INVALID_CHECKSUM = 'Invalid mnemonic checksum';
@@ -33,24 +32,15 @@ function salt(password?: string): string {
   return 'mnemonic' + (password || '');
 }
 
-
-export async function mnemonicToSeed(
-  mnemonic: string,
-  password?: string,
-): Promise<Uint8Array> {
-
+export async function mnemonicToSeed(mnemonic: string, password?: string): Promise<Uint8Array> {
   const enc = new TextEncoder();
   const mnemonicBuffer = enc.encode(mnemonic || '');
-  const saltBuffer = enc.encode(salt((password || '')));
-
+  const saltBuffer = enc.encode(salt(password || ''));
 
   return await pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64);
 }
 
-export function mnemonicToEntropy(
-  mnemonic: string,
-): Uint8Array {
-
+export function mnemonicToEntropy(mnemonic: string): Uint8Array {
   const words = (mnemonic || '').normalize('NFKD').split(' ');
   if (words.length % 3 !== 0) throw new Error(INVALID_MNEMONIC);
 
@@ -85,10 +75,7 @@ export function mnemonicToEntropy(
   return entropy;
 }
 
-export function entropyToMnemonic(
-  entropy: Uint8Array,
-): string {
-
+export function entropyToMnemonic(entropy: Uint8Array): string {
   // 128 <= ENT <= 256
   if (entropy.length < 16) throw new TypeError(INVALID_ENTROPY);
   if (entropy.length > 32) throw new TypeError(INVALID_ENTROPY);
@@ -107,19 +94,14 @@ export function entropyToMnemonic(
   return words.join(' ');
 }
 
-export function generateMnemonic(
-  strength?: number,
-): string {
+export function generateMnemonic(strength?: number): string {
   strength = strength || 256;
   if (strength % 32 !== 0) throw new TypeError(INVALID_ENTROPY);
-
 
   return entropyToMnemonic(hi.random(strength / 8));
 }
 
-export function validateMnemonic(
-  mnemonic: string,
-): boolean {
+export function validateMnemonic(mnemonic: string): boolean {
   try {
     mnemonicToEntropy(mnemonic);
   } catch (e) {
@@ -128,4 +110,3 @@ export function validateMnemonic(
 
   return true;
 }
-

@@ -2,7 +2,9 @@ import * as hi from 'hookedin-lib';
 
 export interface Config {
   one: 1; // for indexing
-  addressGenerator: string; 
+  bitcoinAddressGenerator: string;
+  directAddressGenerator: string;
+  internalAddressGenerator: string;
   mnemonic: string;
   baseAPI: string;
   gapLimit: number;

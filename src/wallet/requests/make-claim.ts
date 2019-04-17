@@ -7,7 +7,10 @@ import genNonces from './gen-nonces';
 export default async function makeClaim(
   deriveBlindingSecret: (hash: hi.Hash, pubNonce: hi.PublicKey) => Uint8Array,
   deriveOwner: (hash: hi.Hash, pubNonce: hi.PublicKey) => hi.PrivateKey,
-  claimaint: hi.PrivateKey, claim: hi.Bounty | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
+  claimaint: hi.PrivateKey,
+  claim: hi.Bounty | hi.Hookin,
+  coinsMagnitudes: hi.Magnitude[]
+) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
 

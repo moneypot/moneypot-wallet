@@ -5,8 +5,7 @@ import * as Docs from '../wallet/docs';
 import * as util from '../util';
 import Dexie from 'dexie';
 
-
-const fakeWallet: any = new Error("wallet not initialized");
+const fakeWallet: any = new Error('wallet not initialized');
 export let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
 
 export function setWallet(wdb: WalletDatabase) {
@@ -344,4 +343,22 @@ export function useUnusedDirectAddress(): Docs.DirectAddress | undefined {
   }, []);
 
   return address;
+}
+
+export function useConfig() {
+  const [config, setConfig] = useState<Docs.Config | undefined>();
+  async function getAndSet() {
+    const c = await wallet.getConfig();
+    setConfig(c);
+  }
+
+  useEffect(() => {
+    const cleanup = wallet.on('table:config', getAndSet);
+
+    getAndSet();
+
+    return cleanup;
+  }, []);
+
+  return config;
 }

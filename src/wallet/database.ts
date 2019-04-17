@@ -5,7 +5,6 @@ import * as util from '../util';
 
 import * as bip39 from '../bip39';
 
-
 import HIChain from './hichain';
 import 'dexie-observable';
 
@@ -91,13 +90,11 @@ export default class Database extends EventEmitter {
         }
       }
     });
-
   }
 
   public static async restore(name: string, mnemonic: string, password: string): Promise<Database | Error> {
-
     const db = new Database(name);
- 
+
     const isCorrect = bip39.validateMnemonic(mnemonic);
     if (!isCorrect) {
       return new Error('INVALID_MNEMONIC');
@@ -105,11 +102,15 @@ export default class Database extends EventEmitter {
 
     const seed = await bip39.mnemonicToSeed(mnemonic, password);
 
-    const addressGenerator = seedToBitcoinAddressGenerator(seed);
+    const bitcoinAddressGenerator = seedToBitcoinAddressGenerator(seed);
+    const directAddressGenerator = seedToDirectAddressGenerator(seed);
+    const internalAddressGenerator = seedToInternalAddressGenerator(seed);
 
     const configDoc: Docs.Config = {
       one: 1,
-      addressGenerator: addressGenerator.toPublicKey().toPOD(),
+      bitcoinAddressGenerator: bitcoinAddressGenerator.toPublicKey().toPOD(),
+      directAddressGenerator: directAddressGenerator.toPublicKey().toPOD(),
+      internalAddressGenerator: internalAddressGenerator.toPublicKey().toPOD(),
       mnemonic,
       baseAPI: true ? 'https://www.hookedin.com/api/dev' : 'http://localhost:3030',
       gapLimit: 10,
@@ -131,18 +132,16 @@ export default class Database extends EventEmitter {
     return await Database.restore(name, mnemonic, password);
   }
 
-
   public async unlock(password: string): Promise<Error | undefined> {
     const config = await this.getConfig();
 
     const seed = await bip39.mnemonicToSeed(config.mnemonic, password);
     const addressGenerator = seedToBitcoinAddressGenerator(seed);
 
-    if (addressGenerator.toPublicKey().toPOD() !== config.addressGenerator) {
+    if (addressGenerator.toPublicKey().toPOD() !== config.bitcoinAddressGenerator) {
       return new Error('INVALID_PASSWORD');
     }
 
-  
     this.seed = seed;
   }
 
@@ -217,7 +216,6 @@ export default class Database extends EventEmitter {
     return this.claimBountyWithAddress(bountyDoc, address);
   }
 
-
   private async claimBountyWithAddress(bountyDoc: Docs.Bounty, address: Docs.DirectAddress) {
     const claim = await this.claims.get(bountyDoc.hash);
     if (claim) {
@@ -225,16 +223,13 @@ export default class Database extends EventEmitter {
       return;
     }
 
-    const claimant = this.deriveClaimantIndex(address.index);
+    const claimant = this.deriveClaimantIndex(address.index, address.isInternal);
 
     const bounty = util.notError(hi.Bounty.fromPOD(bountyDoc));
 
     const magnitudes = hi.amountToMagnitudes(bounty.amount);
 
-    const claimResponse = await makeClaim(
-      this.deriveBlindingSecret.bind(this),
-      this.deriveOwner.bind(this),
-      claimant, bounty, magnitudes);
+    const claimResponse = await makeClaim(this.deriveBlindingSecret.bind(this), this.deriveOwner.bind(this), claimant, bounty, magnitudes);
 
     await this.processClaimResponse(claimResponse);
   }
@@ -254,10 +249,7 @@ export default class Database extends EventEmitter {
 
     const magnitudes = hi.amountToMagnitudes(hookin.amount - hi.Params.transactionConsolidationFee);
 
-    const claimResponse = await makeClaim(
-      this.deriveBlindingSecret.bind(this),
-      this.deriveOwner.bind(this),
-      claimant, hookin, magnitudes);
+    const claimResponse = await makeClaim(this.deriveBlindingSecret.bind(this), this.deriveOwner.bind(this), claimant, hookin, magnitudes);
 
     await this.processClaimResponse(claimResponse);
   }
@@ -302,7 +294,6 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-
     const { gapLimit } = await this.getConfig();
     let gapCount = 0;
 
@@ -383,7 +374,6 @@ export default class Database extends EventEmitter {
   }
 
   public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-
     return await this.db.transaction('rw', this.bitcoinAddresses, async () => {
       const maxIndex = await this.bitcoinAddresses.orderBy('index').last();
       const index = maxIndex === undefined ? 0 : maxIndex.index + 1;
@@ -393,7 +383,6 @@ export default class Database extends EventEmitter {
   }
 
   private async addBitcoinAddress(index: number): Promise<Docs.BitcoinAddress> {
-
     const hookinInfo = this.deriveBitcoinAddressIndex(index);
 
     const claimant = hookinInfo.claimant.toPublicKey().toPOD();
@@ -449,8 +438,7 @@ export default class Database extends EventEmitter {
   }
 
   private async addDirectAddress(index: number, isInternal: boolean): Promise<[hi.PublicKey, Docs.DirectAddress]> {
-
-    const claimant = this.deriveClaimantIndex(index);
+    const claimant = this.deriveClaimantIndex(index, isInternal);
     const claimantPub = claimant.toPublicKey();
 
     const directAddressDoc: Docs.DirectAddress = {
@@ -482,7 +470,6 @@ export default class Database extends EventEmitter {
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
     for (const receive of receives) {
-
       const creditToPub = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
 
       const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, creditToPub);
@@ -588,10 +575,8 @@ export default class Database extends EventEmitter {
       console.error('could not claim bounties, got error: ', err);
     });
 
-
     transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
     await this.transfers.put(transferDoc);
-
   }
 
   public async sendDirect(to: hi.PublicKey, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
@@ -662,7 +647,6 @@ export default class Database extends EventEmitter {
   }
 
   public async sendToBitcoinAddress(address: string, amount: number, feeRate: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
-
     const totalToSend = amount + Math.ceil(feeRate * hi.Params.templateTransactionWeight);
 
     const res = await this.db.transaction('rw', this.bounties, this.coins, this.directAddresses, this.hookouts, this.transfers, async () => {
@@ -730,11 +714,9 @@ export default class Database extends EventEmitter {
     return res.transferHash;
   }
 
-
   public deriveBitcoinAddressIndex(i: number) {
-    return this.deriveBitcoinAddress(hi.Buffutils.fromUint8(i))    // TODO: use .fromVarInt()
+    return this.deriveBitcoinAddress(hi.Buffutils.fromUint8(i)); // TODO: use .fromVarInt()
   }
-
 
   public deriveBitcoinAddress(n: Uint8Array) {
     if (this.seed === undefined) {
@@ -754,18 +736,19 @@ export default class Database extends EventEmitter {
     return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
   }
 
-  public deriveClaimantIndex(index: number) {
-    return this.deriveClaimant(hi.Buffutils.fromUint8(index)); // TODO: use  .fromVarInt()
+  public deriveClaimantIndex(index: number, isInternal: boolean) {
+    return this.deriveClaimant(hi.Buffutils.fromVarInt(index), isInternal);
   }
 
-  public deriveClaimant(n: Uint8Array): hi.PrivateKey {
+  public deriveClaimant(n: Uint8Array, isInternal: boolean): hi.PrivateKey {
     if (this.seed === undefined) {
       throw new Error('wallet is locked');
     }
 
-    return seedToClaimantGenerator(this.seed).derive(n);
-  }
+    const addressGenerator = isInternal ? seedToDirectAddressGenerator(this.seed) : seedToInternalAddressGenerator(this.seed);
 
+    return addressGenerator.derive(n);
+  }
 
   public deriveOwner(claimHash: hi.Hash, blindingNonce: hi.PublicKey): hi.PrivateKey {
     if (this.seed === undefined) {
@@ -787,14 +770,17 @@ export default class Database extends EventEmitter {
   }
 }
 
-
-function seedToClaimantGenerator(seed: Uint8Array): hi.PrivateKey {
-  const hash = hi.Hash.fromMessage('claimantGenerator', seed);
+function seedToBitcoinAddressGenerator(seed: Uint8Array): hi.PrivateKey {
+  const hash = hi.Hash.fromMessage('bitcoinAddressGenerator', seed);
   return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
 }
 
+function seedToDirectAddressGenerator(seed: Uint8Array): hi.PrivateKey {
+  const hash = hi.Hash.fromMessage('directAddressGenerator', seed);
+  return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
+}
 
-function seedToBitcoinAddressGenerator(seed: Uint8Array): hi.PrivateKey {
-  const hash = hi.Hash.fromMessage('bitcoinAddressGenerator', seed);
+function seedToInternalAddressGenerator(seed: Uint8Array): hi.PrivateKey {
+  const hash = hi.Hash.fromMessage('internalAddressGenerator', seed);
   return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
 }
