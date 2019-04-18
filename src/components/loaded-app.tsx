@@ -5,7 +5,7 @@ import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
 import ReceiveDirect from './receive/direct';
 
-import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link, Redirect } from 'react-router-dom';
 import Send from './send';
 
 import Hookins from './hookins';
@@ -16,7 +16,6 @@ import Coins from './coins';
 import Transfer from './transfer';
 import Config from './config';
 import Hookouts from './hookouts';
-
 import { useBalance } from '../state/wallet';
 
 function NoMatch(params: RouteComponentProps<any>) {
@@ -40,6 +39,8 @@ export default function LoadedApp() {
         <span>Balance: {balance} satoshis</span>
       </div>
       <Switch>
+        <Route path="/create-wallet" exact render={()=> <Redirect to="/"/>}/>
+        <Route path="/create-read" component={BitcoinAddressInfo} />
         <Route path="/" exact component={Splash} />
         <Route path="/bitcoin-address-info/:id" component={BitcoinAddressInfo} />
         <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
