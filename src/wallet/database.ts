@@ -526,8 +526,6 @@ export default class Database extends EventEmitter {
     // We just have this now, so we're sure we can claim the change...
     const changeAddress = util.mustExist(await this.directAddresses.get(changeDoc.claimant));
 
-
-
     const authorization = util.notError(hi.Signature.fromPOD(transferDoc.authorization));
 
     const fullTransfer = new hi.FullTransfer(inputs, output, change, authorization);
@@ -573,7 +571,7 @@ export default class Database extends EventEmitter {
 
     // succeeded. So in the background, we should be trying to claim the change..
     (async () => {
-        await this.claimBountyWithAddress(changeDoc, changeAddress);
+      await this.claimBountyWithAddress(changeDoc, changeAddress);
     })().catch(err => {
       console.error('could not claim bounties, got error: ', err);
     });
@@ -602,9 +600,7 @@ export default class Database extends EventEmitter {
       };
       await this.bounties.add(bountyDoc);
 
-      
       const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
-
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);
@@ -664,9 +660,7 @@ export default class Database extends EventEmitter {
       };
       await this.hookouts.add(hookoutDoc);
 
-
       const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
-
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);

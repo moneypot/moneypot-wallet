@@ -18,7 +18,6 @@ export default function Hookins() {
 }
 
 function Hookout({ hookoutDoc }: { hookoutDoc: Docs.Hookout }) {
-
   return (
     <div style={{ border: '1px solid black' }}>
       <code>

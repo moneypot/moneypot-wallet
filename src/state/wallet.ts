@@ -109,10 +109,13 @@ export function useHookins(): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
   async function getAndSet() {
-    const hs = await wallet.hookins.orderBy('created').reverse().toArray();
+    const hs = await wallet.hookins
+      .orderBy('created')
+      .reverse()
+      .toArray();
     //hs.sort((a, b) => a.created.getTime() - b.created.getTime());
     setHookins(hs);
-  };
+  }
 
   useEffect(() => {
     const cleanup = wallet.on('table:hookins', getAndSet);
@@ -127,9 +130,12 @@ export function useHookouts(): Docs.Hookout[] {
   const [hookouts, setHookouts] = useState<Docs.Hookout[]>([]);
 
   async function getAndSet() {
-    const hs = await wallet.hookouts.orderBy('created').reverse().toArray();
+    const hs = await wallet.hookouts
+      .orderBy('created')
+      .reverse()
+      .toArray();
     setHookouts(hs);
-  };
+  }
 
   useEffect(() => {
     const cleanup = wallet.on('table:hookouts', getAndSet);
@@ -179,36 +185,35 @@ export function useHookout(hookoutHash?: string) {
 }
 
 interface KindedBounty {
-  kind: "Bounty"
-  bounty: Docs.Bounty
+  kind: 'Bounty';
+  bounty: Docs.Bounty;
 }
 interface KindedHookout {
-  kind: "Hookout"
-  hookout: Docs.Hookout
+  kind: 'Hookout';
+  hookout: Docs.Hookout;
 }
 
-export function useBountyOrHookout(outputHash: string): "LOADING" | "NOT_FOUND" |  KindedBounty | KindedHookout  {
+export function useBountyOrHookout(outputHash: string): 'LOADING' | 'NOT_FOUND' | KindedBounty | KindedHookout {
   const bounty = useBounty(outputHash);
   const hookout = useHookout(outputHash);
 
-  if (bounty === "LOADING" || hookout === "LOADING") {
-    return "LOADING";
+  if (bounty === 'LOADING' || hookout === 'LOADING') {
+    return 'LOADING';
   }
 
-  if (bounty === "NOT_FOUND" && hookout === "NOT_FOUND") {
-    return "NOT_FOUND";
+  if (bounty === 'NOT_FOUND' && hookout === 'NOT_FOUND') {
+    return 'NOT_FOUND';
   }
 
-  if (bounty !== "NOT_FOUND") {
-    return { kind: "Bounty", bounty }
+  if (bounty !== 'NOT_FOUND') {
+    return { kind: 'Bounty', bounty };
   }
-  if (hookout !== "NOT_FOUND") {
-    return { kind: "Hookout", hookout }
+  if (hookout !== 'NOT_FOUND') {
+    return { kind: 'Hookout', hookout };
   }
 
-  throw new Error("unreachable!");
+  throw new Error('unreachable!');
 }
-
 
 export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);

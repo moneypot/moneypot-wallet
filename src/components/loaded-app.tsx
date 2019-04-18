@@ -28,7 +28,7 @@ function NoMatch(params: RouteComponentProps<any>) {
     </div>
   );
 }
-export default () => {
+export default function LoadedApp() {
   const balance = useBalance();
 
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
@@ -61,4 +61,4 @@ export default () => {
       </div>
     </Router>
   );
-};
+}

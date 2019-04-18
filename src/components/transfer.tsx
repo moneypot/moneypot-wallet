@@ -6,7 +6,6 @@ import * as Docs from '../wallet/docs';
 import { wallet, useTransfer, useBountyOrHookout, useBounty, useHookout } from '../state/wallet';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
-
   const output = useBountyOrHookout(transfer.outputHash);
   const change = useBounty(transfer.changeHash);
 
