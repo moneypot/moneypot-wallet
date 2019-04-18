@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-
 import WalletDatabase from '../wallet/database';
-
 import { setWallet } from '../state/wallet';
 import LoadedApp from './loaded-app';
 import Dexie from 'dexie';
+import CreateWallet from './create-wallet'
 
 export default () => {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);

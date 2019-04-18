@@ -3,6 +3,8 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const SriPlugin = require('webpack-subresource-integrity');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const devMode = process.env.NODE_ENV !== 'production';
 
 
 module.exports = {
@@ -22,6 +24,12 @@ module.exports = {
     new CopyPlugin([
       { from: './public', to: '.' }
     ]),
+    new MiniCssExtractPlugin({
+      // Options similar to the same options in webpackOptions.output
+      // both options are optional
+      filename: devMode ? '[name].css' : '[name].[hash].css',
+      chunkFilename: devMode ? '[id].css' : '[id].[hash].css',
+    }),
   ],
   module: {
     rules: [
@@ -39,11 +47,46 @@ module.exports = {
         use: [
           'file-loader'
         ],
+      },
+      {
+        test: /\.module\.s(a|c)ss$/,
+        loader: [
+          devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true,
+              localIdentName: '[name]__[local]___[hash:base64:5]',
+              camelCase: true,
+              sourceMap: devMode
+            }
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: devMode
+            }
+          }
+        ]
+      },
+      {
+        test: /\.s(a|c)ss$/,
+        exclude: /\.module.(s(a|c)ss)$/,
+        loader: [
+          devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: devMode
+            }
+          }
+        ]
       }
     ]
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js', '.css' ]
+    extensions: [ '.tsx', '.ts', '.js', '.css', '.scss' ]
   },
   output: {
     crossOriginLoading: 'anonymous',
