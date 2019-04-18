@@ -51,9 +51,22 @@ export interface Hookout extends hi.POD.Hookout {
   created: Date;
 }
 
+export function getInputOutputHashes(transfer: hi.Transfer) {
+  const hashes: string[] = [];
+
+  for (const coin of transfer.inputs) {
+    hashes.push(coin.hash().toPOD());
+  }
+
+  hashes.push(transfer.outputHash.toPOD());
+  hashes.push(transfer.changeHash.toPOD());
+
+  return hashes;
+}
+
 export interface Transfer extends hi.POD.Transfer {
   hash: string;
   status: { kind: 'PENDING' } | { kind: 'CONFLICTED' } | { kind: 'ACKNOWLEDGED'; acknowledgement: string };
-  coinHashes: string[]; // for the index
+  inputOutputHashes: string[]; // for the index of all inputs and outputs (including change)
   created: Date;
 }

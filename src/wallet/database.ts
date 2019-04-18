@@ -49,7 +49,7 @@ export default class Database extends EventEmitter {
       directAddresses: 'claimant, &index',
       hookins: 'hash, bitcoinAddress, created',
       hookouts: 'hash, created',
-      transfers: 'hash, input, *coinHashes, output, kind, status.kind, created',
+      transfers: 'hash, *inputOutputHashes, status.kind, created',
     });
 
     this.bounties = this.db.table('bounties');
@@ -82,10 +82,9 @@ export default class Database extends EventEmitter {
         }
 
         if (change.table === 'transfers') {
-          for (const coinHash of obj.coinHashes) {
-            this.emit(`transfers.coinHashes:${coinHash}`);
+          for (const hash of obj.inputOutputHashes) {
+            this.emit(`transfers.inputOutputHashes:${hash}`);
           }
-          this.emit(`transfers.output:${obj.output}`);
         }
       }
     });
@@ -273,7 +272,7 @@ export default class Database extends EventEmitter {
     const spentCoinHashes: Set<string> = new Set();
 
     for (const transfer of spentTransfers) {
-      for (const hash of transfer.coinHashes) {
+      for (const hash of transfer.inputOutputHashes) { // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
         spentCoinHashes.add(hash);
       }
     }
@@ -555,7 +554,7 @@ export default class Database extends EventEmitter {
             hash: conflictTransfer.hash().toPOD(),
             created: new Date(),
             status: { kind: 'ACKNOWLEDGED', acknowledgement: conflictTransfer.acknowledgement.toPOD() },
-            coinHashes: conflictTransfer.contents.inputs.map(coin => coin.hash().toPOD()),
+            inputOutputHashes: Docs.getInputOutputHashes(conflictTransfer.contents),
             ...conflictTransfer.toPOD(),
           };
           await this.transfers.put(conflictTransferDoc);
@@ -620,12 +619,14 @@ export default class Database extends EventEmitter {
 
       const transfer = new hi.FullTransfer(inputs, bounty, changeBounty, sig);
 
+      const prunedTransfer = transfer.prune()
+
       const transferDoc: Docs.Transfer = {
         hash: transfer.hash().toPOD(),
         status: { kind: 'PENDING' },
         created: new Date(),
-        coinHashes: transfer.inputs.map(coin => coin.hash().toPOD()),
-        ...transfer.prune().toPOD(),
+        inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
+        ...prunedTransfer.toPOD(),
       };
 
       await this.transfers.add(transferDoc);
@@ -685,11 +686,13 @@ export default class Database extends EventEmitter {
         throw new Error('just created transfer is not valid');
       }
 
+      const prunedTransfer = transfer.prune()
+
       const transferDoc: Docs.Transfer = {
         hash: transferHash.toPOD(),
-        ...transfer.prune().toPOD(),
+        ...prunedTransfer.toPOD(),
         created: new Date(),
-        coinHashes: transfer.inputs.map(coin => coin.hash().toPOD()),
+        inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
         status: { kind: 'PENDING' },
       };
       await this.transfers.add(transferDoc);

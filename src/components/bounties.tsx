@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { wallet, useAckdChangeBounties, useClaimStatus } from '../state/wallet';
+import { wallet, useBounties, useClaimStatus, useTransferByInputOutputHash } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 
 export default function Bounties() {
-  const bounties = useAckdChangeBounties();
+  const bounties = useBounties();
 
   return (
     <div>
@@ -29,11 +29,21 @@ export default function Bounties() {
 }
 
 function Bounty({ bounty }: { bounty: Docs.Bounty }) {
+
+  const associatedTransfer = useTransferByInputOutputHash(bounty.hash);
   const claimStatus = useClaimStatus(bounty.hash);
-  const status = typeof claimStatus === 'string' ? claimStatus : 'CLAIMED';
+
+  let status: 'LOADING' | 'UNASSOCIATED' | 'CLAIMED' | 'UNCOLLECTED';
+  if (associatedTransfer === 'LOADING' || claimStatus === 'LOADING') {
+    status = 'LOADING'
+  } else if (associatedTransfer === 'NONE' || associatedTransfer.status.kind !== "ACKNOWLEDGED") {
+    status = 'UNASSOCIATED';
+  } else {
+    status = typeof claimStatus === 'string' ? claimStatus : 'CLAIMED'
+  }
 
   function action() {
-    if (status === 'LOADING' || status === 'CLAIMED') {
+    if (status !== 'UNCOLLECTED') {
       return;
     }
     return <button onClick={() => wallet.claimBounty(bounty)}>Claim</button>;

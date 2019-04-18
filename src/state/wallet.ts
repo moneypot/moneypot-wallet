@@ -56,36 +56,21 @@ export function useTransfer(transferHash: string): UseTransferResult {
   return transfer;
 }
 
-// bountyHash or actual bounty if found
-type UseBountiesRet = 'LOADING' | (Docs.Bounty | undefined)[];
 
-export function useBounties(bountyHashes: string[]) {
-  const [bounties, setBounties] = useState<UseBountiesRet>('LOADING');
+export function useBounties() {
 
-  async function getBounties() {
-    const foundBounties = new Array<Docs.Bounty | undefined>(bountyHashes.length);
+  const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
 
-    for (const [i, bountyHash] of bountyHashes.entries()) {
-      foundBounties[i] = await wallet.bounties.get(bountyHash);
-    }
-
-    setBounties(foundBounties);
+  async function getAndSet() {
+    const b = await wallet.bounties.toArray();
+    setBounties(b);
   }
 
   useEffect(() => {
-    const cleanups: (() => void)[] = [];
-    for (const bountyHash of bountyHashes) {
-      cleanups.push(wallet.on(`key:${bountyHash}`, getBounties));
-    }
-
-    getBounties();
-
-    return () => {
-      for (const cleanup of cleanups) {
-        cleanup();
-      }
-    };
-  }, [bountyHashes.join()]);
+    const cleanup = wallet.on('table:bounties', getAndSet);
+    getAndSet();
+    return cleanup;
+  }, []);
 
   return bounties;
 }
@@ -236,36 +221,60 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   return hookins;
 }
 
-export function useAckdChangeBounties(): Docs.Bounty[] {
-  const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
+// export function useAckdChangeBounties(): Docs.Bounty[] {
+//   const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
 
-  async function get() {
-    await wallet.db.transaction('r', wallet.transfers, wallet.bounties, async () => {
-      const transfers = await wallet.transfers
-        .where('status.kind')
-        .equals('ACKNOWLEDGED')
-        .toArray();
+//   async function get() {
+//     await wallet.db.transaction('r', wallet.transfers, wallet.bounties, async () => {
+//       const transfers = await wallet.transfers
+//         .where('status.kind')
+//         .equals('ACKNOWLEDGED')
+//         .toArray();
 
-      const ackedBounties = new Set<string>();
-      for (const transfer of transfers) {
-        ackedBounties.add(transfer.changeHash);
-      }
+//       const ackedBounties = new Set<string>();
+//       for (const transfer of transfers) {
+//         ackedBounties.add(transfer.changeHash);
+//       }
 
-      const bounties = await wallet.bounties.filter(bounty => ackedBounties.has(bounty.hash)).toArray();
-      setBounties(bounties);
-    });
+//       const bounties = await wallet.bounties.filter(bounty => ackedBounties.has(bounty.hash)).toArray();
+//       setBounties(bounties);
+//     });
+//   }
+//   useEffect(() => {
+//     const bountiesCleanup = wallet.on('table:bounties', get);
+//     const transferCleanup = wallet.on('table:transfers', get);
+//     get();
+//     return () => {
+//       bountiesCleanup();
+//       transferCleanup();
+//     };
+//   }, []);
+
+//   return bounties;
+// }
+
+type BountyStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
+
+export function useBountyStatus(bountyHash: string) {
+
+  const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
+  async function getAndSet() {
+
+    const claim = await wallet.claims.get(bountyHash);
+    if (claim === undefined) {
+      setSpentStatus('UNCOLLECTED');
+    } else {
+      setSpentStatus(claim);
+    }
   }
-  useEffect(() => {
-    const bountiesCleanup = wallet.on('table:bounties', get);
-    const transferCleanup = wallet.on('table:transfers', get);
-    get();
-    return () => {
-      bountiesCleanup();
-      transferCleanup();
-    };
-  }, []);
 
-  return bounties;
+  useEffect(() => {
+    const cleanup = wallet.on(`key:${bountyHash}`, getAndSet); // get the claim
+    getAndSet();
+    return cleanup;
+  }, [bountyHash]);
+
+  return spentStatus;
 }
 
 type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
@@ -308,12 +317,13 @@ function bestTransfer(transfers: Docs.Transfer[]): Docs.Transfer {
   return transfers[0];
 }
 
-export function useTransferByCoin(coinHash: string): Docs.Transfer | 'LOADING' | 'NONE' {
+export function useTransferByInputOutputHash(inputOutputHash: string): Docs.Transfer | 'LOADING' | 'NONE' {
+
   const [transfer, setTransfer] = useState<Docs.Transfer | 'LOADING' | 'NONE'>('LOADING');
-  async function get() {
+  async function getAndSet() {
     const transfers = await wallet.transfers
-      .where('coinHashes')
-      .equals(coinHash)
+      .where('inputOutputHashes')
+      .equals(inputOutputHash)
       .toArray();
 
     if (transfers.length === 0) {
@@ -324,10 +334,10 @@ export function useTransferByCoin(coinHash: string): Docs.Transfer | 'LOADING' |
     setTransfer(bestTransfer(transfers));
   }
   useEffect(() => {
-    const cleanup = wallet.on(`transfers.coinHashes:${coinHash}`, get);
-    get();
+    const cleanup = wallet.on(`transfers.inputOutputHashes:${inputOutputHash}`, getAndSet);
+    getAndSet();
     return cleanup;
-  }, [coinHash]);
+  }, [inputOutputHash]);
 
   return transfer;
 }

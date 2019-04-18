@@ -1,7 +1,7 @@
 import React from 'react';
 
 import * as Docs from '../wallet/docs';
-import { useCoins, useTransferByCoin } from '../state/wallet';
+import { useCoins, useTransferByInputOutputHash } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 export default function Coins() {
@@ -30,7 +30,7 @@ export default function Coins() {
 }
 
 function ClaimedCoin({ coin }: { coin: Docs.Coin }) {
-  const transfer = useTransferByCoin(coin.hash);
+  const transfer = useTransferByInputOutputHash(coin.hash);
   const status = typeof transfer === 'string' ? transfer : transfer.status.kind;
 
   return (
