@@ -236,7 +236,7 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   return hookins;
 }
 
-export function useAckdBounties(): Docs.Bounty[] {
+export function useAckdChangeBounties(): Docs.Bounty[] {
   const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
 
   async function get() {
@@ -248,7 +248,6 @@ export function useAckdBounties(): Docs.Bounty[] {
 
       const ackedBounties = new Set<string>();
       for (const transfer of transfers) {
-        ackedBounties.add(transfer.outputHash); // this might actually be a hookout hash, but doesn't matter.
         ackedBounties.add(transfer.changeHash);
       }
 
@@ -269,12 +268,13 @@ export function useAckdBounties(): Docs.Bounty[] {
   return bounties;
 }
 
-type HookinSpentStatus = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
+type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 
-export function useClaimStatus(hookinHash: string) {
-  const [spentStatus, setSpentStatus] = useState<HookinSpentStatus>('LOADING');
-  async function getTransfer() {
-    const claim = await wallet.claims.get(hookinHash);
+export function useClaimStatus(claimableHash: string) {
+  const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
+  async function getClaim() {
+
+    const claim = await wallet.claims.get(claimableHash);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
     } else {
@@ -283,10 +283,10 @@ export function useClaimStatus(hookinHash: string) {
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`key:${hookinHash}`, getTransfer); // get the claim
-    getTransfer();
+    const cleanup = wallet.on(`key:${claimableHash}`, getClaim); // get the claim
+    getClaim();
     return cleanup;
-  }, [hookinHash]);
+  }, [claimableHash]);
 
   return spentStatus;
 }

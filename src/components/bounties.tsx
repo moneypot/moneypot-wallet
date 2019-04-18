@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { wallet, useAckdBounties, useClaimStatus } from '../state/wallet';
+import { wallet, useAckdChangeBounties, useClaimStatus } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 
 export default function Bounties() {
-  const bounties = useAckdBounties();
+  const bounties = useAckdChangeBounties();
 
   return (
     <div>
@@ -14,7 +14,6 @@ export default function Bounties() {
           <tr>
             <th>Claimant</th>
             <th>Amount</th>
-            <th>Index</th>
             <th>Status</th>
             <th />
           </tr>
