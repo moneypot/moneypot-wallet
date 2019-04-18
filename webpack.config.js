@@ -18,7 +18,7 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-       title: 'hundredeyes',
+       title: 'hookedin wallet',
        template: './src/index.html'
     }),
     new CopyPlugin([

@@ -1,7 +1,7 @@
 {
-  "name": "hundredeyes",
+  "name": "hookedin",
   "version": "0.0.1",
-  "description": "hundredeyes wallet",
+  "description": "hookedin wallet",
   "scripts": {
     "dev": "webpack-dev-server",
     "build": "webpack --config webpack.config.js",

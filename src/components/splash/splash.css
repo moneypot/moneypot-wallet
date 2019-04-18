@@ -1,5 +1,6 @@
 .Splash {
   text-align: center;
+  height: 100%;
 }
 
 .Splash-logo {
@@ -21,14 +22,13 @@
 }
 
 .Splash-header {
-  background-color: #aaaaaa;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  height: 100%;
 }
 
 .Splash-link {

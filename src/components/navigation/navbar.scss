@@ -1,0 +1,17 @@
+@import "../../css/colors.scss";
+@import "../loaded-app.scss";
+
+.custom-navbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    justify-items: center;
+    background: $bg;
+    color: $navbar-color;
+    height: calc(#{$header-height} - #{$top-bar-height});
+    align-items: center;
+
+}
+
+.custom-navbar > div{
+    letter-spacing: 2px;
+}

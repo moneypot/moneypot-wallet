@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import Dexie from 'dexie';
+import { Link } from 'react-router-dom';
+import FullPageContainer from '../containers/full-page-container'
+import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import './create-wallet.scss';
+import AddImg from '../img/add.svg'
 
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
@@ -28,11 +33,16 @@ export default function SelectWallet(props: any) {
   }
 
   return (
-    <div>
-      {existingDbs.map(dbName => (
+    <FullPageContainer>
+      <h2 className='main-heading'>Select Wallet</h2>
+    {existingDbs.map(dbName => (
         <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
       ))}
-    </div>
+      <Link to="/create-wallet" className="btn btn-secondary">
+        <img src={AddImg} alt="add icon" className="hookedin-icon"/>
+        Create New Wallet
+      </Link>
+    </FullPageContainer>
   );
 }
 
@@ -47,3 +57,6 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
     </div>
   );
 }
+
+
+
