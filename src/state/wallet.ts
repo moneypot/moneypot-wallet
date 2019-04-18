@@ -166,6 +166,10 @@ function useTableKey<TableType>(table: Dexie.Table<TableType, string>, key?: str
   return val;
 }
 
+export function useBounty(bountyHash: string) {
+  return useTableKey(wallet.bounties, bountyHash);
+}
+
 export function useHookin(hookinHash: string) {
   return useTableKey(wallet.hookins, hookinHash);
 }
@@ -173,6 +177,38 @@ export function useHookin(hookinHash: string) {
 export function useHookout(hookoutHash?: string) {
   return useTableKey(wallet.hookouts, hookoutHash);
 }
+
+interface KindedBounty {
+  kind: "Bounty"
+  bounty: Docs.Bounty
+}
+interface KindedHookout {
+  kind: "Hookout"
+  hookout: Docs.Hookout
+}
+
+export function useBountyOrHookout(outputHash: string): "LOADING" | "NOT_FOUND" |  KindedBounty | KindedHookout  {
+  const bounty = useBounty(outputHash);
+  const hookout = useHookout(outputHash);
+
+  if (bounty === "LOADING" || hookout === "LOADING") {
+    return "LOADING";
+  }
+
+  if (bounty === "NOT_FOUND" && hookout === "NOT_FOUND") {
+    return "NOT_FOUND";
+  }
+
+  if (bounty !== "NOT_FOUND") {
+    return { kind: "Bounty", bounty }
+  }
+  if (hookout !== "NOT_FOUND") {
+    return { kind: "Hookout", hookout }
+  }
+
+  throw new Error("unreachable!");
+}
+
 
 export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
@@ -207,9 +243,8 @@ export function useAckdBounties(): Docs.Bounty[] {
 
       const ackedBounties = new Set<string>();
       for (const transfer of transfers) {
-        for (const bountyHash of transfer.bountyHashes) {
-          ackedBounties.add(bountyHash);
-        }
+        ackedBounties.add(transfer.outputHash); // this might actually be a hookout hash, but doesn't matter.
+        ackedBounties.add(transfer.changeHash);
       }
 
       const bounties = await wallet.bounties.filter(bounty => ackedBounties.has(bounty.hash)).toArray();

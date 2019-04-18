@@ -508,21 +508,32 @@ export default class Database extends EventEmitter {
 
     const inputs = transferDoc.inputs.map(i => util.notError(hi.Coin.fromPOD(i)));
 
-    const bountyDocs: Docs.Bounty[] = [];
-    for (const bountyHash of transferDoc.bountyHashes) {
-      const b = util.mustExist(await this.bounties.get(bountyHash));
-      bountyDocs.push(b);
+    let output: hi.Bounty | hi.Hookout;
+    let outputDoc: Docs.Bounty | Docs.Hookout;
+
+    let b = await this.bounties.get(transferDoc.outputHash);
+    if (b !== undefined) {
+      outputDoc = b;
+      output = util.notError(hi.Bounty.fromPOD(outputDoc));
+    } else {
+      outputDoc = util.mustExist(await this.hookouts.get(transferDoc.outputHash));
+      output = util.notError(hi.Hookout.fromPOD(outputDoc));
     }
 
-    let hookout: hi.Hookout | undefined = undefined;
-    if (transferDoc.hookoutHash) {
-      const h = util.mustExist(await this.hookouts.get(transferDoc.hookoutHash));
-      hookout = util.notError(hi.Hookout.fromPOD(h));
-    }
+    const changeDoc = util.mustExist(await this.bounties.get(transferDoc.changeHash));
+    const change = util.notError(hi.Bounty.fromPOD(changeDoc));
+
+    // We just have this now, so we're sure we can claim the change...
+    const changeAddress = util.mustExist(await this.directAddresses.get(changeDoc.claimant));
+
+
 
     const authorization = util.notError(hi.Signature.fromPOD(transferDoc.authorization));
 
-    const fullTransfer = new hi.FullTransfer(inputs, bountyDocs.map(b => util.notError(hi.Bounty.fromPOD(b))), hookout, authorization);
+    const fullTransfer = new hi.FullTransfer(inputs, output, change, authorization);
+
+    util.isTrue(fullTransfer.isValid());
+
     const acknowledgement = await submitTransfer(fullTransfer);
 
     if (acknowledgement instanceof RequestError) {
@@ -560,16 +571,9 @@ export default class Database extends EventEmitter {
       throw acknowledgement;
     }
 
-    // succeeded. So in the background, we should be trying to claim all the bounties
-
+    // succeeded. So in the background, we should be trying to claim the change..
     (async () => {
-      for (const bounty of bountyDocs) {
-        const address = await this.directAddresses.get(bounty.claimant);
-        if (address === undefined) {
-          continue;
-        }
-        await this.claimBountyWithAddress(bounty, address);
-      }
+        await this.claimBountyWithAddress(changeDoc, changeAddress);
     })().catch(err => {
       console.error('could not claim bounties, got error: ', err);
     });
@@ -598,18 +602,14 @@ export default class Database extends EventEmitter {
       };
       await this.bounties.add(bountyDoc);
 
-      const bounties = [bounty];
+      
+      const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
 
-      if (coinsToUse.excess > 0) {
-        const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
-        bounties.push(changeBounty);
-      }
-      hi.Transfer.sort(bounties);
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);
 
-      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), bounties.map(b => b.hash()), undefined);
+      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), bounty.hash(), changeBounty.hash());
 
       const owners: hi.PrivateKey[] = [];
 
@@ -622,7 +622,7 @@ export default class Database extends EventEmitter {
 
       const sig = hi.Signature.computeMu(transferHash.buffer, owners);
 
-      const transfer = new hi.FullTransfer(inputs, bounties, undefined, sig);
+      const transfer = new hi.FullTransfer(inputs, bounty, changeBounty, sig);
 
       const transferDoc: Docs.Transfer = {
         hash: transfer.hash().toPOD(),
@@ -664,17 +664,14 @@ export default class Database extends EventEmitter {
       };
       await this.hookouts.add(hookoutDoc);
 
-      const bounties = [];
 
-      if (coinsToUse.excess > 0) {
-        const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
-        bounties.push(changeBounty);
-      }
+      const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
+
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);
 
-      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), bounties.map(b => b.hash()), hookout.hash());
+      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), hookout.hash(), changeBounty.hash());
 
       const owners: hi.PrivateKey[] = [];
 
@@ -687,7 +684,7 @@ export default class Database extends EventEmitter {
 
       const auth = hi.Signature.computeMu(transferHash.buffer, owners);
 
-      const transfer = new hi.FullTransfer(inputs, bounties, hookout, auth);
+      const transfer = new hi.FullTransfer(inputs, hookout, changeBounty, auth);
 
       if (!transfer.isValid()) {
         console.error('transfer hash is: ', transfer.hash().toPOD(), ' and expected: ', transferHash.toPOD());

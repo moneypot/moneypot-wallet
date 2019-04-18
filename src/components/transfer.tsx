@@ -3,20 +3,12 @@ import { RouteComponentProps } from 'react-router';
 import * as hi from 'hookedin-lib';
 import * as Docs from '../wallet/docs';
 
-import { wallet, useTransfer, useBounties, useHookout } from '../state/wallet';
+import { wallet, useTransfer, useBountyOrHookout, useBounty, useHookout } from '../state/wallet';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
-  const bounties = useBounties(transfer.bountyHashes);
 
-  const hookout = useHookout(transfer.hookoutHash);
-
-  const hookoutInfo = transfer.hookoutHash ? (
-    <pre>
-      <code>{JSON.stringify(hookout, null, 2)} </code>
-    </pre>
-  ) : (
-    <span>none</span>
-  );
+  const output = useBountyOrHookout(transfer.outputHash);
+  const change = useBounty(transfer.changeHash);
 
   return (
     <div>
@@ -43,12 +35,15 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
         </span>
       )}
       <hr />
-      <strong>Bounties: </strong>
+      <strong>Output: </strong>
       <pre>
-        <code>{JSON.stringify(bounties, null, 2)}</code>
+        <code>{JSON.stringify(output, null, 2)}</code>
       </pre>
       <hr />
-      <strong>Hookout:</strong> {hookoutInfo}
+      <strong>Change: </strong>
+      <pre>
+        <code>{JSON.stringify(change, null, 2)}</code>
+      </pre>
       <hr />
       <pre>
         <code>{JSON.stringify(transfer, null, 2)}</code>

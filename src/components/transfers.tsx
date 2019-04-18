@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useTransfers, useBounties, useHookout } from '../state/wallet';
+import { useTransfers, useBounties, useHookout, useBountyOrHookout, useBounty } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 import * as Docs from '../wallet/docs';
@@ -15,8 +15,8 @@ export default function Transfers() {
         <thead>
           <tr>
             <th colSpan={2}>Input</th>
-            <th>Bounties</th>
-            <th>Hookouts</th>
+            <th>Output</th>
+            <th>Change</th>
             <th>Created</th>
             <th>Kind</th>
           </tr>
@@ -32,26 +32,9 @@ export default function Transfers() {
 }
 
 function Transfer({ transfer }: { transfer: Docs.Transfer }) {
-  const bounties = useBounties(transfer.bountyHashes);
+  const output = useBountyOrHookout(transfer.outputHash);
+  const change = useBounty(transfer.changeHash);
 
-  const hookout = useHookout(transfer.hookoutHash);
-
-  const hookoutInfo = transfer.hookoutHash ? (
-    <pre>
-      <code>{JSON.stringify(hookout, null, 2)} </code>
-    </pre>
-  ) : (
-    <span>none</span>
-  );
-
-  const bountyList =
-    bounties === 'LOADING'
-      ? 'loading..'
-      : bounties.map((bounty, i) => (
-          <div key={i}>
-            <textarea cols={50} rows={8} value={JSON.stringify(bounty, null, 2)} readOnly />
-          </div>
-        ));
 
   return (
     <tr>
@@ -61,8 +44,8 @@ function Transfer({ transfer }: { transfer: Docs.Transfer }) {
       <td>
         <textarea cols={50} rows={8} value={JSON.stringify(transfer.inputs, null, 2)} readOnly />
       </td>
-      <td>{bountyList}</td>
-      <td>{hookoutInfo}</td>
+      <td>{ JSON.stringify(output, null, 2) }</td>
+      <td>{ JSON.stringify(change, null, 2) }</td>
       <td>{transfer.created.toISOString()}</td>
       <td>{transfer.status.kind}</td>
     </tr>
