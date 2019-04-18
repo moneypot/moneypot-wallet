@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import WalletDatabase from '../wallet/database';
+import { setWallet } from "../state/wallet";
 
-export default () => {
+export default (props: any) => {
   const [walletName, setWalletName] = useState('main');
   const [password, setPassword] = useState('');
 
@@ -11,6 +12,8 @@ export default () => {
       alert(db.message);
       return;
     }
+    setWallet(db);
+    props.setIsWalletSet(true);
   }
     return (
       <div>
