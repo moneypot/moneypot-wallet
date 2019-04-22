@@ -1,17 +1,60 @@
 @import "../../css/colors.scss";
 @import "../loaded-app.scss";
+@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
 
-.custom-navbar {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    justify-items: center;
-    background: $bg;
-    color: $navbar-color;
-    height: calc(#{$header-height} - #{$top-bar-height});
-    align-items: center;
 
+// Mobile View
+//Will display if screen is smaller than 576px
+@include media-breakpoint-down(xs) {
+    .custom-navbar {
+        display: grid;
+        grid-area: navbar;
+        grid-template-columns: repeat(5, 1fr);
+        justify-items: center;
+        color: $navbar-color;
+        height: $mobile-navbar-height;
+        align-items: center;
+    }
 }
 
-.custom-navbar > div{
-    letter-spacing: 2px;
+// Desktop view -- called sidenav
+//Will display if screen is bigger than 576px
+@include media-breakpoint-up(sm) {
+    .custom-navbar {
+        grid-area: sidenav;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(8, 1fr);
+        color: $navbar-color;
+        align-items: center;
+        text-align: center;
+    }
+
+    .custom-navbar a {
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.2rem;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .custom-navbar .navbar-brand {
+        text-transform: lowercase;
+        letter-spacing: 0;
+        font-size: 1.8rem;
+        color: #fff;
+
+    }
+}
+
+// General
+
+.active-nav {
+    color: #fff;
+    background: darken($bg, 25%);
+}
+.active-nav:hover {
+    color: #fff;
+    background: darken($bg, 25%);
 }

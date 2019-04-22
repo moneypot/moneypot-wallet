@@ -1,13 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
 import Splash from './splash/splash';
 import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
 import ReceiveDirect from './receive/direct';
 
-import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link, Redirect } from 'react-router-dom';
-import Send from './send';
+import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
+import Send from './send';
 import Hookins from './hookins';
 import BitcoinAddresses from './bitcoin-addresses';
 import Transfers from './transfers';
@@ -16,15 +16,14 @@ import Coins from './coins';
 import Transfer from './transfer';
 import Config from './config';
 import Hookouts from './hookouts';
-import { useBalance } from '../state/wallet';
 
 import './loaded-app.scss';
 import TopBar from './navigation/top-bar'
 import Navbar from './navigation/navbar'
 import MainContainer from '../containers/main-container'
+import Footer from './navigation/footer'
 import Page from './page'
 import useWindowSize from '../window-size'
-import SelectWallet from "./select-wallet";
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -37,11 +36,14 @@ function NoMatch(params: RouteComponentProps<any>) {
 }
 export default function LoadedApp() {
   let windowSize = useWindowSize();
-  console.log('window size is: ',windowSize)
-
-  const balance = useBalance();
-
+  console.log('window size is: ',windowSize);
+  function isMobileView() {
+    if (windowSize.innerWidth < 576) {return true}
+    return false
+  }
+  let mobileView = isMobileView();
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
+
 
   return (
 
@@ -49,10 +51,8 @@ export default function LoadedApp() {
 
     <Router>
       <div className="App-wrapper">
-        <header className="App-header">
-          <TopBar />
-          <Navbar />
-        </header>
+        <TopBar isMobile={mobileView}/>
+        { !mobileView ? <Navbar isMobile={mobileView}/> : ''}
         <MainContainer>
           <Switch>
             <Route path="/create-wallet" exact render={()=> <Redirect to="/"/>}/>
@@ -74,12 +74,8 @@ export default function LoadedApp() {
             <Route component={NoMatch} />
           </Switch>
         </MainContainer>
-        <div className="App-footer">
-          <div>
-            Advanced/Debug: <Link to="/transfers">Transfers</Link> | <Link to="/bounties">Bounties</Link> | <Link to="/coins">Coins</Link> |{' '}
-            <Link to="/hookins">Hookins</Link> | <Link to="/config">Config</Link> | <Link to="/hookouts">Hookouts</Link>
-          </div>
-        </div>
+        { mobileView ? <Navbar isMobile={mobileView}/> : ''}
+        { !mobileView ? <div className="App-footer"><Footer /></div> : ''}
       </div>
     </Router>
   );

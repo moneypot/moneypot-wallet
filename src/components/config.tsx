@@ -13,7 +13,7 @@ export default function() {
     <div>
       <h1>Config</h1>
       <code>
-        <pre>{JSON.stringify(config, null, 2)}</pre>
+        <pre style={{ width: '85vw'}}>{JSON.stringify(config, null, 2)}</pre>
       </code>
     </div>
   );

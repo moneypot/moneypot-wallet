@@ -4,11 +4,10 @@ import Dexie from 'dexie';
 import CreateWallet from './create-wallet';
 import SelectWallet from './select-wallet';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
-import Splash from './splash/splash';
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
 export default function App() {
-  const [existingDbs, setExistingDbs] = useState<string[]>([]);
+  const [existingDbs, setExistingDbs] = useState<string[]|null >(null);
   useEffect(() => {
     Dexie.getDatabaseNames().then(dbs => {
       setExistingDbs(dbs);
@@ -19,6 +18,9 @@ export default function App() {
 
   if (isWalletSet) {
     return <LoadedApp />;
+  }
+  if (!existingDbs) {
+    return <p>Loading...</p>
   }
   if (existingDbs.length < 1) {
     return <CreateWallet setIsWalletSet={setIsWalletSet} />;

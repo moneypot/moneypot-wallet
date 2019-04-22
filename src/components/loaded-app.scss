@@ -1,44 +1,64 @@
 @import "../css/colors.scss";
-
-
-
+@import '../../node_modules/bootstrap/scss/bootstrap.scss';
 /** Variables **/
-$header-height: 90px;
-$footer-height: 50px;
-$top-bar-height: 56px;
+$mobile-top-bar-height: 56px;
+$mobile-navbar-height: 60px;
 
-.App-wrapper {
-  display: grid;
-  grid-template-rows: $header-height auto $footer-height;
-  grid-template-areas:
-          "header header header header header header"
-          "main main main main main main"
-          "footer footer footer footer footer footer";
-  width: 100vw;
-  height: 100vh;
-  background: $bg;
+$desktop-top-bar-height: 56px;
+$desktop-footer-height: 50px;
+
+// For a Mobile view
+@include media-breakpoint-down(xs) {
+  .App-wrapper {
+    display: grid;
+    grid-template-rows: $mobile-top-bar-height auto $mobile-navbar-height;
+    grid-template-areas: "topbar topbar topbar topbar topbar" "main main main main main" "navbar navbar navbar navbar navbar";
+    width: 100vw;
+    height: 100vh;
+    background: $bg;
+  }
+  .App-mobile-navbar {
+    grid-area: navbar;
+    background: $bg;
+    color: $footer-color;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .main-container {
+    height: calc(100vh - #{$mobile-top-bar-height} - #{$mobile-navbar-height});
+  }
 }
 
+// For a Desktop view
 
-.App-header {
-  grid-area: header;
+@include media-breakpoint-up(sm) {
+  .App-wrapper {
+    display: grid;
+    grid-template-rows: $desktop-top-bar-height auto $desktop-footer-height;
+    grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main" "sidenav footer footer footer footer footer";
+    width: 100vw;
+    height: 100vh;
+    background: $bg;
+  }
+
+  .App-footer {
+    grid-area: footer;
+    background: $bg;
+    color: $footer-color;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .main-container {
+    height: calc(100vh - #{$desktop-top-bar-height} - #{$desktop-footer-height});
+  }
 }
 
-.App-footer {
-  grid-area: footer;
-  background: $bg;
-  color: $footer-color;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.main-container {
-  height: calc(100vh - #{$header-height} - #{$footer-height});
-
-}
 
 .main-heading {
   margin-bottom: 3rem;

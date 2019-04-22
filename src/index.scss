@@ -5,16 +5,17 @@
 // Links
 //
 // Style anchor elements.
-$link-color:                              $top-bar-link-color !default;
-$link-hover-color:                        darken($top-bar-link-color, 15%) !default;
+$link-color:                              $light-blue-nav-link !default;
+$link-hover-color:                        darken($bg, 25%) !default;
 $link-hover-decoration:                   none !default;
 
 // Typography
 $headings-font-weight:        600 !default;
 
+//Navbar
+$navbar-brand-font-size: 1.5rem;
 
 @import '../node_modules/bootstrap/scss/bootstrap.scss';
-
 
 
 /** Fonts **/
@@ -38,4 +39,8 @@ code {
 .hookedin-icon {
     height: 2.5rem;
     padding: 0.5rem;
+}
+
+.App-footer a {
+  color: darken($bg, 25%);
 }
