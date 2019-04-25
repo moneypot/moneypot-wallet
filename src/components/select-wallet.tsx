@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import FullPageContainer from '../containers/full-page-container'
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import './create-wallet.scss';
-import AddImg from '../img/add.svg'
 
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
@@ -39,7 +38,6 @@ export default function SelectWallet(props: any) {
         <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
       ))}
       <Link to="/create-wallet" className="btn btn-secondary">
-        <img src={AddImg} alt="add icon" className="hookedin-icon"/>
         Create New Wallet
       </Link>
     </FullPageContainer>

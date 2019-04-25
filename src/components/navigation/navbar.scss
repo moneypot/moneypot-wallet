@@ -15,6 +15,21 @@
         height: $mobile-navbar-height;
         align-items: center;
     }
+    .custom-navbar a{
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .navbar-link-text {
+        display: none;
+    }
+    .navbar-img-container {
+        height: 2rem;
+        width: 2rem;
+        background-size: cover;
+    }
 }
 
 // Desktop view -- called sidenav
@@ -33,28 +48,87 @@
     .custom-navbar a {
         text-transform: uppercase;
         font-weight: 600;
+        font-size: 0.7rem;
         letter-spacing: 0.2rem;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
+        padding: 0 0.5rem;
     }
     .custom-navbar .navbar-brand {
         text-transform: lowercase;
         letter-spacing: 0;
         font-size: 1.8rem;
         color: #fff;
-
+    }
+    .navbar-img-container {
+        height: 2.6rem;
+        width: 2.6rem;
+        margin-bottom: 0.6rem;
+        background-size: cover;
     }
 }
 
 // General
 
-.active-nav {
+#active-nav {
     color: #fff;
     background: darken($bg, 25%);
 }
-.active-nav:hover {
+#active-nav:hover {
     color: #fff;
     background: darken($bg, 25%);
+}
+
+// Navbar icons
+
+
+.receive-bitcoin {
+    background-image: url('../../img/receive-btc-link.svg');
+}
+.receive-bitcoin-hover div {
+    background-image: url('../../img/receive-btc-hover.svg');
+}
+#active-nav .receive-bitcoin  {
+    background-image: url('../../img/receive-btc-accent.svg');
+}
+.send {
+    background-image: url('../../img/send-link.svg');
+}
+.send-hover div {
+    background-image: url('../../img/send-hover.svg');
+}
+#active-nav .send  {
+    background-image: url('../../img/send-accent.svg');
+}
+
+.history {
+    background-image: url('../../img/history-link.svg');
+}
+.history-hover div {
+    background-image: url('../../img/history-hover.svg');
+}
+#active-nav .history  {
+    background-image: url('../../img/history-accent.svg');
+}
+
+.dashboard {
+    background-image: url('../../img/dashboard-link.svg');
+}
+.dashboard-hover div {
+    background-image: url('../../img/dashboard-hover.svg');
+}
+#active-nav .dashboard  {
+    background-image: url('../../img/dashboard-accent.svg');
+}
+.receive-direct {
+    background-image: url('../../img/receive-direct-link.svg');
+}
+.receive-direct-hover div {
+    background-image: url('../../img/receive-direct-hover.svg');
+}
+#active-nav .receive-direct  {
+    background-image: url('../../img/receive-direct-accent.svg');
 }

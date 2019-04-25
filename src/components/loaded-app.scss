@@ -38,6 +38,7 @@ $desktop-footer-height: 50px;
   .App-wrapper {
     display: grid;
     grid-template-rows: $desktop-top-bar-height auto $desktop-footer-height;
+    grid-template-columns: repeat(6, 1fr);
     grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main" "sidenav footer footer footer footer footer";
     width: 100vw;
     height: 100vh;
@@ -58,6 +59,15 @@ $desktop-footer-height: 50px;
     height: calc(100vh - #{$desktop-top-bar-height} - #{$desktop-footer-height});
   }
 }
+@include media-breakpoint-up(md) {
+  .App-wrapper {
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-areas: "sidenav topbar topbar topbar topbar topbar topbar topbar topbar topbar"
+                          "sidenav main main main main main main main main main"
+                          "sidenav footer footer footer footer footer footer footer footer footer";
+  }
+}
+
 
 
 .main-heading {
