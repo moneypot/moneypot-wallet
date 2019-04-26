@@ -22,7 +22,7 @@ export default function CreateWallet(props: any) {
   }
   return (
     <FullPageContainer>
-      <h2 className="main-heading">Create Wallet</h2>
+      <h2 className="main-heading">Create New Wallet</h2>
       <div className="create-wallet-form-container">
         <Form>
           <FormGroup row>
@@ -58,7 +58,7 @@ export default function CreateWallet(props: any) {
           </FormGroup>
           <FormGroup row>
             <Col className="submit-button-container">
-              <Button color="success" onClick={createWallet}>
+              <Button color="success" className="btn-hookedin" onClick={createWallet}>
                 Create Wallet
               </Button>
             </Col>

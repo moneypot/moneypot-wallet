@@ -1,6 +1,9 @@
 @import "./css/colors.scss";
 
 /** Boostrap overrides **/
+//
+// Colors
+$success: $wintergreen;
 
 // Links
 //
@@ -14,6 +17,7 @@ $headings-font-weight:        600 !default;
 
 //Navbar
 $navbar-brand-font-size: 1.5rem;
+
 
 @import '../node_modules/bootstrap/scss/bootstrap.scss';
 
@@ -38,4 +42,12 @@ code {
 
 .App-footer a {
   color: darken($bg, 25%);
+}
+
+//Buttons
+.btn-hookedin {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+  color: #fff;
 }
