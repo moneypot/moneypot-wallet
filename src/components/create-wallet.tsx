@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import FullPageContainer from '../containers/full-page-container';
-import './create-wallet.scss';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
 
 export default function CreateWallet(props: any) {
   const [walletName, setWalletName] = useState('main');
@@ -13,7 +14,8 @@ export default function CreateWallet(props: any) {
   async function createWallet() {
     const db = await WalletDatabase.create(walletName, password);
     if (db instanceof Error) {
-      alert(db.message);
+      toast.error('Oops! ' + db.message);
+      console.error(db.message);
       return;
     }
     setWallet(db);
@@ -22,11 +24,11 @@ export default function CreateWallet(props: any) {
   }
   return (
     <FullPageContainer>
+      <ToastContainer />
       <h2 className="main-heading">Create New Wallet</h2>
-      <div className="create-wallet-form-container">
         <Form>
           <FormGroup row>
-            <Label for="walletName" sm={3}>
+            <Label for="walletName" >
               Name
             </Label>
             <Col sm={{ size: 8, offset: 1 }}>
@@ -64,7 +66,6 @@ export default function CreateWallet(props: any) {
             </Col>
           </FormGroup>
         </Form>
-      </div>
     </FullPageContainer>
   );
 }

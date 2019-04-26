@@ -1,0 +1,26 @@
+
+.select-wallet-table > div {
+  height: 2rem;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0.5rem;
+
+}
+
+.select-wallet-table > div > * {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.select-wallet-table > div > div:nth-child(1) {
+  letter-spacing: 0.1rem;
+}
+
+.select-wallet-table {
+  margin: 2rem 25vw;
+  padding: 1rem;
+  font-weight: bold;
+  text-align: left;
+  word-break: break-word;
+}

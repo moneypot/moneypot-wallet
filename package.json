@@ -43,7 +43,11 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
-    "the-qr": "^2.1.3"
+    "react-toastify": "^5.1.0",
+    "the-qr": "^2.1.3",
+    "@fortawesome/fontawesome-svg-core": "^1.2.17",
+    "@fortawesome/free-solid-svg-icons": "^5.8.1",
+    "@fortawesome/react-fontawesome": "^0.1.4"
   },
   "browser": {
     "./dist/bip39/pbkdf2-node.js": "./dist/bip39/pbkdf2-browser.js"
