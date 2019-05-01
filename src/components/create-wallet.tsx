@@ -6,10 +6,7 @@ import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 
-const defaultCustodian =
-  window.location.hostname === 'wallet.hookedin.com'
-    ? 'https://www.hookedin.com/api/dev'
-    : 'http://localhost:3030#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
+const defaultCustodian = 'https://www.hookedin.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
 
 export default function CreateWallet(props: any) {
   const [walletName, setWalletName] = useState('main');
