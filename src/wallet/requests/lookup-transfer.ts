@@ -1,11 +1,11 @@
-import * as config from '../config';
+import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
 import * as hi from 'hookedin-lib';
 
 // Returns the transfer hash of a coin
-export default async function lookupTransfer(transferHash: string): Promise<hi.AcknowledgedTransfer | undefined> {
-  const res = await makeRequest<hi.POD.Transfer & hi.POD.Acknowledged>(`${config.baseServerUrl}/transfers/${transferHash}`);
+export default async function lookupTransfer(config: Config, transferHash: string): Promise<hi.AcknowledgedTransfer | undefined> {
+  const res = await makeRequest<hi.POD.Transfer & hi.POD.Acknowledged>(`${config.custodianUrl}/transfers/${transferHash}`);
 
   if (res instanceof RequestError) {
     if (res.statusCode === 404) {

@@ -21,9 +21,11 @@ export function mustEqual<T>(a: T, b: T) {
   }
 }
 
-export function isTrue(a: boolean) {
+export function isTrue(a: any): a is true {
   if (a !== true) {
     console.error('assertion failure, got non-true');
     throw new Error('assertion failure');
   }
+
+  return true;
 }

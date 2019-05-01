@@ -1,19 +1,13 @@
 import React from 'react';
 
-import { useConfig } from '../state/wallet';
+import { wallet } from '../state/wallet';
 
 export default function() {
-  const config = useConfig();
-
-  if (!config) {
-    return <span>Loading...</span>;
-  }
-
   return (
     <div>
       <h1>Config</h1>
       <code>
-        <pre style={{ width: '85vw' }}>{JSON.stringify(config, null, 2)}</pre>
+        <pre style={{ width: '85vw' }}>{JSON.stringify(wallet.config, null, 2)}</pre>
       </code>
     </div>
   );

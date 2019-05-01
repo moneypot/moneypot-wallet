@@ -3,10 +3,9 @@ import * as hi from 'hookedin-lib';
 export interface Config {
   one: 1; // for indexing
   bitcoinAddressGenerator: string;
-  directAddressGenerator: string;
-  internalAddressGenerator: string;
+  custodianUrl: string;
+  custodian: hi.POD.CustodianInfo;
   mnemonic: string;
-  baseAPI: string;
   gapLimit: number;
 }
 

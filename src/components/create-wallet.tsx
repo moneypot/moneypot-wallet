@@ -6,13 +6,19 @@ import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 
+const defaultCustodian =
+  window.location.hostname === 'wallet.hookedin.com'
+    ? 'https://www.hookedin.com/api/dev'
+    : 'http://localhost:3030#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
+
 export default function CreateWallet(props: any) {
   const [walletName, setWalletName] = useState('main');
-  const [network, setNetwork] = useState('tBTC');
+
+  const [custodianUrl, setCustodianUrl] = useState(defaultCustodian);
   const [password, setPassword] = useState('');
 
   async function createWallet() {
-    const db = await WalletDatabase.create(walletName, password);
+    const db = await WalletDatabase.create(walletName, custodianUrl, password);
     if (db instanceof Error) {
       toast.error('Oops! ' + db.message);
       console.error(db.message);
@@ -34,18 +40,11 @@ export default function CreateWallet(props: any) {
           </Col>
         </FormGroup>
         <FormGroup row>
-          <legend className="col-form-label col-sm-3">Network</legend>
+          <Label for="password" sm={3}>
+            Custodian URL:
+          </Label>
           <Col sm={{ size: 8, offset: 1 }}>
-            <FormGroup check>
-              <Label check>
-                <Input value="tBTC" onChange={e => setNetwork(e.target.value)} type="radio" name="network" checked={network === 'tBTC'} /> tBTC
-              </Label>
-            </FormGroup>
-            <FormGroup check>
-              <Label check>
-                <Input value="BTC" onChange={e => setNetwork(e.target.value)} type="radio" name="network" checked={network === 'BTC'} /> BTC
-              </Label>
-            </FormGroup>
+            <Input value={custodianUrl} onChange={e => setCustodianUrl(e.target.value)} />
           </Col>
         </FormGroup>
         <FormGroup row>

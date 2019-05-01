@@ -1,15 +1,9 @@
 import * as hi from 'hookedin-lib';
-import * as config from '../config';
 import makeRequest, { RequestError } from './make-request';
 import genNonces from './gen-nonces';
+import Config from '../config';
 
-export default async function makeClaim(
-  deriveBlindingSecret: (hash: hi.Hash, pubNonce: hi.PublicKey) => Uint8Array,
-  deriveOwner: (hash: hi.Hash, pubNonce: hi.PublicKey) => hi.PrivateKey,
-  claimaint: hi.PrivateKey,
-  claim: hi.Bounty | hi.Hookin,
-  coinsMagnitudes: hi.Magnitude[]
-) {
+export default async function makeClaim(config: Config, claimaint: hi.PrivateKey, claim: hi.Bounty | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
 
@@ -17,7 +11,7 @@ export default async function makeClaim(
 
   const maxRetries = 64;
   for (let retry = 1; retry <= maxRetries; retry++) {
-    const nonces = await genNonces(coinsMagnitudes.length, seenNonces);
+    const nonces = await genNonces(config, coinsMagnitudes.length, seenNonces);
 
     const claimHash = claim.hash();
 
@@ -27,8 +21,8 @@ export default async function makeClaim(
       const blindingNonce = nonces[i];
       const magnitude = coinsMagnitudes[i];
 
-      const blindingSecret = deriveBlindingSecret(claimHash, blindingNonce);
-      const newOwner = deriveOwner(claimHash, blindingNonce);
+      const blindingSecret = config.deriveBlindingSecret(claimHash, blindingNonce);
+      const newOwner = config.deriveOwner(claimHash, blindingNonce);
       const newOwnerPub = newOwner.toPublicKey();
 
       const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, hi.Params.blindingCoinPublicKeys[magnitude.n], newOwnerPub.buffer);
@@ -39,10 +33,10 @@ export default async function makeClaim(
     let claimResp: any;
     if (claim instanceof hi.Bounty) {
       const claimReq = await hi.ClaimBountyRequest.newAuthorized(claimaint, claim, coinClaims);
-      claimResp = await makeRequest<any>(config.baseServerUrl + '/claim-bounty', claimReq.toPOD());
+      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-bounty', claimReq.toPOD());
     } else if (claim instanceof hi.Hookin) {
       const claimReq = await hi.ClaimHookinRequest.newAuthorized(claimaint, claim, coinClaims);
-      claimResp = await makeRequest<any>(config.baseServerUrl + '/claim-hookin', claimReq.toPOD());
+      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-hookin', claimReq.toPOD());
     } else {
       const _: never = claim;
       throw new Error('unreachable!');

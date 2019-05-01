@@ -1,12 +1,12 @@
-import * as config from '../config';
-import makeRequest, { RequestError } from './make-request';
-
 import * as hi from 'hookedin-lib';
+
+import Config from '../config';
+import makeRequest, { RequestError } from './make-request';
 
 type CoinInfo = hi.POD.Coin & hi.POD.TransferHash & { spendAuthorization: string };
 
-export default async function(owner: string) {
-  const res = await makeRequest<CoinInfo>(config.baseServerUrl, '/transaction-input/' + owner);
+export default async function(config: Config, owner: string) {
+  const res = await makeRequest<CoinInfo>(config.custodianUrl + '/transaction-input/' + owner);
 
   if (res instanceof RequestError) {
     throw res;

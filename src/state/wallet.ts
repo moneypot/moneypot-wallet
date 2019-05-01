@@ -407,21 +407,3 @@ export function useUnusedDirectAddress(): Docs.DirectAddress | undefined {
 
   return address;
 }
-
-export function useConfig() {
-  const [config, setConfig] = useState<Docs.Config | undefined>();
-  async function getAndSet() {
-    const c = await wallet.getConfig();
-    setConfig(c);
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on('table:config', getAndSet);
-
-    getAndSet();
-
-    return cleanup;
-  }, []);
-
-  return config;
-}

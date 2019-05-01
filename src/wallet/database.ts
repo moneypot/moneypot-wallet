@@ -19,11 +19,14 @@ import lookupCoin from './requests/lookup-coin';
 import lookupTransfer from './requests/lookup-transfer';
 import lookupBountiesByClaimant from './requests/lookup-bounties-by-claimant';
 
+import getCustodianInfo from './requests/get-custodian-info';
+
+import Config from './config';
+
 export default class Database extends EventEmitter {
   db: Dexie;
 
   bounties: Dexie.Table<Docs.Bounty, string>;
-  config: Dexie.Table<Docs.Config, 1>;
   claims: Dexie.Table<Docs.Claim, string>;
   coins: Dexie.Table<Docs.Coin, string>;
   hookins: Dexie.Table<Docs.Hookin, string>;
@@ -32,7 +35,7 @@ export default class Database extends EventEmitter {
   hookouts: Dexie.Table<Docs.Hookout, string>;
   transfers: Dexie.Table<Docs.Transfer, string>;
 
-  seed: Uint8Array | undefined; // if not set, wallet is locked.
+  config: Config | undefined; // if not set, wallet is locked.
 
   constructor(name: string) {
     super();
@@ -54,15 +57,12 @@ export default class Database extends EventEmitter {
 
     this.bounties = this.db.table('bounties');
     this.bitcoinAddresses = this.db.table('bitcoinAddresses');
-    this.config = this.db.table('config');
     this.claims = this.db.table('claims');
     this.coins = this.db.table('coins');
     this.directAddresses = this.db.table('directAddresses');
     this.hookins = this.db.table('hookins');
     this.hookouts = this.db.table('hookouts');
     this.transfers = this.db.table('transfers');
-
-    this.seed = undefined;
 
     this.db.on('changes', changes => {
       for (const change of changes) {
@@ -90,57 +90,49 @@ export default class Database extends EventEmitter {
     });
   }
 
-  public static async restore(name: string, mnemonic: string, password: string): Promise<Database | Error> {
+  public static async restore(name: string, config: Config): Promise<Database | Error> {
     const db = new Database(name);
 
-    const isCorrect = bip39.validateMnemonic(mnemonic);
-    if (!isCorrect) {
-      return new Error('INVALID_MNEMONIC');
-    }
-
-    const seed = await bip39.mnemonicToSeed(mnemonic, password);
-
-    const bitcoinAddressGenerator = seedToBitcoinAddressGenerator(seed);
-    const directAddressGenerator = seedToDirectAddressGenerator(seed);
-    const internalAddressGenerator = seedToInternalAddressGenerator(seed);
-
-    const configDoc: Docs.Config = {
-      one: 1,
-      bitcoinAddressGenerator: bitcoinAddressGenerator.toPublicKey().toPOD(),
-      directAddressGenerator: directAddressGenerator.toPublicKey().toPOD(),
-      internalAddressGenerator: internalAddressGenerator.toPublicKey().toPOD(),
-      mnemonic,
-      baseAPI: true ? 'https://www.hookedin.com/api/dev' : 'http://localhost:3030',
-      gapLimit: 10,
-    };
-
     try {
-      await db.config.add(configDoc);
+      await db.db.table('config').add(config.toDoc());
     } catch (err) {
       console.error('got error when trying to restore a config', err);
       return new Error('WALLET_ALREADY_INITIALIZED');
     }
-    db.seed = seed;
+
+    db.config = config;
 
     return db;
   }
 
-  public static async create(name: string, password: string): Promise<Database | Error> {
+  public static async create(name: string, custodianUrl: string, password: string): Promise<Database | Error> {
     const mnemonic = bip39.generateMnemonic();
-    return await Database.restore(name, mnemonic, password);
+
+    const gapLimit = 10; // default
+
+    const custodian = await getCustodianInfo(custodianUrl);
+    if (custodian instanceof Error) {
+      return custodian;
+    }
+
+    const config = await Config.fromData(mnemonic, gapLimit, custodianUrl, custodian, password);
+
+    if (config instanceof Error) {
+      return config;
+    }
+
+    return await Database.restore(name, config);
   }
 
   public async unlock(password: string): Promise<Error | undefined> {
-    const config = await this.getConfig();
+    const configDoc = util.mustExist(await this.db.table('config').get(1));
 
-    const seed = await bip39.mnemonicToSeed(config.mnemonic, password);
-    const addressGenerator = seedToBitcoinAddressGenerator(seed);
-
-    if (addressGenerator.toPublicKey().toPOD() !== config.bitcoinAddressGenerator) {
+    const config = await Config.fromDoc(configDoc, password);
+    if (config === 'INVALID_PASSWORD') {
       return new Error('INVALID_PASSWORD');
     }
 
-    this.seed = seed;
+    this.config = config;
   }
 
   // must be called inside a transaction (directAddresses, bounties)
@@ -164,6 +156,8 @@ export default class Database extends EventEmitter {
   }
 
   private async processClaimResponse(acknowledgedClaimResponse: hi.AcknowledgedClaimResponse) {
+    const config = util.mustExist(this.config);
+
     // basically just adds the appropriate coins, and adds the claim
 
     this.db.transaction('rw', this.coins, this.claims, async () => {
@@ -178,8 +172,8 @@ export default class Database extends EventEmitter {
         const coinClaim = claimRequest.coins[i];
         const blindedExistenceProof = blindedReceipts[i];
 
-        const blindingSecret = this.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
-        const newOwner = this.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
+        const blindingSecret = config.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
+        const newOwner = config.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
 
         const signer = hi.Params.blindingCoinPublicKeys[coinClaim.magnitude.n];
 
@@ -215,6 +209,10 @@ export default class Database extends EventEmitter {
   }
 
   private async claimBountyWithAddress(bountyDoc: Docs.Bounty, address: Docs.DirectAddress) {
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
     const claim = await this.claims.get(bountyDoc.hash);
     if (claim) {
       console.log('bounty: ', bountyDoc.hash, ' already claimed, no need to reclaim', claim);
@@ -227,12 +225,16 @@ export default class Database extends EventEmitter {
 
     const magnitudes = hi.amountToMagnitudes(bounty.amount);
 
-    const claimResponse = await makeClaim(this.deriveBlindingSecret.bind(this), this.deriveOwner.bind(this), claimant, bounty, magnitudes);
+    const claimResponse = await makeClaim(this.config, claimant, bounty, magnitudes);
 
     await this.processClaimResponse(claimResponse);
   }
 
   public async claimHookin(hookinDoc: Docs.Hookin) {
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
     const claim = await this.claims.get(hookinDoc.hash);
     if (claim) {
       console.log('hookin: ', hookinDoc.hash, ' already claimed, no need to reclaim', claim);
@@ -247,7 +249,7 @@ export default class Database extends EventEmitter {
 
     const magnitudes = hi.amountToMagnitudes(hookin.amount - hi.Params.transactionConsolidationFee);
 
-    const claimResponse = await makeClaim(this.deriveBlindingSecret.bind(this), this.deriveOwner.bind(this), claimant, hookin, magnitudes);
+    const claimResponse = await makeClaim(this.config, claimant, hookin, magnitudes);
 
     await this.processClaimResponse(claimResponse);
   }
@@ -293,7 +295,10 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-    const { gapLimit } = await this.getConfig();
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
     let gapCount = 0;
 
     const addresses = await this.bitcoinAddresses.orderBy('index').toArray();
@@ -305,7 +310,7 @@ export default class Database extends EventEmitter {
 
     let lastAddressIndex = addresses.length > 0 ? addresses[addresses.length - 1].index : -1;
 
-    for (let checkIndex = lastAddressIndex + 1; gapCount < gapLimit; checkIndex++) {
+    for (let checkIndex = lastAddressIndex + 1; gapCount < this.config.gapLimit; checkIndex++) {
       const { bitcoinAddress } = this.deriveBitcoinAddressIndex(checkIndex);
       console.log('prechecking: ', bitcoinAddress);
       const receives = await fetchBitcoinReceives(bitcoinAddress);
@@ -452,7 +457,11 @@ export default class Database extends EventEmitter {
   }
 
   public async checkDirectAddress(directAddressDoc: Docs.DirectAddress) {
-    const bounties = await lookupBountiesByClaimant(directAddressDoc.claimant);
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
+    const bounties = await lookupBountiesByClaimant(this.config, directAddressDoc.claimant);
 
     for (const b of bounties) {
       const bounty = util.notError(hi.Bounty.fromPOD(b));
@@ -486,11 +495,6 @@ export default class Database extends EventEmitter {
     }
   }
 
-  async getConfig() {
-    const config = await this.config.get(1);
-    return util.mustExist(config);
-  }
-
   async discardTransfer(transferDoc: Docs.Transfer) {
     if (transferDoc.status.kind !== 'PENDING') {
       throw new Error('transfer must be pending');
@@ -502,6 +506,10 @@ export default class Database extends EventEmitter {
   }
 
   async finalizeTransfer(transferDoc: Docs.Transfer): Promise<void> {
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
     if (transferDoc.status.kind !== 'PENDING') {
       throw new Error('transfer must be pending');
     }
@@ -532,20 +540,20 @@ export default class Database extends EventEmitter {
 
     util.isTrue(fullTransfer.isValid());
 
-    const acknowledgement = await submitTransfer(fullTransfer);
+    const acknowledgement = await submitTransfer(this.config, fullTransfer);
 
     if (acknowledgement instanceof RequestError) {
       if (acknowledgement.message === 'INPUT_SPENT') {
         // Let's loop over all the inputs to try find the one...
         for (const coin of transferDoc.inputs) {
-          const transferHash = await lookupCoin(coin.owner);
+          const transferHash = await lookupCoin(this.config, coin.owner);
           if (transferHash === undefined) {
             continue; // hasn't been spent..
           }
 
           // TODO(optimize) we can check if we already have the (ack'd) transfer
 
-          const conflictTransfer = await lookupTransfer(transferHash);
+          const conflictTransfer = await lookupTransfer(this.config, transferHash);
           if (conflictTransfer === undefined) {
             console.warn('could not find transfer', transferHash, ' even though the server told us about it');
             continue;
@@ -581,6 +589,8 @@ export default class Database extends EventEmitter {
   }
 
   public async sendDirect(to: hi.PublicKey, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+    const config = util.mustExist(this.config);
+
     util.mustEqual(amount > 0, true);
 
     const totalToSend = amount + hi.Params.basicTransferFee;
@@ -613,7 +623,7 @@ export default class Database extends EventEmitter {
         const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
         const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
         const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
-        owners.push(this.deriveOwner(claimHash, blindingNonce));
+        owners.push(config.deriveOwner(claimHash, blindingNonce));
       }
 
       const sig = hi.Signature.computeMu(transferHash.buffer, owners);
@@ -644,6 +654,8 @@ export default class Database extends EventEmitter {
   }
 
   public async sendToBitcoinAddress(address: string, amount: number, feeRate: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+    const config = util.mustExist(this.config);
+
     const totalToSend = amount + Math.ceil(feeRate * hi.Params.templateTransactionWeight);
 
     const res = await this.db.transaction('rw', this.bounties, this.coins, this.directAddresses, this.hookouts, this.transfers, async () => {
@@ -675,7 +687,7 @@ export default class Database extends EventEmitter {
         const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
         const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
         const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
-        owners.push(this.deriveOwner(claimHash, blindingNonce));
+        owners.push(config.deriveOwner(claimHash, blindingNonce));
       }
 
       const auth = hi.Signature.computeMu(transferHash.buffer, owners);
@@ -714,11 +726,11 @@ export default class Database extends EventEmitter {
   }
 
   public deriveBitcoinAddress(n: Uint8Array) {
-    if (this.seed === undefined) {
-      throw new Error('wallet is locked');
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
     }
 
-    const claimant = seedToBitcoinAddressGenerator(this.seed).derive(n);
+    const claimant = seedToBitcoinAddressGenerator(this.config.seed).derive(n);
     const claimantPub = claimant.toPublicKey();
 
     const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
@@ -735,33 +747,14 @@ export default class Database extends EventEmitter {
     return this.deriveClaimant(hi.Buffutils.fromVarInt(index), isInternal);
   }
 
-  public deriveClaimant(n: Uint8Array, isInternal: boolean): hi.PrivateKey {
-    if (this.seed === undefined) {
+  public deriveClaimant(n: Uint8Array, isChange: boolean): hi.PrivateKey {
+    if (!this.config) {
       throw new Error('wallet is locked');
     }
 
-    const addressGenerator = isInternal ? seedToDirectAddressGenerator(this.seed) : seedToInternalAddressGenerator(this.seed);
+    const addressGenerator = isChange ? this.config.changeAddressGenerator() : this.config.directAddressGenerator();
 
     return addressGenerator.derive(n);
-  }
-
-  public deriveOwner(claimHash: hi.Hash, blindingNonce: hi.PublicKey): hi.PrivateKey {
-    if (this.seed === undefined) {
-      throw new Error('wallet is locked');
-    }
-
-    const hash = hi.Hash.fromMessage('HIChain.deriveOwner', this.seed, claimHash.buffer, blindingNonce.buffer);
-
-    return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
-  }
-
-  public deriveBlindingSecret(claimHash: hi.Hash, blindingNonce: hi.PublicKey): Uint8Array {
-    if (this.seed === undefined) {
-      throw new Error('wallet is locked');
-    }
-
-    const hash = hi.Hash.fromMessage('HIChain.deriveBlindingSecret', this.seed, claimHash.buffer, blindingNonce.buffer);
-    return hash.buffer;
   }
 }
 
