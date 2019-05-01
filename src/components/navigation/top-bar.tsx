@@ -49,7 +49,7 @@ function TopBar(props: any) {
             <div className="top-bar">
                 <Navbar color="light" light expand="md">
                   {props.isMobile ? <Link className="navbar-brand" to="/">hookedin</Link> : ''}
-                    <span>Balance: {balance} satoshis</span>
+                  <span className="wallet-info">walletName{' '}{balance} sat</span>
                     <NavbarToggler onClick={() => setIsOpen(!isOpen)} />
                     <Collapse isOpen={isOpen} navbar style={{ textAlign: 'right'}}>
                         <Nav className="ml-auto" navbar>

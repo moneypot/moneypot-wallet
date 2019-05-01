@@ -1,0 +1,36 @@
+@import "../css/colors.scss";
+
+.circle-icon {
+  margin-right: 0.5rem;
+}
+
+.circle-icon.confirmed {
+  color: $wintergreen;
+}
+
+.circle-icon.not-confirmed {
+  color: $bright-red;
+}
+.content-card .badge {
+  margin: 0 0.2rem;
+}
+.content-card .badge.sent {
+  color: $bright-red;
+  background-color: transparent;
+}
+.content-card .badge.received {
+  color: $wintergreen;
+  background-color: transparent;
+}
+.content-card span.sent {
+  color: $bright-red;
+}
+.content-card span.received {
+  color: $wintergreen;
+}
+.content-card .badge.confirmed{
+  background-color: $wintergreen;
+}
+.content-card .badge.not-confirmed{
+  background-color: gray;
+}

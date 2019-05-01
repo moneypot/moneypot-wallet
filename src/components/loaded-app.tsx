@@ -24,6 +24,7 @@ import MainContainer from '../containers/main-container'
 import Footer from './navigation/footer'
 import Page from './page'
 import useWindowSize from '../window-size'
+import History from './history'
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -71,6 +72,7 @@ export default function LoadedApp() {
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page page="Contact" />} />
             <Route path="/about" render={props => <Page {...props} page="About" />} />
+            <Route path="/history" component={History}  />
             <Route component={NoMatch} />
           </Switch>
         </MainContainer>
