@@ -5,12 +5,12 @@ import CreateWallet from './create-wallet';
 import SelectWallet from './select-wallet';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
-import { library } from '@fortawesome/fontawesome-svg-core'
-import {faCheck, faChevronRight, faExchangeAlt, faLink, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle} from '@fortawesome/free-solid-svg-icons'
-library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle)
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faCheck, faChevronRight, faExchangeAlt, faLink, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle } from '@fortawesome/free-solid-svg-icons';
+library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle);
 
 export default function App() {
-  const [existingDbs, setExistingDbs] = useState<string[]|null >(null);
+  const [existingDbs, setExistingDbs] = useState<string[] | null>(null);
   useEffect(() => {
     Dexie.getDatabaseNames().then(dbs => {
       setExistingDbs(dbs);
@@ -23,7 +23,7 @@ export default function App() {
     return <LoadedApp />;
   }
   if (!existingDbs) {
-    return <p>Loading...</p>
+    return <p>Loading...</p>;
   }
   if (existingDbs.length < 1) {
     return <CreateWallet setIsWalletSet={setIsWalletSet} />;

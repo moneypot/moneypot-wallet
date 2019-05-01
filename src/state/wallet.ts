@@ -56,9 +56,7 @@ export function useTransfer(transferHash: string): UseTransferResult {
   return transfer;
 }
 
-
 export function useBounties() {
-
   const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
 
   async function getAndSet() {
@@ -256,10 +254,8 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
 type BountyStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 
 export function useBountyStatus(bountyHash: string) {
-
   const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
   async function getAndSet() {
-
     const claim = await wallet.claims.get(bountyHash);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
@@ -282,7 +278,6 @@ type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 export function useClaimStatus(claimableHash: string) {
   const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
   async function getClaim() {
-
     const claim = await wallet.claims.get(claimableHash);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
@@ -318,7 +313,6 @@ function bestTransfer(transfers: Docs.Transfer[]): Docs.Transfer {
 }
 
 export function useTransferByInputOutputHash(inputOutputHash: string): Docs.Transfer | 'LOADING' | 'NONE' {
-
   const [transfer, setTransfer] = useState<Docs.Transfer | 'LOADING' | 'NONE'>('LOADING');
   async function getAndSet() {
     const transfers = await wallet.transfers

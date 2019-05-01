@@ -18,13 +18,13 @@ import Config from './config';
 import Hookouts from './hookouts';
 
 import './loaded-app.scss';
-import TopBar from './navigation/top-bar'
-import Navbar from './navigation/navbar'
-import MainContainer from '../containers/main-container'
-import Footer from './navigation/footer'
-import Page from './page'
-import useWindowSize from '../window-size'
-import History from './history'
+import TopBar from './navigation/top-bar';
+import Navbar from './navigation/navbar';
+import MainContainer from '../containers/main-container';
+import Footer from './navigation/footer';
+import Page from './page';
+import useWindowSize from '../window-size';
+import History from './history';
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -37,26 +37,24 @@ function NoMatch(params: RouteComponentProps<any>) {
 }
 export default function LoadedApp() {
   let windowSize = useWindowSize();
-  console.log('window size is: ',windowSize);
+  console.log('window size is: ', windowSize);
   function isMobileView() {
-    if (windowSize.innerWidth < 576) {return true}
-    return false
+    if (windowSize.innerWidth < 576) {
+      return true;
+    }
+    return false;
   }
   let mobileView = isMobileView();
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
-
   return (
-
-
-
     <Router>
       <div className="App-wrapper">
-        <TopBar isMobile={mobileView}/>
-        { !mobileView ? <Navbar isMobile={mobileView}/> : ''}
+        <TopBar isMobile={mobileView} />
+        {!mobileView ? <Navbar isMobile={mobileView} /> : ''}
         <MainContainer>
           <Switch>
-            <Route path="/create-wallet" exact render={()=> <Redirect to="/"/>}/>
+            <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
             <Route path="/bitcoin-address-info/:id" component={BitcoinAddressInfo} />
             <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
@@ -72,12 +70,18 @@ export default function LoadedApp() {
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page page="Contact" />} />
             <Route path="/about" render={props => <Page {...props} page="About" />} />
-            <Route path="/history" component={History}  />
+            <Route path="/history" component={History} />
             <Route component={NoMatch} />
           </Switch>
         </MainContainer>
-        { mobileView ? <Navbar isMobile={mobileView}/> : ''}
-        { !mobileView ? <div className="App-footer"><Footer /></div> : ''}
+        {mobileView ? <Navbar isMobile={mobileView} /> : ''}
+        {!mobileView ? (
+          <div className="App-footer">
+            <Footer />
+          </div>
+        ) : (
+          ''
+        )}
       </div>
     </Router>
   );

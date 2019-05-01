@@ -272,7 +272,8 @@ export default class Database extends EventEmitter {
     const spentCoinHashes: Set<string> = new Set();
 
     for (const transfer of spentTransfers) {
-      for (const hash of transfer.inputOutputHashes) { // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
+      for (const hash of transfer.inputOutputHashes) {
+        // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
         spentCoinHashes.add(hash);
       }
     }
@@ -619,7 +620,7 @@ export default class Database extends EventEmitter {
 
       const transfer = new hi.FullTransfer(inputs, bounty, changeBounty, sig);
 
-      const prunedTransfer = transfer.prune()
+      const prunedTransfer = transfer.prune();
 
       const transferDoc: Docs.Transfer = {
         hash: transfer.hash().toPOD(),
@@ -686,7 +687,7 @@ export default class Database extends EventEmitter {
         throw new Error('just created transfer is not valid');
       }
 
-      const prunedTransfer = transfer.prune()
+      const prunedTransfer = transfer.prune();
 
       const transferDoc: Docs.Transfer = {
         hash: transferHash.toPOD(),

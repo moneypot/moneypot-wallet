@@ -29,17 +29,16 @@ export default function Bounties() {
 }
 
 function Bounty({ bounty }: { bounty: Docs.Bounty }) {
-
   const associatedTransfer = useTransferByInputOutputHash(bounty.hash);
   const claimStatus = useClaimStatus(bounty.hash);
 
   let status: 'LOADING' | 'UNASSOCIATED' | 'CLAIMED' | 'UNCOLLECTED';
   if (associatedTransfer === 'LOADING' || claimStatus === 'LOADING') {
-    status = 'LOADING'
-  } else if (associatedTransfer === 'NONE' || associatedTransfer.status.kind !== "ACKNOWLEDGED") {
+    status = 'LOADING';
+  } else if (associatedTransfer === 'NONE' || associatedTransfer.status.kind !== 'ACKNOWLEDGED') {
     status = 'UNASSOCIATED';
   } else {
-    status = typeof claimStatus === 'string' ? claimStatus : 'CLAIMED'
+    status = typeof claimStatus === 'string' ? claimStatus : 'CLAIMED';
   }
 
   function action() {

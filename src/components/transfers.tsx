@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useTransfers,  useBountyOrHookout, useBounty } from '../state/wallet';
+import { useTransfers, useBountyOrHookout, useBounty } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 import * as Docs from '../wallet/docs';

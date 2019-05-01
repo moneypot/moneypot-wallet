@@ -3,12 +3,12 @@ import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import Dexie from 'dexie';
 import { Link } from 'react-router-dom';
-import FullPageContainer from '../containers/full-page-container'
+import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import './select-wallet.scss'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import './select-wallet.scss';
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
   useEffect(() => {
@@ -37,19 +37,19 @@ export default function SelectWallet(props: any) {
   return (
     <FullPageContainer>
       <ToastContainer />
-      <h2 className='main-heading'>Select Wallet</h2>
+      <h2 className="main-heading">Select Wallet</h2>
       <div className="select-wallet-table">
-      {existingDbs.map(dbName => (
+        {existingDbs.map(dbName => (
           <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
         ))}
       </div>
-        <FormGroup row>
-          <Col className="submit-button-container">
-            <Link className="btn-hookedin btn btn-success" to="/create-wallet">
-              <FontAwesomeIcon icon="plus-circle"/> Create New
-            </Link>
-          </Col>
-        </FormGroup>
+      <FormGroup row>
+        <Col className="submit-button-container">
+          <Link className="btn-hookedin btn btn-success" to="/create-wallet">
+            <FontAwesomeIcon icon="plus-circle" /> Create New
+          </Link>
+        </Col>
+      </FormGroup>
     </FullPageContainer>
   );
 }
@@ -58,26 +58,16 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
   const [password, setPassword] = useState('');
 
   return (
-        <div>
-          <div>{walletName}</div>
-          <div>
-            <Input value={password}
-                   onChange={e => setPassword(e.target.value)}
-                   placeholder="Password" type="text" name="walletName"
-                   required />
-          </div>
-          <div>
-            <Button
-              onClick={() => load(walletName, password)}
-              className="btn-hookedin-sm btn btn-primary"
-            >
-              Load{' '}
-              <FontAwesomeIcon icon="arrow-right"/>
-            </Button>
-          </div>
-        </div>
+    <div>
+      <div>{walletName}</div>
+      <div>
+        <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="text" name="walletName" required />
+      </div>
+      <div>
+        <Button onClick={() => load(walletName, password)} className="btn-hookedin-sm btn btn-primary">
+          Load <FontAwesomeIcon icon="arrow-right" />
+        </Button>
+      </div>
+    </div>
   );
 }
-
-
-

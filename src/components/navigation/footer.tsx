@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Link } from 'react-router-dom'
-import './top-bar.css'
+import { Link } from 'react-router-dom';
+import './top-bar.css';
 
 export default function Footer(props: any) {
   return (
@@ -10,5 +10,4 @@ export default function Footer(props: any) {
       <Link to="/hookins">Hookins</Link> | <Link to="/config">Config</Link> | <Link to="/hookouts">Hookouts</Link>
     </div>
   );
-
 }
