@@ -37,11 +37,15 @@ export default function CreateWallet(props: any) {
           </Col>
         </FormGroup>
         <FormGroup row>
-          <Label for="password" sm={3}>
+          <Label for="custodianUrl" sm={3}>
             Custodian URL:
           </Label>
           <Col sm={{ size: 8, offset: 1 }}>
-            <Input value={custodianUrl} onChange={e => setCustodianUrl(e.target.value)} />
+            <Input value={custodianUrl} name="custodianUrl" onChange={e => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
+            <datalist id="default=custodian-urls">
+              <option value="https://www.hookedin.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
+              <option value="http://localhost:3030" />
+            </datalist>
           </Col>
         </FormGroup>
         <FormGroup row>

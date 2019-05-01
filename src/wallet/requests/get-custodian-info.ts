@@ -7,11 +7,7 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
   const url = new URL(custodianUrl);
 
   const ackString = url.hash.substring(1);
-  if (ackString.length === 0) {
-    return new Error('custodian url expected an ack key as part of the hash string');
-  }
 
-  const ackKey = notError(hi.PublicKey.fromPOD(ackString));
 
   const res = await makeRequest<any>(custodianUrl);
 
@@ -28,9 +24,13 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
     return aci;
   }
 
-  if (!aci.verify(ackKey)) {
-    return new Error('custodian info was not property acknowledged by expected key');
+  if (ackString.length > 0) {
+    const ackKey = notError(hi.PublicKey.fromPOD(ackString));
+    if (!aci.verify(ackKey)) {
+      return new Error('custodian info was not property acknowledged by expected key');
+    }
   }
+
 
   return aci.contents;
 }
