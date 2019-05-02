@@ -9,7 +9,7 @@ import makeRequest, { RequestError } from './make-request';
 export default async function genNonces(config: Config, count: number, seenNonces: Set<string>): Promise<hi.PublicKey[]> {
   const url = config.custodianUrl + '/gen-nonces';
 
-  const nonces = await makeRequest<string>(url, count);
+  const nonces = await makeRequest<string[]>(url, count);
   if (nonces instanceof RequestError) {
     throw nonces;
   }
