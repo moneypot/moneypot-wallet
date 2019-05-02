@@ -8,7 +8,6 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
 
   const ackString = url.hash.substring(1);
 
-
   const res = await makeRequest<any>(custodianUrl);
 
   if (res instanceof RequestError) {
@@ -30,7 +29,6 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
       return new Error('custodian info was not property acknowledged by expected key');
     }
   }
-
 
   return aci.contents;
 }

@@ -7,7 +7,6 @@ export default function() {
     return <span>Wallet is not loaded..</span>;
   }
 
-
   return (
     <div>
       <h1>Config</h1>
