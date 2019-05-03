@@ -18,7 +18,6 @@ function TopBar(props: any) {
 
   const balance = useBalance();
 
-
   return (
     <div className="top-bar">
       <Navbar light>
@@ -30,19 +29,19 @@ function TopBar(props: any) {
           ''
         )}
         <span className="wallet-info">
-          {props.isMobile ? '' :wallet.db.name} {balance} sat
+          {props.isMobile ? '' : wallet.db.name} {balance} sat
         </span>
-<span className="nav-item-right">
-        <button type="button" className="navbar-toggler">
-          <span className="fa-layers fa-fw fa-lg">
-                <FontAwesomeIcon icon="bell" style={{ fontSize: '20px'}}/>
-                <span className="fa-layers-counter notification-counter">28</span>
-              </span>
-        </button>
-        <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
-          <FontAwesomeIcon icon="cog" />
-        </button>
-</span>
+        <span className="nav-item-right">
+          <button type="button" className="navbar-toggler">
+            <span className="fa-layers fa-fw fa-lg">
+              <FontAwesomeIcon icon="bell" style={{ fontSize: '20px' }} />
+              <span className="fa-layers-counter notification-counter">28</span>
+            </span>
+          </button>
+          <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
+            <FontAwesomeIcon icon="cog" />
+          </button>
+        </span>
         <Collapse isOpen={isOpen} navbar>
           <Nav className="ml-auto" navbar>
             <NavItem>
@@ -96,7 +95,7 @@ function TopBar(props: any) {
               </Link>
             </NavItem>
             <NavItem>
-              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg" style={{ color: 'rgba(0, 0, 0, 0.5)'}}/>
+              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg" style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
             </NavItem>
           </Nav>
         </Collapse>

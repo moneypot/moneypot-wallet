@@ -7,18 +7,10 @@
     overflow: auto;
 }
 
-
-// Content
-.content-card {
+.inner-container {
     background-color: #fff;
     padding: 1.5rem;
     box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
     border-radius: 0.2rem;
     margin: 1rem 0;
-
 }
-
-.content-card:hover{
-    box-shadow: 0 5px 24px 0 rgba(0,0,0,.1);
-}
-

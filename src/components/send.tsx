@@ -2,6 +2,9 @@ import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
 import { wallet } from '../state/wallet';
+import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -14,6 +17,7 @@ export default function Send({ history }: Props) {
     // TODO: proper validation...
     if (address.length < 5 || address.length > 100) {
       setError('invalid address');
+      toast.error('Oops! ' + error);
       return;
     }
 
@@ -23,6 +27,7 @@ export default function Send({ history }: Props) {
     const amount = Number.parseInt(amountText);
     if (!Number.isFinite(amount) || amount <= 0) {
       setError('invalid amount');
+      toast.error('Oops! ' + error);
       return;
     }
 
@@ -37,6 +42,7 @@ export default function Send({ history }: Props) {
       if (to instanceof Error) {
         console.warn('could not parse address, got: ', to);
         setError('invalid direct address');
+        toast.error('Oops! ' + error);
         return;
       }
       // TODO: make sure sending to same custodian, lolz
@@ -46,6 +52,7 @@ export default function Send({ history }: Props) {
 
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
       setError('not enough funds');
+      toast.error('Oops! ' + error);
       return;
     }
 
@@ -54,13 +61,35 @@ export default function Send({ history }: Props) {
 
   return (
     <div>
+      <ToastContainer />
       <h3>Send Bitcoin</h3>
-      <p>{error}</p>
-      To: <input type="text" value={toText} placeholder="bitcoin address (or direct address)" onChange={event => setToText(event.target.value)} />
-      <br />
-      Amount: <input type="text" value={amountText} onChange={event => setAmountText(event.target.value)} /> satoshis
-      <br />
-      <button onClick={send}>Send!</button>
+      <div className="inner-container" style={{ padding: '5rem 20vw' }}>
+        <Form>
+          <FormGroup row>
+            <Label for="toText" sm={4}>
+              To:
+            </Label>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <Input value={toText} onChange={event => setToText(event.target.value)} placeholder="bitcoin address (or direct address)" type="text" required />
+            </Col>
+          </FormGroup>
+          <FormGroup row>
+            <Label for="amountText" sm={4}>
+              Amount (sat):
+            </Label>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <Input value={amountText} name="custodianUrl" onChange={event => setAmountText(event.target.value)} />
+            </Col>
+          </FormGroup>
+          <FormGroup row>
+            <Col className="submit-button-container">
+              <Button color="success" className="btn-hookedin" onClick={send}>
+                Send
+              </Button>
+            </Col>
+          </FormGroup>
+        </Form>
+      </div>
     </div>
   );
 }
