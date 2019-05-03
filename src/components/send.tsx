@@ -53,7 +53,7 @@ export default function Send({ history }: Props) {
 
   return (
     <div>
-      <h1>Send Bitcoin</h1>
+      <h3>Send Bitcoin</h3>
       <p>{error}</p>
       To: <input type="text" value={toText} placeholder="bitcoin address (or direct address)" onChange={event => setToText(event.target.value)} />
       <br />

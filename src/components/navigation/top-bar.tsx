@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Collapse, Navbar, NavbarToggler, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import { useBalance } from '../../state/wallet';
-import './top-bar.css';
+import './top-bar.scss';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default withRouter(TopBar);
 
@@ -62,6 +63,8 @@ function TopBar(props: any) {
         ) : (
           ''
         )}
+
+
         <span className="wallet-info">walletName {balance} sat</span>
         <NavbarToggler onClick={() => setIsOpen(!isOpen)} />
         <Collapse isOpen={isOpen} navbar style={{ textAlign: 'right' }}>
@@ -80,6 +83,14 @@ function TopBar(props: any) {
               <Link className="nav-link" to="/contact">
                 Contact
               </Link>
+            </NavItem>
+            <NavItem>
+            <span className="fa-layers fa-fw fa-lg">
+          <FontAwesomeIcon icon="bell" />
+          <span className="fa-layers-counter notification-counter">28</span>
+        </span>
+              <FontAwesomeIcon icon="cog" className="fa-lg"/>
+              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg"/>
             </NavItem>
             {MobileNavigation()}
           </Nav>

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Link } from 'react-router-dom';
-import './top-bar.css';
+import './top-bar.scss';
 
 export default function Footer(props: any) {
   return (

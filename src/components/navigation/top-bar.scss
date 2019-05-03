@@ -1,3 +1,5 @@
+@import '../../css/colors.scss';
+
 .navbar-brand {
     font-weight: 600;
     font-size: 2rem;
@@ -9,4 +11,8 @@
 
 .wallet-info {
     font-weight: bold;
+}
+.notification-counter {
+    background: $bg;
+    font-size: 1.3em;
 }
