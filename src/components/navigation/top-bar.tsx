@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Collapse, Navbar, NavbarToggler, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import './top-bar.scss';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { wallet, useBalance } from '../../state/wallet';
-
 
 export default withRouter(TopBar);
 
@@ -91,12 +90,12 @@ function TopBar(props: any) {
               </Link>
             </NavItem>
             <NavItem>
-            <span className="fa-layers fa-fw fa-lg">
-          <FontAwesomeIcon icon="bell" />
-          <span className="fa-layers-counter notification-counter">28</span>
-        </span>
-              <FontAwesomeIcon icon="cog" className="fa-lg"/>
-              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg"/>
+              <span className="fa-layers fa-fw fa-lg">
+                <FontAwesomeIcon icon="bell" />
+                <span className="fa-layers-counter notification-counter">28</span>
+              </span>
+              <FontAwesomeIcon icon="cog" className="fa-lg" />
+              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg" />
             </NavItem>
             {MobileNavigation()}
           </Nav>

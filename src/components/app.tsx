@@ -7,11 +7,21 @@ import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } f
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 import { library } from '@fortawesome/fontawesome-svg-core';
 
-import { faCheck,
-  faChevronRight, faExchangeAlt,
-  faLink, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheck,
+  faChevronRight,
+  faExchangeAlt,
+  faLink,
+  faTimes,
+  faPlus,
+  faPlusCircle,
+  faArrowRight,
+  faCircle,
+  faBell,
+  faCog,
+  faSignOutAlt,
+} from '@fortawesome/free-solid-svg-icons';
 library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt);
-
 
 export default function App() {
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);

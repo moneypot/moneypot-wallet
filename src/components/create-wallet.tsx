@@ -31,7 +31,9 @@ export default function CreateWallet(props: any) {
       <h2 className="main-heading">Create New Wallet</h2>
       <Form>
         <FormGroup row>
-          <Label for="walletName" sm={4}>Name</Label>
+          <Label for="walletName" sm={4}>
+            Name
+          </Label>
           <Col sm={{ size: 8, offset: 0 }}>
             <Input value={walletName} onChange={e => setWalletName(e.target.value)} placeholder="Name" type="text" name="walletName" required />
           </Col>
