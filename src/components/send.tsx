@@ -33,12 +33,13 @@ export default function Send({ history }: Props) {
 
       transferHash = await wallet.sendToBitcoinAddress(address, amount, feeRate);
     } else {
-      const to = hi.PublicKey.fromPOD(address);
+      const to = hi.Address.fromPOD(address);
       if (to instanceof Error) {
         console.warn('could not parse address, got: ', to);
         setError('invalid direct address');
         return;
       }
+      // TODO: make sure sending to same custodian, lolz
 
       transferHash = await wallet.sendDirect(to, amount);
     }

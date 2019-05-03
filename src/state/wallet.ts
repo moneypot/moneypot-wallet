@@ -392,18 +392,18 @@ export function useUnusedBitcoinAddress(): Docs.BitcoinAddress | undefined {
 }
 
 export function useUnusedDirectAddress(): Docs.DirectAddress | undefined {
-  const [address, setAddress] = useState<Docs.DirectAddress | undefined>(undefined);
-  async function getAddress() {
-    setAddress(await wallet.getUnusedDirectAddress());
+  const [directAddress, setDirectAddress] = useState<Docs.DirectAddress | undefined>(undefined);
+  async function getAndSetAddress() {
+    setDirectAddress(await wallet.getUnusedDirectAddress());
   }
   useEffect(() => {
-    const listenTo = address ? `bounties.claimant:${address.claimant}` : 'table:bounties';
-    return wallet.on(listenTo, getAddress);
-  }, [address ? address.claimant : undefined]);
+    const listenTo = directAddress ? `bounties.claimant:${directAddress.address}` : 'table:bounties';
+    return wallet.on(listenTo, getAndSetAddress);
+  }, [directAddress ? directAddress.address : undefined]);
 
   useEffect(() => {
-    getAddress();
+    getAndSetAddress();
   }, []);
 
-  return address;
+  return directAddress;
 }

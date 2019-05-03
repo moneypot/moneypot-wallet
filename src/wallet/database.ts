@@ -49,7 +49,7 @@ export default class Database extends EventEmitter {
       config: 'one',
       coins: 'hash, claimHash',
       claims: 'claimRequest.claim', // is the claimHash...
-      directAddresses: 'claimant, &index',
+      directAddresses: 'address, [isChange+index]',
       hookins: 'hash, bitcoinAddress, created',
       hookouts: 'hash, created',
       transfers: 'hash, *inputOutputHashes, status.kind, created',
@@ -225,7 +225,7 @@ export default class Database extends EventEmitter {
       return;
     }
 
-    const claimant = this.deriveClaimantIndex(address.index, address.isInternal);
+    const claimant = this.deriveClaimantIndex(address.index, address.isChange === 1);
 
     const bounty = util.notError(hi.Bounty.fromPOD(bountyDoc));
 
@@ -421,12 +421,13 @@ export default class Database extends EventEmitter {
   async getUnusedDirectAddress(): Promise<Docs.DirectAddress> {
     return await this.db.transaction('rw', this.directAddresses, this.bounties, async () => {
       const directAddress = await this.directAddresses
-        .orderBy('index')
+        .where('[isChange+index]')
+        .between([], [])
         .reverse()
         .first();
 
       if (directAddress) {
-        const bountyCount = await this.bounties.where({ claimant: directAddress.claimant }).count();
+        const bountyCount = await this.bounties.where({ claimant: directAddress.address }).count();
         if (bountyCount > 0) {
           return (await this.addDirectAddress(directAddress.index + 1, false))[1];
         } else {
@@ -447,19 +448,24 @@ export default class Database extends EventEmitter {
     });
   }
 
-  private async addDirectAddress(index: number, isInternal: boolean): Promise<[hi.PublicKey, Docs.DirectAddress]> {
-    const claimant = this.deriveClaimantIndex(index, isInternal);
-    const claimantPub = claimant.toPublicKey();
+  private async addDirectAddress(index: number, isChange: boolean): Promise<[hi.Address, Docs.DirectAddress]> {
+    if (!this.config) {
+      throw new Error('wallet must be unlocked');
+    }
+
+    const claimant = this.deriveClaimantIndex(index, isChange);
+
+    const address = new hi.Address(this.config.custodian.prefix(), claimant.toPublicKey());
 
     const directAddressDoc: Docs.DirectAddress = {
-      claimant: claimantPub.toPOD(),
+      address: address.toPOD(),
       index,
-      isInternal,
+      isChange: isChange ? 1 : 0,
     };
 
     await this.directAddresses.put(directAddressDoc);
 
-    return [claimantPub, directAddressDoc];
+    return [address, directAddressDoc];
   }
 
   public async checkDirectAddress(directAddressDoc: Docs.DirectAddress) {
@@ -467,7 +473,7 @@ export default class Database extends EventEmitter {
       throw new Error('wallet must be unlocked');
     }
 
-    const bounties = await lookupBountiesByClaimant(this.config, directAddressDoc.claimant);
+    const bounties = await lookupBountiesByClaimant(this.config, directAddressDoc.address);
 
     for (const b of bounties) {
       const bounty = util.notError(hi.Bounty.fromPOD(b));
@@ -594,7 +600,7 @@ export default class Database extends EventEmitter {
     await this.transfers.put(transferDoc);
   }
 
-  public async sendDirect(to: hi.PublicKey, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+  public async sendDirect(to: hi.Address, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
     const config = util.mustExist(this.config);
 
     util.mustEqual(amount > 0, true);
@@ -749,8 +755,8 @@ export default class Database extends EventEmitter {
     return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
   }
 
-  public deriveClaimantIndex(index: number, isInternal: boolean) {
-    return this.deriveClaimant(hi.Buffutils.fromVarInt(index), isInternal);
+  public deriveClaimantIndex(index: number, isChange: boolean) {
+    return this.deriveClaimant(hi.Buffutils.fromVarInt(index), isChange);
   }
 
   public deriveClaimant(n: Uint8Array, isChange: boolean): hi.PrivateKey {

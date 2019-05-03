@@ -17,8 +17,8 @@ function show(addressDoc: Docs.DirectAddress) {
         </small>
       </p>
       <br />
-      Address: <code>{addressDoc.claimant}</code>
-      <TheQr text={addressDoc.claimant.toUpperCase()} />
+      Address: <code>{addressDoc.address}</code>
+      <TheQr text={addressDoc.address.toUpperCase()} />
       <button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</button>
       <hr />
     </div>
