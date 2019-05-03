@@ -40,9 +40,9 @@ export interface BitcoinAddress {
 }
 
 export interface DirectAddress {
-  claimant: string; // bech encoded
+  address: string; // bech encoded
   index: number;
-  isInternal: boolean;
+  isChange: 0 | 1;
 }
 
 export interface Hookout extends hi.POD.Hookout {
