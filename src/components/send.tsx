@@ -2,7 +2,7 @@ import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
 import { wallet } from '../state/wallet';
-import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 
@@ -10,14 +10,14 @@ type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const [toText, setToText] = useState('');
   const [amountText, setAmountText] = useState('');
-  const [error, setError] = useState<string | undefined>();
+  const [feeText, setFeeText] = useState('');
+
 
   const send = async () => {
     const address = toText;
     // TODO: proper validation...
     if (address.length < 5 || address.length > 100) {
-      setError('invalid address');
-      toast.error('Oops! ' + error);
+      toast.error('Oops! invalid address');
       return;
     }
 
@@ -26,8 +26,7 @@ export default function Send({ history }: Props) {
 
     const amount = Number.parseInt(amountText);
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError('invalid amount');
-      toast.error('Oops! ' + error);
+      toast.error('Oops! invalid amount');
       return;
     }
 
@@ -41,8 +40,7 @@ export default function Send({ history }: Props) {
       const to = hi.Address.fromPOD(address);
       if (to instanceof Error) {
         console.warn('could not parse address, got: ', to);
-        setError('invalid direct address');
-        toast.error('Oops! ' + error);
+        toast.error('Oops! invalid direct address');
         return;
       }
       // TODO: make sure sending to same custodian, lolz
@@ -51,14 +49,17 @@ export default function Send({ history }: Props) {
     }
 
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
-      setError('not enough funds');
-      toast.error('Oops! ' + error);
+      toast.error('Oops! not enough funds');
       return;
     }
 
     history.push(`/transfers/${transferHash.toPOD()}`);
   };
 
+  const setMaxAmount = async () => {
+    toast('max amount selected');
+    // TODO
+  }
   return (
     <div>
       <ToastContainer />
@@ -78,9 +79,34 @@ export default function Send({ history }: Props) {
               Amount (sat):
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
-              <Input value={amountText} name="custodianUrl" onChange={event => setAmountText(event.target.value)} />
+              <InputGroup>
+              <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
+              <InputGroupAddon addonType="append">
+                <Button color="info"
+                        onClick={setMaxAmount}
+                >max</Button>
+              </InputGroupAddon>
+              </InputGroup>
             </Col>
+
           </FormGroup>
+
+          <FormGroup row>
+            <Label for="feeText" sm={4}>
+              Fee (sat):
+            </Label>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <InputGroup>
+                <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+                <Button>fast</Button>
+                <Button>medium</Button>
+                <Button>slow</Button>
+              </InputGroup>
+            </Col>
+
+          </FormGroup>
+          <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
+
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-hookedin" onClick={send}>
