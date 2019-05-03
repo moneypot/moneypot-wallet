@@ -25,6 +25,13 @@
     text-align: right;
     padding: 1rem;
     margin-top: 0.5rem;
+    grid-column: 1 / 4;
+}
+.top-bar .navbar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr;
+    grid-gap: 5px;
 }
 
 // For a Desktop view
@@ -32,6 +39,11 @@
 @include media-breakpoint-up(sm) {
     .navbar-collapse {
         margin-left: 70vw;
+        grid-column: 1 / 3;
+    }
+    .top-bar .navbar {
+        grid-template-columns: repeat(2, 1fr);
+
     }
 }
 
@@ -41,8 +53,18 @@
 
 .top-bar .navbar-toggler{
     border: 0;
+    width: 45px;
+    height: 30px;
+    display: flex;
+    padding: 0;
+    justify-content: center;
 }
 
-.top-bar .navbar {
-    justify-content: flex-end;
+
+
+.nav-item-right {
+    display: flex;
+    flex-direction: row;
+
+    justify-self: flex-end;
 }

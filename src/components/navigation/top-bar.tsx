@@ -29,27 +29,22 @@ function TopBar(props: any) {
         ) : (
           ''
         )}
-
         <span className="wallet-info">
-          {wallet.db.name} {balance} sat
+          {props.isMobile ? '' :wallet.db.name} {balance} sat
         </span>
-
+<span className="nav-item-right">
         <button type="button" className="navbar-toggler">
           <span className="fa-layers fa-fw fa-lg">
-                <FontAwesomeIcon icon="bell" />
+                <FontAwesomeIcon icon="bell" style={{ fontSize: '20px'}}/>
                 <span className="fa-layers-counter notification-counter">28</span>
               </span>
         </button>
         <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
           <FontAwesomeIcon icon="cog" />
         </button>
+</span>
         <Collapse isOpen={isOpen} navbar>
           <Nav className="ml-auto" navbar>
-            <NavItem>
-              <Link className="nav-link" to="/address-book">
-                Address Book
-              </Link>
-            </NavItem>
             <NavItem>
               <Link className="nav-link" to="/backup">
                 Backup
