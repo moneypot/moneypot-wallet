@@ -15,12 +15,12 @@ $desktop-footer-height: 50px;
     grid-template-areas: "topbar topbar topbar topbar topbar" "main main main main main" "navbar navbar navbar navbar navbar";
     width: 100vw;
     height: 100vh;
-    background: $bg;
+    background: $theme-blue;
   }
   .App-mobile-navbar {
     grid-area: navbar;
-    background: $bg;
-    color: $footer-color;
+    background: $theme-blue;
+    color: $white;
     width: 100%;
     height: 100%;
     display: flex;
@@ -42,18 +42,25 @@ $desktop-footer-height: 50px;
     grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main" "sidenav footer footer footer footer footer";
     width: 100vw;
     height: 100vh;
-    background: $bg;
+    background: $theme-blue;
   }
 
   .App-footer {
     grid-area: footer;
     background: $bg;
-    color: $footer-color;
+    color: $body-text;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: smaller;
+  }
+  .App-footer a {
+    color: darken($body-text, 25%);
+  }
+  .App-footer a:hover {
+    color: darken($body-text, 25%);
   }
   .main-container {
     height: calc(100vh - #{$desktop-top-bar-height} - #{$desktop-footer-height});

@@ -11,7 +11,7 @@
         grid-area: navbar;
         grid-template-columns: repeat(5, 1fr);
         justify-items: center;
-        color: $navbar-color;
+        color: $white;
         height: $mobile-navbar-height;
         align-items: center;
     }
@@ -40,7 +40,7 @@
         display: grid;
         grid-template-columns: 1fr;
         grid-template-rows: repeat(8, 1fr);
-        color: $navbar-color;
+        color: $white;
         align-items: center;
         text-align: center;
     }
@@ -78,11 +78,11 @@
 
 #active-nav {
     color: #fff;
-    background: darken($bg, 25%);
+    background: darken($theme-blue, 25%);
 }
 #active-nav:hover {
     color: #fff;
-    background: darken($bg, 25%);
+    background: darken($theme-blue, 25%);
 }
 
 // Navbar icons

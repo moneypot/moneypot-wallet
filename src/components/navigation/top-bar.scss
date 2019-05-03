@@ -1,4 +1,5 @@
 @import '../../css/colors.scss';
+@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
 
 .navbar-brand {
     font-weight: 600;
@@ -7,12 +8,41 @@
 
 .top-bar{
     grid-area: topbar;
+    background-color: $lighter-gray;
 }
 
 .wallet-info {
     font-weight: bold;
 }
 .notification-counter {
-    background: $bg;
+    background: $theme-blue;
     font-size: 1.3em;
+}
+
+.navbar-collapse {
+    background: $lighter-gray;
+    margin-left: 50vw;
+    text-align: right;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+// For a Desktop view
+
+@include media-breakpoint-up(sm) {
+    .navbar-collapse {
+        margin-left: 70vw;
+    }
+}
+
+.top-bar .new-section {
+    border-top: 1px solid darken($lighter-gray, 5%);
+}
+
+.top-bar .navbar-toggler{
+    border: 0;
+}
+
+.top-bar .navbar {
+    justify-content: flex-end;
 }

@@ -69,7 +69,7 @@ export default function LoadedApp() {
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page page="Contact" />} />
-            <Route path="/about" render={props => <Page {...props} page="About" />} />
+            <Route path="/support" render={props => <Page {...props} page="Support" />} />
             <Route path="/history" component={History} />
             <Route component={NoMatch} />
           </Switch>
