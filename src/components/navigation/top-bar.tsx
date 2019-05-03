@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Collapse, Navbar, NavbarToggler, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
-import { useBalance } from '../../state/wallet';
 import './top-bar.scss';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import { wallet, useBalance } from '../../state/wallet';
+
 
 export default withRouter(TopBar);
 
@@ -14,7 +16,9 @@ function TopBar(props: any) {
       setIsOpen(false);
     })
   );
+
   const balance = useBalance();
+
   function MobileNavigation() {
     if (props.isMobile) {
       return (
@@ -64,8 +68,10 @@ function TopBar(props: any) {
           ''
         )}
 
+        <span className="wallet-info">
+          {wallet.db.name} {balance} sat
+        </span>
 
-        <span className="wallet-info">walletName {balance} sat</span>
         <NavbarToggler onClick={() => setIsOpen(!isOpen)} />
         <Collapse isOpen={isOpen} navbar style={{ textAlign: 'right' }}>
           <Nav className="ml-auto" navbar>

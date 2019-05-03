@@ -115,6 +115,12 @@ export default class Database extends EventEmitter {
       return custodian;
     }
 
+    // If the custodianUrl has a # for verification, we want to strip it now
+    const n = custodianUrl.indexOf('#');
+    if (n !== -1) {
+      custodianUrl = custodianUrl.substring(0, n);
+    }
+
     const config = await Config.fromData(mnemonic, gapLimit, custodianUrl, custodian, password);
 
     if (config instanceof Error) {
