@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Link } from 'react-router-dom'
+
 import { wallet, useBounties, useClaimStatus, useTransferByInputOutputHash } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 
@@ -12,6 +14,7 @@ export default function Bounties() {
       <table>
         <thead>
           <tr>
+            <th></th>
             <th>Claimant</th>
             <th>Amount</th>
             <th>Status</th>
@@ -50,6 +53,7 @@ function Bounty({ bounty }: { bounty: Docs.Bounty }) {
 
   return (
     <tr>
+      <td><Link to={`/bounties/${bounty.hash}`}>#</Link></td>
       <td>
         <code>{bounty.claimant}</code>
       </td>

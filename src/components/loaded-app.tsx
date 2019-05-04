@@ -11,6 +11,7 @@ import Send from './send';
 import Hookins from './hookins';
 import BitcoinAddresses from './bitcoin-addresses';
 import Transfers from './transfers';
+import Bounty from './bounty';
 import Bounties from './bounties';
 import Coins from './coins';
 import Transfer from './transfer';
@@ -35,6 +36,10 @@ function NoMatch(params: RouteComponentProps<any>) {
     </div>
   );
 }
+
+const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
+
+
 export default function LoadedApp() {
   let windowSize = useWindowSize();
   console.log('window size is: ', windowSize);
@@ -45,7 +50,6 @@ export default function LoadedApp() {
     return false;
   }
   let mobileView = isMobileView();
-  const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
   return (
     <Router>
@@ -65,6 +69,7 @@ export default function LoadedApp() {
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={Transfer} />
             <Route path="/transfers" component={Transfers} />
+            <Route path="/bounties/:hash" component={Bounty} />
             <Route path="/bounties" component={Bounties} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
