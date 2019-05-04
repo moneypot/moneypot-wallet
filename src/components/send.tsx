@@ -12,7 +12,6 @@ export default function Send({ history }: Props) {
   const [amountText, setAmountText] = useState('');
   const [feeText, setFeeText] = useState('');
 
-
   const send = async () => {
     const address = toText;
     // TODO: proper validation...
@@ -59,7 +58,7 @@ export default function Send({ history }: Props) {
   const setMaxAmount = async () => {
     toast('max amount selected');
     // TODO
-  }
+  };
   return (
     <div>
       <ToastContainer />
@@ -80,15 +79,14 @@ export default function Send({ history }: Props) {
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
               <InputGroup>
-              <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
-              <InputGroupAddon addonType="append">
-                <Button color="info"
-                        onClick={setMaxAmount}
-                >max</Button>
-              </InputGroupAddon>
+                <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
+                <InputGroupAddon addonType="append">
+                  <Button color="info" onClick={setMaxAmount}>
+                    max
+                  </Button>
+                </InputGroupAddon>
               </InputGroup>
             </Col>
-
           </FormGroup>
 
           <FormGroup row>
@@ -103,7 +101,6 @@ export default function Send({ history }: Props) {
                 <Button>slow</Button>
               </InputGroup>
             </Col>
-
           </FormGroup>
           <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
 

@@ -39,7 +39,6 @@ function NoMatch(params: RouteComponentProps<any>) {
 
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
-
 export default function LoadedApp() {
   let windowSize = useWindowSize();
   console.log('window size is: ', windowSize);

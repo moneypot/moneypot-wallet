@@ -32,12 +32,17 @@ export default function Transfers() {
 }
 
 function Transfer({ transfer }: { transfer: Docs.Transfer }) {
-
   const output = useBountyOrHookout(transfer.outputHash);
   let change = useBounty(transfer.changeHash);
 
-  let changeElem = (typeof change === 'object') ? <Link to={ `/bounties/${change.hash}` }>{change.amount} to {change.claimant}</Link> : change;
-  
+  let changeElem =
+    typeof change === 'object' ? (
+      <Link to={`/bounties/${change.hash}`}>
+        {change.amount} to {change.claimant}
+      </Link>
+    ) : (
+      change
+    );
 
   return (
     <tr>
@@ -48,7 +53,7 @@ function Transfer({ transfer }: { transfer: Docs.Transfer }) {
         <textarea cols={50} rows={8} value={JSON.stringify(transfer.inputs, null, 2)} readOnly />
       </td>
       <td>{JSON.stringify(output, null, 2)}</td>
-      <td>{ changeElem }</td>
+      <td>{changeElem}</td>
       <td>{transfer.created.toISOString()}</td>
       <td>{transfer.status.kind}</td>
     </tr>

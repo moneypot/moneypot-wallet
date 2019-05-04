@@ -488,7 +488,7 @@ export default class Database extends EventEmitter {
         ...bounty.toPOD(),
       };
 
-      await this.bounties.add(bountyDoc);
+      await this.bounties.put(bountyDoc);
       await this.claimBountyWithAddress(bountyDoc, directAddressDoc);
     }
   }
