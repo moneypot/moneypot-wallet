@@ -142,8 +142,13 @@ export default class Database extends EventEmitter {
   }
 
   // must be called inside a transaction (directAddresses, bounties)
-  public async newInternalBounty(amount: number): Promise<[hi.Bounty, Docs.Bounty]> {
-    const maxIndex = await this.directAddresses.orderBy('index').last();
+  public async newChangeBounty(amount: number): Promise<[hi.Bounty, Docs.Bounty]> {
+    const isChange = 1;
+    const maxIndex = await this.directAddresses
+      .where('[isChange+index]')
+      .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
+      .last();
+
     const index = maxIndex === undefined ? 0 : maxIndex.index + 1;
 
     const [claimant, address] = await this.addDirectAddress(index, true);
@@ -622,7 +627,7 @@ export default class Database extends EventEmitter {
       };
       await this.bounties.add(bountyDoc);
 
-      const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
+      const [changeBounty, changeBountyDoc] = await this.newChangeBounty(coinsToUse.excess);
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);
@@ -686,7 +691,7 @@ export default class Database extends EventEmitter {
       };
       await this.hookouts.add(hookoutDoc);
 
-      const [changeBounty, changeBountyDoc] = await this.newInternalBounty(coinsToUse.excess);
+      const [changeBounty, changeBountyDoc] = await this.newChangeBounty(coinsToUse.excess);
 
       const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
       hi.Transfer.sort(inputs);
