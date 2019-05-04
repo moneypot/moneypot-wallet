@@ -19,7 +19,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
       <TheQr text={addressDoc.address.toUpperCase()} />
       <button onClick={() => wallet.checkBitcoinAddress(addressDoc)}>Check</button>
       <hr />
-      <Link to="/addresses/bitcoin">Bitcoin Addresses</Link>
+      <Link to="/addresses">Addresses</Link>
     </div>
   );
 }

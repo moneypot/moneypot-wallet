@@ -9,7 +9,7 @@ import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect
 
 import Send from './send';
 import Hookins from './hookins';
-import BitcoinAddresses from './bitcoin-addresses';
+import Addresses from './addresses';
 import Transfers from './transfers';
 import Bounty from './bounty';
 import Bounties from './bounties';
@@ -62,7 +62,7 @@ export default function LoadedApp() {
             <Route path="/bitcoin-address-info/:id" component={BitcoinAddressInfo} />
             <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
             <Route path="/receive/direct" component={ReceiveDirect} />
-            <Route path="/addresses/bitcoin" component={BitcoinAddresses} />
+            <Route path="/addresses" component={Addresses} />
             <Route path="/send" component={Send} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts" component={Hookouts} />

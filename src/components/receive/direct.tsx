@@ -21,6 +21,7 @@ function show(addressDoc: Docs.DirectAddress) {
       <TheQr text={addressDoc.address.toUpperCase()} />
       <button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</button>
       <hr />
+      <Link to="/addresses">Addresses</Link>
     </div>
   );
 }

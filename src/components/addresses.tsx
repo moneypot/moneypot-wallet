@@ -5,7 +5,7 @@ import { wallet, useBitcoinAddresses, useHookinsOfAddress } from '../state/walle
 import * as Docs from '../wallet/docs';
 import { Link } from 'react-router-dom';
 
-export default function BitcoinAddresses() {
+export default function Addresses() {
   const bitcoinAddresses = useBitcoinAddresses();
 
   return (
