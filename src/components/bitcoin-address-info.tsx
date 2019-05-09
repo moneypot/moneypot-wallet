@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
+import { Link } from 'react-router-dom';
 import * as Docs from '../wallet/docs';
-import { wallet } from '../state/wallet';
+import { wallet, useAddressesHookins } from '../state/wallet';
 import * as Util from '../util';
 
-function render(bitcoinAddress: Docs.BitcoinAddress) {
-  return (
-    <div>
-      <h1>Bitcoin Address: {bitcoinAddress.address}</h1>
-      <code>
-        <pre>{JSON.stringify(bitcoinAddress.address, null, 2)}</pre>
-      </code>
-    </div>
-  );
-}
+// @ts-ignore
+import { TheQr } from 'the-qr';
+import HookinsTable from './hookins-table';
 
 export default function BitcoinAddressInfo(props: RouteComponentProps<{ id: string }>) {
   const address = props.match.params.id;
@@ -29,5 +23,27 @@ export default function BitcoinAddressInfo(props: RouteComponentProps<{ id: stri
     return <div>Loading..</div>;
   }
 
-  return render(bitcoinAddress);
+  return <RenderAddress address={bitcoinAddress} />;
+}
+
+function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }) {
+  const hookins = useAddressesHookins(addressDoc.address);
+
+  return (
+    <div>
+      <h1>{addressDoc.address}</h1>
+      <TheQr text={addressDoc.address.toUpperCase()} />
+      <button onClick={() => wallet.checkBitcoinAddress(addressDoc)}>Check</button>
+      <hr />
+      <Link to="/addresses">Addresses</Link>
+      <hr />
+      <h3>Hookins ({hookins.length})</h3>
+      <HookinsTable hookins={hookins} />
+      <hr />
+      <h4>raw address</h4>
+      <code>
+        <pre>{JSON.stringify(addressDoc, null, 2)}</pre>
+      </code>
+    </div>
+  );
 }

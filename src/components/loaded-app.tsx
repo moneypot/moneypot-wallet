@@ -2,6 +2,7 @@ import React from 'react';
 
 import Splash from './splash/splash';
 import BitcoinAddressInfo from './bitcoin-address-info';
+import DirectAddressInfo from './direct-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
 import ReceiveDirect from './receive/direct';
 
@@ -59,9 +60,10 @@ export default function LoadedApp() {
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
-            <Route path="/bitcoin-address-info/:id" component={BitcoinAddressInfo} />
             <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
             <Route path="/receive/direct" component={ReceiveDirect} />
+            <Route path="/addresses/bitcoin/:id" component={BitcoinAddressInfo} />
+            <Route path="/addresses/direct/:id" component={DirectAddressInfo} />
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" component={Send} />
             <Route path="/hookins" component={Hookins} />

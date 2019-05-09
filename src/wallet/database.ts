@@ -407,6 +407,7 @@ export default class Database extends EventEmitter {
       address: bitcoinAddress,
       claimant,
       index,
+      created: new Date(),
     };
 
     await this.bitcoinAddresses.put(bitcoinAddressDoc);
@@ -425,11 +426,12 @@ export default class Database extends EventEmitter {
 
   async getUnusedDirectAddress(): Promise<Docs.DirectAddress> {
     return await this.db.transaction('rw', this.directAddresses, this.bounties, async () => {
+      const isChange = 0;
+
       const directAddress = await this.directAddresses
         .where('[isChange+index]')
-        .between([], [])
-        .reverse()
-        .first();
+        .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
+        .last();
 
       if (directAddress) {
         const bountyCount = await this.bounties.where({ claimant: directAddress.address }).count();
@@ -466,6 +468,7 @@ export default class Database extends EventEmitter {
       address: address.toPOD(),
       index,
       isChange: isChange ? 1 : 0,
+      created: new Date(),
     };
 
     await this.directAddresses.put(directAddressDoc);

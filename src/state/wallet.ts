@@ -75,17 +75,78 @@ export function useBounties() {
 
 export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   const [addresses, setAddresses] = useState<Docs.BitcoinAddress[]>([]);
-  async function getAddresses() {
+  async function getAndSetAddresses() {
     const addresses = await wallet.bitcoinAddresses.orderBy('index').toArray();
     setAddresses(addresses);
   }
   useEffect(() => {
-    const cleanup = wallet.on('table:bitcoinAddresses', getAddresses);
-    getAddresses();
+    const cleanup = wallet.on('table:bitcoinAddresses', getAndSetAddresses);
+    getAndSetAddresses();
     return cleanup;
   }, []);
 
   return addresses;
+}
+
+export function useDirectRecieveAddresses(): Docs.DirectAddress[] {
+  const [addresses, setAddresses] = useState<Docs.DirectAddress[]>([]);
+  async function getAndSetAddresses() {
+    const isChange = 0;
+
+    const addresses = await wallet.directAddresses
+      .where('[isChange+index]')
+      .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
+      .toArray();
+
+    setAddresses(addresses);
+  }
+  useEffect(() => {
+    const cleanup = wallet.on('table:directAddresses', getAndSetAddresses);
+    getAndSetAddresses();
+    return cleanup;
+  }, []);
+
+  return addresses;
+}
+
+interface KindedBitcoinAddress extends Docs.BitcoinAddress {
+  kind: 'bitcoin';
+}
+interface KindedDirectAddress extends Docs.DirectAddress {
+  kind: 'direct';
+}
+type KindedAddress = KindedBitcoinAddress | KindedDirectAddress;
+
+export function useAllInboundAddresses(): KindedAddress[] {
+  const bitcoinAddresses = useBitcoinAddresses();
+  const directAddresses = useDirectRecieveAddresses();
+
+  const kindedBitcoinAddresses: KindedBitcoinAddress[] = bitcoinAddresses.map(ba => ({ kind: 'bitcoin', ...ba }));
+  const kindedDirectAddresses: KindedDirectAddress[] = directAddresses.map(ba => ({ kind: 'direct', ...ba }));
+
+  return [...kindedBitcoinAddresses, ...kindedDirectAddresses];
+}
+
+export function useAddressesHookins(bitcoinAddress: string): Docs.Hookin[] {
+  const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
+
+  async function getAndSet() {
+    const hs = await wallet.hookins
+      .where('bitcoinAddress')
+      .equals(bitcoinAddress)
+      .reverse()
+      .sortBy('created');
+
+    setHookins(hs);
+  }
+
+  useEffect(() => {
+    const cleanup = wallet.on(`hookins.bitcoinAddress:${bitcoinAddress}`, getAndSet);
+    getAndSet();
+    return cleanup;
+  }, []);
+
+  return hookins;
 }
 
 export function useHookins(): Docs.Hookin[] {

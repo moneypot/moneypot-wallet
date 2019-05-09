@@ -27,22 +27,18 @@ export interface Hookin extends hi.POD.Hookin {
   created: Date;
 }
 
-export interface HDChain {
-  zpub: string;
-  claimant: string; // bech encoded
-  index: number;
-}
-
 export interface BitcoinAddress {
   address: string; // the actual bitcoin address
   claimant: string; // bech encoded
   index: number;
+  created: Date;
 }
 
 export interface DirectAddress {
   address: string; // bech encoded
   index: number;
   isChange: 0 | 1;
+  created: Date;
 }
 
 export interface Hookout extends hi.POD.Hookout {
