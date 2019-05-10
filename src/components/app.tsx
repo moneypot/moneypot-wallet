@@ -20,7 +20,7 @@ import {
   faBell,
   faCog,
   faSignOutAlt,
-  faEdit
+  faEdit,
 } from '@fortawesome/free-solid-svg-icons';
 library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt, faEdit);
 

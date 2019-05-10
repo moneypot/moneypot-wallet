@@ -2,28 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import * as Docs from '../wallet/docs';
-import { wallet, useAddressesHookins } from '../state/wallet';
+import { wallet, useAddressesHookins, useBitcoinAddress } from '../state/wallet';
 import * as Util from '../util';
 
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import HookinsTable from './hookins-table';
 
-export default function BitcoinAddressInfo(props: RouteComponentProps<{ id: string }>) {
-  const address = props.match.params.id;
+export default function BitcoinAddressInfo(props: RouteComponentProps<{ address: string }>) {
+  const address = props.match.params.address;
 
-  const [bitcoinAddress, setHBitcoinAddress] = useState<Docs.BitcoinAddress | undefined>(undefined);
-  useEffect(() => {
-    wallet.bitcoinAddresses.get(address).then(doc => {
-      setHBitcoinAddress(Util.mustExist(doc));
-    });
-  }, [address]);
+  const addressDoc = useBitcoinAddress(address);
 
-  if (bitcoinAddress === undefined) {
-    return <div>Loading..</div>;
+  if (typeof addressDoc === 'string') {
+    return <div>{addressDoc}</div>;
   }
 
-  return <RenderAddress address={bitcoinAddress} />;
+  return <RenderAddress address={addressDoc} />;
 }
 
 function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }) {

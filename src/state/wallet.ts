@@ -216,6 +216,14 @@ function useTableKey<TableType>(table: Dexie.Table<TableType, string>, key?: str
   return val;
 }
 
+export function useBitcoinAddress(address: string) {
+  return useTableKey(wallet.bitcoinAddresses, address);
+}
+
+export function useDirectAddress(address: string) {
+  return useTableKey(wallet.directAddresses, address);
+}
+
 export function useBounty(bountyHash: string) {
   return useTableKey(wallet.bounties, bountyHash);
 }

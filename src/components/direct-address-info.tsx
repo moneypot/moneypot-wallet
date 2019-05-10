@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import * as Docs from '../wallet/docs';
-import { wallet } from '../state/wallet';
+import { wallet, useDirectAddress } from '../state/wallet';
 import * as Util from '../util';
 
 // @ts-ignore
@@ -17,6 +17,7 @@ function render(directAddress: Docs.DirectAddress) {
       <hr />
       <Link to="/addresses">Addresses</Link>
       <hr />
+      <h3>Raw Info</h3>
       <code>
         <pre>{JSON.stringify(directAddress, null, 2)}</pre>
       </code>
@@ -24,19 +25,14 @@ function render(directAddress: Docs.DirectAddress) {
   );
 }
 
-export default function DirectAddressInfo(props: RouteComponentProps<{ id: string }>) {
-  const address = props.match.params.id;
+export default function DirectAddressInfo(props: RouteComponentProps<{ address: string }>) {
+  const address = props.match.params.address;
 
-  const [directAddress, setDirectAddress] = useState<Docs.DirectAddress | undefined>(undefined);
-  useEffect(() => {
-    wallet.directAddresses.get(address).then(doc => {
-      setDirectAddress(Util.mustExist(doc));
-    });
-  }, [address]);
+  const directAddressDoc = useDirectAddress(address);
 
-  if (directAddress === undefined) {
-    return <div>Loading..</div>;
+  if (typeof directAddressDoc === 'string') {
+    return <div>{directAddressDoc}</div>;
   }
 
-  return render(directAddress);
+  return render(directAddressDoc);
 }

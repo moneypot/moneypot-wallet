@@ -28,6 +28,7 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history';
 import ReceiveContainer from '../containers/receive-container';
+import HookinInfo from './hookin-info';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -56,10 +57,11 @@ export default function LoadedApp() {
             <Route path="/" exact component={Splash} />
             <Route path="/receive/bitcoin" component={ReceiveContainer} />
             <Route path="/receive/direct" component={ReceiveContainer} />
-            <Route path="/addresses/bitcoin/:id" component={BitcoinAddressInfo} />
-            <Route path="/addresses/direct/:id" component={DirectAddressInfo} />
+            <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
+            <Route path="/addresses/direct/:address" component={DirectAddressInfo} />
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" component={Send} />
+            <Route path="/hookins/:hash" component={HookinInfo} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={Transfer} />
