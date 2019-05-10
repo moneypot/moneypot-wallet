@@ -88,13 +88,13 @@
 // Navbar icons
 
 
-.receive-bitcoin {
+.receive {
     background-image: url('../../img/receive-btc-link.svg');
 }
-.receive-bitcoin-hover div {
+.receive-hover div {
     background-image: url('../../img/receive-btc-hover.svg');
 }
-#active-nav .receive-bitcoin  {
+#active-nav .receive  {
     background-image: url('../../img/receive-btc-accent.svg');
 }
 .send {
@@ -125,13 +125,4 @@
 }
 #active-nav .dashboard  {
     background-image: url('../../img/dashboard-accent.svg');
-}
-.receive-direct {
-    background-image: url('../../img/receive-direct-link.svg');
-}
-.receive-direct-hover div {
-    background-image: url('../../img/receive-direct-hover.svg');
-}
-#active-nav .receive-direct  {
-    background-image: url('../../img/receive-direct-accent.svg');
 }

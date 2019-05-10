@@ -9,7 +9,7 @@ import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
-      <h1>Receive Bitcoin</h1>
+      <h3>Receive Bitcoin</h3>
       <p>
         <small>
           After N confirmations, funds will be usable. For faster, cheaper and more private transfers, you can use hookedin->hookedin with a direct send

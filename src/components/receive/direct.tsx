@@ -9,7 +9,7 @@ import { wallet, useUnusedDirectAddress } from '../../state/wallet';
 function show(addressDoc: Docs.DirectAddress) {
   return (
     <div>
-      <h1>Receive Direct</h1>
+      <h3>Receive Direct</h3>
       <p>
         <small>
           Direct Sends (hookedin->hookedin) is the ideal way to send bitcoin. Instant (no confirmations required), irreversible, highly private and insanely

@@ -2,15 +2,19 @@ import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
 import { wallet } from '../state/wallet';
-import { Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup } from 'reactstrap';
+import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup, CustomInput } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
+import './send.scss';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const [toText, setToText] = useState('');
   const [amountText, setAmountText] = useState('');
+  const [speedSelection, setSpeedSelection] = useState('fast');
   const [feeText, setFeeText] = useState('');
+  const [isNoteSelected, setIsNoteSelected] = useState(false);
+  const [noteText, setNoteText] = useState('');
 
   const send = async () => {
     const address = toText;
@@ -56,9 +60,55 @@ export default function Send({ history }: Props) {
   };
 
   const setMaxAmount = async () => {
-    toast('max amount selected');
+    toast('Max amount selected');
     // TODO
   };
+
+  function ShowCustomFeeInput() {
+    return (
+      <FormGroup row>
+        <Label for="feeText" sm={3}>
+          Fee:
+        </Label>
+        <Col sm={{ size: 9, offset: 0 }}>
+          <InputGroup>
+            <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+            <InputGroupAddon addonType="append">satoshi</InputGroupAddon>
+          </InputGroup>
+        </Col>
+      </FormGroup>
+    );
+  }
+
+  function ShowFeeText() {
+    return (
+      <Row>
+        <Col sm={3}>Fee:</Col>
+        <Col sm={{ size: 9, offset: 0 }}>
+          <p style={{ fontWeight: 'bold' }}>1078 satoshi</p>
+        </Col>
+      </Row>
+    );
+  }
+
+  function ShowNoteInput() {
+    return (
+      <FormGroup row>
+        <Col sm={{ size: 12, offset: 0 }}>
+          <Input type="text" value={noteText} placeholder="Optional text" onChange={event => setNoteText(event.target.value)} />
+        </Col>
+      </FormGroup>
+    );
+  }
+
+  function handleSpeedSelectionChange(e: any) {
+    setSpeedSelection(e.target.value);
+  }
+
+  function handleNoteSelected() {
+    setIsNoteSelected(!isNoteSelected);
+  }
+
   return (
     <div>
       <ToastContainer />
@@ -66,44 +116,71 @@ export default function Send({ history }: Props) {
       <div className="inner-container" style={{ padding: '5rem 20vw' }}>
         <Form>
           <FormGroup row>
-            <Label for="toText" sm={4}>
+            <Label for="toText" sm={3}>
               To:
             </Label>
-            <Col sm={{ size: 8, offset: 0 }}>
+            <Col sm={{ size: 9, offset: 0 }}>
               <Input value={toText} onChange={event => setToText(event.target.value)} placeholder="bitcoin address (or direct address)" type="text" required />
             </Col>
           </FormGroup>
           <FormGroup row>
-            <Label for="amountText" sm={4}>
-              Amount (sat):
+            <Label for="amountText" sm={3}>
+              Amount:
             </Label>
-            <Col sm={{ size: 8, offset: 0 }}>
+            <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
                 <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
+                <InputGroupAddon addonType="append">satoshi</InputGroupAddon>
                 <InputGroupAddon addonType="append">
-                  <Button color="info" onClick={setMaxAmount}>
+                  <Button color="danger" onClick={setMaxAmount}>
                     max
                   </Button>
                 </InputGroupAddon>
               </InputGroup>
             </Col>
           </FormGroup>
-
+          <div className="fee-fields-wrapper">
+            <FormGroup row>
+              <Label for="speedSelection" sm={4}>
+                Speed:
+              </Label>
+              <Col sm={{ size: 12, offset: 0 }}>
+                <FormGroup
+                  row
+                  style={{
+                    justifyContent: 'center',
+                  }}
+                >
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="radio" name="speedSelection" value="fast" onChange={handleSpeedSelectionChange} /> Fast
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="radio" name="speedSelection" value="medium" onChange={handleSpeedSelectionChange} /> Medium
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="radio" name="speedSelection" value="slow" onChange={handleSpeedSelectionChange} /> Slow
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="radio" name="speedSelection" value="custom" onChange={handleSpeedSelectionChange} /> Custom
+                    </Label>
+                  </FormGroup>
+                </FormGroup>
+              </Col>
+            </FormGroup>
+            {speedSelection === 'custom' ? ShowCustomFeeInput() : <ShowFeeText />}
+            <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
+          </div>
           <FormGroup row>
-            <Label for="feeText" sm={4}>
-              Fee (sat):
-            </Label>
-            <Col sm={{ size: 8, offset: 0 }}>
-              <InputGroup>
-                <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
-                <Button>fast</Button>
-                <Button>medium</Button>
-                <Button>slow</Button>
-              </InputGroup>
-            </Col>
+            <CustomInput type="switch" id="noteSwitch" label="Add Note (for your own records)" onClick={handleNoteSelected} />
           </FormGroup>
-          <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
-
+          {isNoteSelected ? <ShowNoteInput /> : ''}
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-hookedin" onClick={send}>

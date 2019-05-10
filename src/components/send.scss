@@ -1,0 +1,29 @@
+.form-check {
+  margin: 0 2rem;
+}
+
+.fee-fields-wrapper {
+  background: #f4f6f8;
+  margin: .5rem -1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+.item-enter {
+  opacity: 0;
+}
+.item-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+.item-exit {
+  opacity: 1;
+}
+.item-exit-active {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}

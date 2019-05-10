@@ -8,11 +8,8 @@ function NavBar(props: any) {
   const [isDashboardHover, setIsDashboardHover] = useState(false);
   const dashboardHover = { onMouseEnter: () => setIsDashboardHover(true), onMouseLeave: () => setIsDashboardHover(false) };
 
-  const [isReceiveBitcoinHover, setIsReceiveBitcoinHover] = useState(false);
-  const receiveBitcoinHover = { onMouseEnter: () => setIsReceiveBitcoinHover(true), onMouseLeave: () => setIsReceiveBitcoinHover(false) };
-
-  const [isReceiveDirectHover, setIsReceiveDirectHover] = useState(false);
-  const receiveDirectHover = { onMouseEnter: () => setIsReceiveDirectHover(true), onMouseLeave: () => setIsReceiveDirectHover(false) };
+  const [isReceiveHover, setIsReceiveHover] = useState(false);
+  const receiveHover = { onMouseEnter: () => setIsReceiveHover(true), onMouseLeave: () => setIsReceiveHover(false) };
 
   const [isSendHover, setIsSendHover] = useState(false);
   const sendHover = { onMouseEnter: () => setIsSendHover(true), onMouseLeave: () => setIsSendHover(false) };
@@ -27,8 +24,7 @@ function NavBar(props: any) {
     return <Link id={activeId} {...props} />;
   }
   let hoverDashboardClassName = isDashboardHover ? 'dashboard-hover' : '';
-  let hoverReceiveBitcoinClassName = isReceiveBitcoinHover ? 'receive-bitcoin-hover' : '';
-  let hoverReceiveDirectClassName = isReceiveDirectHover ? 'receive-direct-hover' : '';
+  let hoverReceiveClassName = isReceiveHover ? 'receive-hover' : '';
   let hoverSendClassName = isSendHover ? 'send-hover' : '';
   let hoverHistoryClassName = isHistoryHover ? 'history-hover' : '';
 
@@ -48,13 +44,9 @@ function NavBar(props: any) {
         <div className="navbar-img-container dashboard" />
         <span className="navbar-link-text">Dashboard</span>
       </NavLink>
-      <NavLink path={props.location.pathname} to="/receive/bitcoin" className={hoverReceiveBitcoinClassName} {...receiveBitcoinHover}>
-        <div className="navbar-img-container receive-bitcoin" />
-        <span className="navbar-link-text">Receive Bitcoin</span>
-      </NavLink>
-      <NavLink path={props.location.pathname} to="/receive/direct" className={hoverReceiveDirectClassName} {...receiveDirectHover}>
-        <div className="navbar-img-container receive-direct" />
-        <span className="navbar-link-text">Receive Direct</span>
+      <NavLink path={props.location.pathname} to="/receive/bitcoin" className={hoverReceiveClassName} {...receiveHover}>
+        <div className="navbar-img-container receive" />
+        <span className="navbar-link-text">Receive</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/send" className={hoverSendClassName} {...sendHover}>
         <div className="navbar-img-container send" />

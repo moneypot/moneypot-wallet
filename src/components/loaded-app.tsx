@@ -27,7 +27,7 @@ import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history';
-
+import ReceiveContainer from '../containers/receive-container';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -43,14 +43,8 @@ const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserR
 export default function LoadedApp() {
   let windowSize = useWindowSize();
   console.log('window size is: ', windowSize);
-  function isMobileView() {
-    if (windowSize.innerWidth < 576) {
-      return true;
-    }
-    return false;
-  }
-  let mobileView = isMobileView();
-
+  let mobileView = windowSize.innerWidth < 576;
+  const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
   return (
     <Router>
       <div className="App-wrapper">
@@ -60,8 +54,8 @@ export default function LoadedApp() {
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
-            <Route path="/receive/bitcoin" component={ReceiveBitcoin} />
-            <Route path="/receive/direct" component={ReceiveDirect} />
+            <Route path="/receive/bitcoin" component={ReceiveContainer} />
+            <Route path="/receive/direct" component={ReceiveContainer} />
             <Route path="/addresses/bitcoin/:id" component={BitcoinAddressInfo} />
             <Route path="/addresses/direct/:id" component={DirectAddressInfo} />
             <Route path="/addresses" component={Addresses} />
@@ -80,13 +74,12 @@ export default function LoadedApp() {
             <Route component={NoMatch} />
           </Switch>
         </MainContainer>
-        {mobileView ? <Navbar isMobile={mobileView} /> : ''}
-        {!mobileView ? (
+        {mobileView ? (
+          <Navbar isMobile={mobileView} />
+        ) : (
           <div className="App-footer">
             <Footer />
           </div>
-        ) : (
-          ''
         )}
       </div>
     </Router>

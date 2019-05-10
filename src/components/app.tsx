@@ -20,8 +20,9 @@ import {
   faBell,
   faCog,
   faSignOutAlt,
+  faEdit
 } from '@fortawesome/free-solid-svg-icons';
-library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt);
+library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt, faEdit);
 
 export default function App() {
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);
