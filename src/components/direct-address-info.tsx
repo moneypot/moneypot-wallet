@@ -19,7 +19,7 @@ function render(directAddress: Docs.DirectAddress) {
       <hr />
       <h3>Raw Info</h3>
       <code>
-        <pre>{JSON.stringify(directAddress, null, 2)}</pre>
+        <pre>{ JSON.stringify(directAddress, null, 2) }</pre>
       </code>
     </div>
   );
