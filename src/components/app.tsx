@@ -3,26 +3,26 @@ import LoadedApp from './loaded-app';
 import Dexie from 'dexie';
 import CreateWallet from './create-wallet';
 import SelectWallet from './select-wallet';
-import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Link } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Switch } from 'react-router-dom';
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 import { library } from '@fortawesome/fontawesome-svg-core';
 
-import {
-  faCheck,
-  faChevronRight,
-  faExchangeAlt,
-  faLink,
-  faTimes,
-  faPlus,
-  faPlusCircle,
-  faArrowRight,
-  faCircle,
-  faBell,
-  faCog,
-  faSignOutAlt,
-  faEdit,
-} from '@fortawesome/free-solid-svg-icons';
-library.add(faCheck, faChevronRight, faLink, faExchangeAlt, faTimes, faPlus, faPlusCircle, faArrowRight, faCircle, faBell, faCog, faSignOutAlt, faEdit);
+import * as fa from '@fortawesome/free-solid-svg-icons';
+library.add(
+  fa.faCheck,
+  fa.faChevronRight,
+  fa.faLink,
+  fa.faExchangeAlt,
+  fa.faTimes,
+  fa.faPlus,
+  fa.faPlusCircle,
+  fa.faArrowRight,
+  fa.faCircle,
+  fa.faBell,
+  fa.faCog,
+  fa.faSignOutAlt,
+  fa.faEdit
+);
 
 export default function App() {
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);

@@ -27,7 +27,6 @@ import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history';
-import ReceiveContainer from '../containers/receive-container';
 import HookinInfo from './hookin-info';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -55,10 +54,11 @@ export default function LoadedApp() {
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
-            <Route path="/receive/bitcoin" component={ReceiveContainer} />
-            <Route path="/receive/direct" component={ReceiveContainer} />
+            <Route path="/receive/bitcoin" render={props => <ReceiveBitcoin {...props}  />}/>
+            <Route path="/receive/direct" render={props => <ReceiveDirect {...props} />} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses/direct/:address" component={DirectAddressInfo} />
+
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" component={Send} />
             <Route path="/hookins/:hash" component={HookinInfo} />

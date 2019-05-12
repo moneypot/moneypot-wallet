@@ -5,9 +5,11 @@ import { TheQr } from 'the-qr';
 
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedDirectAddress } from '../../state/wallet';
+import ReceiveContainer from '../../containers/receive-container';
 
 function show(addressDoc: Docs.DirectAddress) {
   return (
+    <ReceiveContainer page="direct">
     <div>
       <h3>Receive Direct</h3>
       <p>
@@ -23,14 +25,15 @@ function show(addressDoc: Docs.DirectAddress) {
       <hr />
       <Link to="/addresses">Addresses</Link>
     </div>
+    </ReceiveContainer>
   );
 }
 
-export default function Receive() {
+export default function Receive(props: any) {
   const address = useUnusedDirectAddress();
 
   if (address === undefined) {
-    return <p>Loading...</p>;
+    return <ReceiveContainer><p>Loading...</p></ReceiveContainer>;
   }
 
   return show(address);

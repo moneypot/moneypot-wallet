@@ -6,6 +6,8 @@ import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, Input
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './send.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Link } from "react-router-dom";
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -80,16 +82,6 @@ export default function Send({ history }: Props) {
     );
   }
 
-  function ShowFeeText() {
-    return (
-      <Row>
-        <Col sm={3}>Fee:</Col>
-        <Col sm={{ size: 9, offset: 0 }}>
-          <p style={{ fontWeight: 'bold' }}>1078 satoshi</p>
-        </Col>
-      </Row>
-    );
-  }
 
   function ShowNoteInput() {
     return (
@@ -178,9 +170,12 @@ export default function Send({ history }: Props) {
             <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
           <FormGroup row>
-            <CustomInput type="switch" id="noteSwitch" label="Add Note (for your own records)" onClick={handleNoteSelected} />
+            <Button color="light" onClick={handleNoteSelected}>
+              <FontAwesomeIcon icon="edit"/>
+              Add Optional Note
+            </Button>
           </FormGroup>
-          {isNoteSelected ? <ShowNoteInput /> : ''}
+          {isNoteSelected ? ShowNoteInput() : ''}
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-hookedin" onClick={send}>
@@ -191,5 +186,16 @@ export default function Send({ history }: Props) {
         </Form>
       </div>
     </div>
+  );
+}
+
+function ShowFeeText() {
+  return (
+    <Row>
+      <Col sm={3}>Fee:</Col>
+      <Col sm={{ size: 9, offset: 0 }}>
+        <p style={{ fontWeight: 'bold' }}>1078 satoshi</p>
+      </Col>
+    </Row>
   );
 }
