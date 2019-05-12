@@ -31,10 +31,10 @@ export default function Receive(props: any) {
   const address = useUnusedBitcoinAddress();
 
   if (address === undefined) {
-    return(
-    <ReceiveContainer>
-    <p>Loading...</p>
-    </ReceiveContainer>
+    return (
+      <ReceiveContainer>
+        <p>Loading...</p>
+      </ReceiveContainer>
     );
   }
 

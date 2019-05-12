@@ -35,12 +35,14 @@ export default function HookinInfo(props: RouteComponentProps<{ hash: string }>)
           <tr>
             <th>tx</th>
             <td>
-              <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?output:${hookinDoc.vout}`} target="_blank" >{hookinDoc.txid}:{hookinDoc.vout}</a>
+              <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?output:${hookinDoc.vout}`} target="_blank">
+                {hookinDoc.txid}:{hookinDoc.vout}
+              </a>
             </td>
           </tr>
         </tbody>
       </table>
-      <hr/>
+      <hr />
       <h3>Raw Hookin</h3>
       <div>
         <pre>

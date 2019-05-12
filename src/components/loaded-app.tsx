@@ -54,7 +54,7 @@ export default function LoadedApp() {
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
-            <Route path="/receive/bitcoin" render={props => <ReceiveBitcoin {...props}  />}/>
+            <Route path="/receive/bitcoin" render={props => <ReceiveBitcoin {...props} />} />
             <Route path="/receive/direct" render={props => <ReceiveDirect {...props} />} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses/direct/:address" component={DirectAddressInfo} />

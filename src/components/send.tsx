@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './send.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -15,8 +15,7 @@ export default function Send({ history }: Props) {
   const [amountText, setAmountText] = useState('');
   const [speedSelection, setSpeedSelection] = useState('fast');
   const [feeText, setFeeText] = useState('');
-  const [isNoteSelected, setIsNoteSelected] = useState(false);
-  const [noteText, setNoteText] = useState('');
+  const [noteText, setNoteText] = useState<string | undefined>(undefined);
 
   const send = async () => {
     const address = toText;
@@ -82,8 +81,10 @@ export default function Send({ history }: Props) {
     );
   }
 
-
   function ShowNoteInput() {
+    if (noteText === undefined) {
+      return;
+    }
     return (
       <FormGroup row>
         <Col sm={{ size: 12, offset: 0 }}>
@@ -98,7 +99,7 @@ export default function Send({ history }: Props) {
   }
 
   function handleNoteSelected() {
-    setIsNoteSelected(!isNoteSelected);
+    setNoteText(noteText === undefined ? '' : undefined);
   }
 
   return (
@@ -171,11 +172,11 @@ export default function Send({ history }: Props) {
           </div>
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
-              <FontAwesomeIcon icon="edit"/>
+              <FontAwesomeIcon icon="edit" />
               Add Optional Note
             </Button>
           </FormGroup>
-          {isNoteSelected ? ShowNoteInput() : ''}
+          {ShowNoteInput()}
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-hookedin" onClick={send}>

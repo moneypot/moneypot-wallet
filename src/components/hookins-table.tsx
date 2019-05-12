@@ -53,7 +53,9 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Hookin }) {
       </td>
       <td>{hookinDoc.amount} sat</td>
       <td>
-        <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank">{hookinDoc.txid.substring(0, 8)}...</a>
+        <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank">
+          {hookinDoc.txid.substring(0, 8)}...
+        </a>
       </td>
       <td>{renderSpentStatus()}</td>
     </tr>
