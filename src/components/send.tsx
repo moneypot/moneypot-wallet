@@ -105,7 +105,7 @@ export default function Send({ history }: Props) {
   return (
     <div>
       <ToastContainer />
-      <h3>Send Bitcoin</h3>
+      <h3>Send</h3>
       <div className="inner-container" style={{ padding: '5rem 20vw' }}>
         <Form>
           <FormGroup row>
@@ -146,7 +146,7 @@ export default function Send({ history }: Props) {
                 >
                   <FormGroup check>
                     <Label check>
-                      <Input type="radio" name="speedSelection" value="fast" onChange={handleSpeedSelectionChange} /> Fast
+                      <Input type="radio" name="speedSelection" value="fast" defaultChecked onChange={handleSpeedSelectionChange} /> Fast
                     </Label>
                   </FormGroup>
                   <FormGroup check>

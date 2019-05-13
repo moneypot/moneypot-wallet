@@ -12,16 +12,17 @@ export default function ReceiveContainer(props: any) {
       <Nav tabs fill>
         <NavItem>
           <Link className={selection === 'bitcoin' ? 'active nav-link' : 'nav-link'} to="/receive/bitcoin">
-            Receive Bitcoin
+            Bitcoin
           </Link>
         </NavItem>
         <NavItem>
           <Link className={selection === 'direct' ? 'active nav-link' : 'nav-link'} to="/receive/direct">
-            Receive Direct
+            Direct
           </Link>
         </NavItem>
       </Nav>
       <div className="inner">{props.children}</div>
+      <Link to="/addresses">Addresses</Link>
     </div>
   );
 }

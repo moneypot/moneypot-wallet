@@ -1,0 +1,46 @@
+@import '../css/colors.scss';
+
+.address-table > div {
+  height: 2rem;
+  border-top: 1px solid $table-border;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  word-break: break-word;
+}
+
+.address-table > div > * {
+  display: table-cell;
+  vertical-align: middle;
+  border-bottom: 1px solid $table-border;
+  padding-left: 1rem;
+}
+
+.address-table > div:nth-child(1) {
+  font-weight: bold;
+  border-top: 0;
+
+
+}
+
+//The addresses (first column)
+.address-table > div > div:nth-child(1) {
+  padding-left: 0rem;
+  width: 70%;
+}
+
+.address-table > div > div:nth-child(2) {
+  text-align: left;
+}
+
+.address-table > div:last-child {
+  border-bottom: 1px solid $table-border;
+}
+
+.address-table {
+  margin: 0.5rem;
+  background: #f5f5f5;
+  padding: 0.5rem;
+  color: #78838e;
+
+}

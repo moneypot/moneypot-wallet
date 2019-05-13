@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 // @ts-ignore
 import { TheQr } from 'the-qr';
+import { Button } from 'reactstrap';
 
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedDirectAddress } from '../../state/wallet';
@@ -9,9 +9,9 @@ import ReceiveContainer from '../../containers/receive-container';
 
 function show(addressDoc: Docs.DirectAddress) {
   return (
-    <ReceiveContainer page="direct">
-      <div>
-        <h3>Receive Direct</h3>
+    <div>
+      <h3>Receive</h3>
+      <ReceiveContainer page="direct">
         <p>
           <small>
             Direct Sends (hookedin->hookedin) is the ideal way to send bitcoin. Instant (no confirmations required), irreversible, highly private and insanely
@@ -21,11 +21,9 @@ function show(addressDoc: Docs.DirectAddress) {
         <br />
         Address: <code>{addressDoc.address}</code>
         <TheQr text={addressDoc.address.toUpperCase()} />
-        <button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</button>
-        <hr />
-        <Link to="/addresses">Addresses</Link>
-      </div>
-    </ReceiveContainer>
+        <Button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</Button>
+      </ReceiveContainer>
+    </div>
   );
 }
 

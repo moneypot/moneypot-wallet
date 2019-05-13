@@ -5,7 +5,7 @@ import BitcoinAddressInfo from './bitcoin-address-info';
 import DirectAddressInfo from './direct-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
 import ReceiveDirect from './receive/direct';
-
+import Receive from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send';
@@ -54,6 +54,7 @@ export default function LoadedApp() {
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
+            <Route path="/receive" exact component={Receive} />
             <Route path="/receive/bitcoin" render={props => <ReceiveBitcoin {...props} />} />
             <Route path="/receive/direct" render={props => <ReceiveDirect {...props} />} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />

@@ -44,7 +44,7 @@ function NavBar(props: any) {
         <div className="navbar-img-container dashboard" />
         <span className="navbar-link-text">Dashboard</span>
       </NavLink>
-      <NavLink path={props.location.pathname} to="/receive/bitcoin" className={hoverReceiveClassName} {...receiveHover}>
+      <NavLink path={props.location.pathname} to="/receive" className={hoverReceiveClassName} {...receiveHover}>
         <div className="navbar-img-container receive" />
         <span className="navbar-link-text">Receive</span>
       </NavLink>

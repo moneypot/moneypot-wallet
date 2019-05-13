@@ -1,28 +1,58 @@
 import React from 'react';
-
-import { wallet, useAllInboundAddresses } from '../state/wallet';
-
+import { useAllInboundAddresses } from '../state/wallet';
 import { Link } from 'react-router-dom';
+import './addresses.scss';
+import { Badge } from 'reactstrap';
 
-export default function Addresses() {
+export default function Addresses(props: any) {
   const allAddresses = useAllInboundAddresses();
 
+  if (props.selection) {
+    return (
+      <div>
+        <div className="address-table">
+          <div>
+            <div>Address</div>
+            <div>Created</div>
+          </div>
+          {allAddresses.map(address => {
+            if (address.kind === props.selection) {
+              return (
+                <div key={address.address}>
+                  <div>
+                    <Link to={`/addresses/${address.kind}/${address.address}`}>{address.address}</Link>
+                    {'  '}
+                    <Badge color={address.kind === 'direct' ? 'primary' : 'secondary'}>{address.kind}</Badge>
+                  </div>
+                  <div>{address.created.toISOString()}</div>
+                </div>
+              );
+            }
+          })}
+        </div>
+      </div>
+    );
+  }
   return (
     <div>
-      <table className="table">
-        <tbody>
-          {allAddresses.map(address => {
-            return (
-              <tr key={address.address}>
-                <td>
-                  <Link to={`/addresses/${address.kind}/${address.address}`}>{address.address}</Link>
-                </td>
-                <td>{address.created.toISOString()}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="address-table">
+        <div>
+          <div>Address</div>
+          <div>Created</div>
+        </div>
+        {allAddresses.map(address => {
+          return (
+            <div key={address.address}>
+              <div>
+                <Link to={`/addresses/${address.kind}/${address.address}`}>{address.address}</Link>
+                {'  '}
+                <Badge color={address.kind === 'direct' ? 'primary' : 'secondary'}>{address.kind}</Badge>
+              </div>
+              <div>{address.created.toISOString()}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
