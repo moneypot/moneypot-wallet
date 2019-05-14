@@ -27,6 +27,12 @@ $navbar-brand-font-size: 1.5rem;
 /** Fonts **/
 @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
 
+//Fontawesome
+@import 'css/fontawesome/fontawesome.scss';
+@import "css/fontawesome/solid.scss";
+@import "css/fontawesome/regular.scss";
+@import "css/fontawesome/brands.scss";
+
 body {
   margin: 0;
   padding: 0;

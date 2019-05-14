@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import { Button } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedDirectAddress } from '../../state/wallet';
@@ -21,7 +20,7 @@ function show(addressDoc: Docs.DirectAddress) {
         <h5>Address</h5>
         <div className="address-text-container">
        <code>{addressDoc.address}</code>{' '}
-          <Button color="light" ><FontAwesomeIcon icon="copy" /></Button>
+          <Button color="light" ><i className="fa fa-copy" /></Button>
         </div>
         <Button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</Button>
       </ReceiveContainer>

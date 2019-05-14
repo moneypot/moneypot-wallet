@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import { Button } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './receive.scss';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
@@ -21,12 +20,12 @@ function show(addressDoc: Docs.BitcoinAddress) {
         <div className="address-text-container">
           <code>{addressDoc.address}</code>{' '}
 
-          <Button color="light" ><FontAwesomeIcon icon="copy" /></Button>
+          <Button color="light" ><i className="fa fa-copy" /></Button>
 
         </div>
   <div className="text-container">
         <p className="text-muted">
-          <span><FontAwesomeIcon icon="info-circle" />{' '}</span>
+          <span><i className="fa fa-info-circle" />{' '}</span>
             After N confirmations, funds will be usable. For faster, cheaper and more private transfers, you can use{' '}
             <Link to="/receive/direct">Hookedin-> Hookedin direct.</Link>
         </p>

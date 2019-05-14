@@ -7,7 +7,6 @@ import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './select-wallet.scss';
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
@@ -46,7 +45,7 @@ export default function SelectWallet(props: any) {
       <FormGroup row>
         <Col className="submit-button-container">
           <Link className="btn-hookedin btn btn-success" to="/create-wallet">
-            <FontAwesomeIcon icon="plus-circle" /> Create New
+            <i className="fa fa-plus-circle" /> Create New
           </Link>
         </Col>
       </FormGroup>
@@ -65,7 +64,7 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
       </div>
       <div>
         <Button onClick={() => load(walletName, password)} className="btn-hookedin-sm btn btn-primary">
-          Load <FontAwesomeIcon icon="arrow-right" />
+          Load <i className="fa fa-arrow-right" />
         </Button>
       </div>
     </div>

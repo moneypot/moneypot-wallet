@@ -43,11 +43,12 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(png|jpg|svg)$/i,
+        test: /\.(png|jpg|svg|eot|woff|woff2|ttf)$/i,
         use: [
           'file-loader'
         ],
       },
+
       {
         test: /\.module\.s(a|c)ss$/,
         loader: [
@@ -82,7 +83,8 @@ module.exports = {
             }
           }
         ]
-      }
+      },
+
     ]
   },
   resolve: {

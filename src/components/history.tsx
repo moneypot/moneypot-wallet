@@ -1,6 +1,5 @@
 import React from 'react';
 import { Badge } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './history-card.scss';
 
 export default function History() {
@@ -19,7 +18,7 @@ function HistoryTransaction(props: any) {
     <div className="content-card">
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <FontAwesomeIcon icon="circle" className={props.confirmed ? 'confirmed circle-icon' : 'not-confirmed circle-icon'} />
+          <i className={props.confirmed ? 'fa fa-circle confirmed circle-icon' : 'fa fa-circle not-confirmed circle-icon'} />
           <span className={props.type === 'sent' ? 'sent' : 'received'}>{props.amount} BTC</span>
           <Badge className={props.type === 'sent' ? 'sent' : 'received'}>{props.type === 'sent' ? 'sent' : 'received'}</Badge>
         </div>

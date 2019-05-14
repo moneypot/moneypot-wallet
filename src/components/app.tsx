@@ -5,29 +5,7 @@ import CreateWallet from './create-wallet';
 import SelectWallet from './select-wallet';
 import { BrowserRouter, HashRouter, Route, Switch } from 'react-router-dom';
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { fab } from '@fortawesome/free-brands-svg-icons'
 
-import * as fa from '@fortawesome/free-solid-svg-icons';
-
-library.add(
-  fab,
-  fa.faCheck,
-  fa.faChevronRight,
-  fa.faLink,
-  fa.faExchangeAlt,
-  fa.faTimes,
-  fa.faPlus,
-  fa.faPlusCircle,
-  fa.faArrowRight,
-  fa.faCircle,
-  fa.faBell,
-  fa.faCog,
-  fa.faSignOutAlt,
-  fa.faEdit,
-  fa.faInfoCircle,
-  fa.faCopy,
-);
 
 export default function App() {
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);

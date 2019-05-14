@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup, CustomInput } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {  Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import Addresses from '../addresses';
 
 export default function Receive() {
@@ -53,7 +52,7 @@ export default function Receive() {
           </FormGroup>
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
-              <FontAwesomeIcon icon="edit" />
+              <i className="fa fa-edit" />
               Add Optional Note
             </Button>
           </FormGroup>
@@ -61,7 +60,7 @@ export default function Receive() {
           <FormGroup row>
             <Col className="submit-button-container">
               <Link className="btn btn-success btn-hookedin" to={selection === 'direct' ? '/receive/direct' : '/receive/bitcoin'}>
-                Next <FontAwesomeIcon icon="arrow-right" />
+                Next <i className="fa fa-arrow-right" />
               </Link>
             </Col>
           </FormGroup>

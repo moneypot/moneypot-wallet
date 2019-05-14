@@ -6,7 +6,6 @@ import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, Input
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './send.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -169,9 +168,10 @@ export default function Send({ history }: Props) {
             {speedSelection === 'custom' ? ShowCustomFeeInput() : <ShowFeeText />}
             <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
+          <i className="fas fa-inbox-in"></i>
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
-              <FontAwesomeIcon icon="edit" />
+              <i className="fa fa-edit" />
               Add Optional Note
             </Button>
           </FormGroup>

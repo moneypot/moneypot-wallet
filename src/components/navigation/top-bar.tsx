@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Collapse, Navbar, NavbarToggler, Nav, NavItem } from 'reactstrap';
+import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import './top-bar.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
+import '../../img/fa-js/all.min.js'; // This is FontAwesome's SVG+JS file. It is needed for the stacking icons style in the notification bell.
 import { wallet, useBalance } from '../../state/wallet';
 
 export default withRouter(TopBar);
@@ -34,12 +33,12 @@ function TopBar(props: any) {
         <span className="nav-item-right">
           <button type="button" className="navbar-toggler">
             <span className="fa-layers fa-fw fa-lg">
-              <FontAwesomeIcon icon="bell" style={{ fontSize: '20px' }} />
+              <i className="fa fa-bell" style={{ fontSize: '20px' }} />
               <span className="fa-layers-counter notification-counter">28</span>
             </span>
           </button>
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
-            <FontAwesomeIcon icon="cog" />
+            <i className="fa fa-chevron-square-down" />
           </button>
         </span>
         <Collapse isOpen={isOpen} navbar>
@@ -95,7 +94,7 @@ function TopBar(props: any) {
               </Link>
             </NavItem>
             <NavItem>
-              <FontAwesomeIcon icon="sign-out-alt" className="fa-lg" style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
+              <i className="fa fa-lg fa-sign-out-alt"  style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
             </NavItem>
           </Nav>
         </Collapse>
