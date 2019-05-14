@@ -1,0 +1,21 @@
+@import "../../css/colors.scss";
+@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
+
+.address-text-container {
+  background: $lighter-gray;
+  padding: 1rem;
+  border-radius: 0.2rem;
+  margin-bottom: 2rem;
+}
+
+.text-container {
+  margin: 0 15vw 2rem;
+}
+
+// For a Small screen view
+@include media-breakpoint-down(sm) {
+  .text-container {
+    margin: 2rem 0;
+
+  }
+}

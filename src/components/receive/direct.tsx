@@ -2,25 +2,27 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import { Button } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedDirectAddress } from '../../state/wallet';
 import ReceiveContainer from '../../containers/receive-container';
+import './receive.scss';
+
 
 function show(addressDoc: Docs.DirectAddress) {
   return (
     <div>
       <h3>Receive</h3>
       <ReceiveContainer page="direct">
-        <p>
-          <small>
-            Direct Sends (hookedin->hookedin) is the ideal way to send bitcoin. Instant (no confirmations required), irreversible, highly private and insanely
-            cheap!
-          </small>
-        </p>
-        <br />
-        Address: <code>{addressDoc.address}</code>
+        <p>This is a <b>direct address</b>, the transaction is instant(no confirmations required), irreversible, secure, highly private and super cheap .
+          But only works with other hookedin wallets.</p>
         <TheQr text={addressDoc.address.toUpperCase()} />
+        <h5>Address</h5>
+        <div className="address-text-container">
+       <code>{addressDoc.address}</code>{' '}
+          <Button color="light" ><FontAwesomeIcon icon="copy" /></Button>
+        </div>
         <Button onClick={() => wallet.checkDirectAddress(addressDoc)}>Check</Button>
       </ReceiveContainer>
     </div>
