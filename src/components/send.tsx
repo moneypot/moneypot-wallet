@@ -104,7 +104,7 @@ export default function Send({ history }: Props) {
     <div>
       <ToastContainer />
       <h3>Send</h3>
-      <div className="inner-container" style={{ padding: '5rem 20vw' }}>
+      <div className="inner-container">
         <Form>
           <FormGroup row>
             <Label for="toText" sm={3}>
@@ -168,7 +168,7 @@ export default function Send({ history }: Props) {
             {speedSelection === 'custom' ? ShowCustomFeeInput() : <ShowFeeText />}
             <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
-          <i className="fas fa-inbox-in"></i>
+          <i className="fas fa-inbox-in" />
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
               <i className="fa fa-edit" />

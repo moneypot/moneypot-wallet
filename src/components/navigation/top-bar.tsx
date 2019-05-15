@@ -94,7 +94,7 @@ function TopBar(props: any) {
               </Link>
             </NavItem>
             <NavItem>
-              <i className="fa fa-lg fa-sign-out-alt"  style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
+              <i className="fa fa-lg fa-sign-out-alt" style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
             </NavItem>
           </Nav>
         </Collapse>

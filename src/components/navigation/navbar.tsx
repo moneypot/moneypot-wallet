@@ -5,15 +5,12 @@ import { Link, withRouter } from 'react-router-dom';
 export default withRouter(NavBar);
 
 function NavBar(props: any) {
-
-
   function NavLink(props: any) {
     let isActive = props.path === props.to;
     let activeId = isActive ? 'active-nav' : '';
 
     return <Link id={activeId} {...props} />;
   }
-
 
   return (
     <div className="custom-navbar">
@@ -28,19 +25,19 @@ function NavBar(props: any) {
         </div>
       )}
       <NavLink to="/" path={props.location.pathname}>
-        <i className="fal fa-desktop-alt"/>
+        <i className="fal fa-desktop-alt" />
         <span className="navbar-link-text">Dashboard</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/receive">
-        <i className="fal fa-inbox-in"/>
+        <i className="fal fa-inbox-in" />
         <span className="navbar-link-text">Receive</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/send">
-        <i className="fal fa-inbox-out"/>
+        <i className="fal fa-inbox-out" />
         <span className="navbar-link-text">Send</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/history">
-        <i className="fal fa-history"/>
+        <i className="fal fa-history" />
         <span className="navbar-link-text">History</span>
       </NavLink>
     </div>

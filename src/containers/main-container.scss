@@ -1,4 +1,5 @@
 @import "../css/colors.scss";
+@import '../../node_modules/bootstrap/scss/bootstrap.scss';
 
 .main-container {
     grid-area: main;
@@ -8,9 +9,25 @@
 }
 
 .inner-container {
-    background-color: #fff;
-    padding: 1.5rem;
+    background-color: $white;
     box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
     border-radius: 0.2rem;
     margin: 1rem 0;
+}
+// For a Mobile view
+@include media-breakpoint-down(xs) {
+    .inner-container {
+        padding: 3rem 5vw;
+    }
+}
+// For a Desktop view
+@include media-breakpoint-up(lg) {
+    .inner-container {
+        padding: 5rem 20vw;
+    }
+}
+@include media-breakpoint-between(sm, md) {
+    .inner-container {
+        padding: 5rem 10vw;
+    }
 }

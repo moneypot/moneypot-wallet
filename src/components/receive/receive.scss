@@ -19,3 +19,35 @@
 
   }
 }
+
+.custom-radio-buttons-container {
+  margin: 1rem;
+  display: flex;
+  justify-content: space-around;
+  color: $theme-blue;
+
+}
+
+.custom-radio-buttons-container input[type="radio"] {
+  display:none;
+}
+
+.custom-radio-buttons-container label {
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 3rem;
+  background-color: #fff;
+  box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
+  border-radius: 0.5rem;
+}
+
+.custom-radio-buttons-container label:hover {
+  background-color: lighten($light-blue-nav-link, 20%);
+}
+
+.custom-radio-buttons-container input[type="radio"]:checked + label {
+  background-color:$white;
+  border: 2px solid $theme-blue;
+  font-weight: bold;
+}

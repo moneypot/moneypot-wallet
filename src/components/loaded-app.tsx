@@ -27,7 +27,7 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history';
 import HookinInfo from './hookin-info';
-import Support from "./support";
+import Support from './support';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -71,7 +71,7 @@ export default function LoadedApp() {
             <Route path="/bounties" component={Bounties} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
-            <Route path="/contact" render={props => <Page {...props}page="Contact" />} />
+            <Route path="/contact" render={props => <Page {...props} page="Contact" />} />
             <Route path="/support" render={props => <Support />} />
             <Route path="/history" component={History} />
             <Route component={NoMatch} />
