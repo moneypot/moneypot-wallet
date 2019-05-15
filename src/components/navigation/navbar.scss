@@ -25,11 +25,10 @@
     .navbar-link-text {
         display: none;
     }
-    .navbar-img-container {
-        height: 2rem;
-        width: 2rem;
-        background-size: cover;
+    .custom-navbar svg {
+        font-size: 1.3em;
     }
+
 }
 
 // Desktop view -- called sidenav
@@ -63,14 +62,14 @@
         font-size: 1.8rem;
         color: #fff;
     }
-    .navbar-img-container {
-        height: 2.6rem;
-        width: 2.6rem;
-        margin-bottom: 0.6rem;
-        background-size: cover;
-    }
     #active-nav {
         border-left: $neon-blue 3px solid;
+    }
+    .navbar-link-text {
+        margin-top: 0.5rem;
+    }
+    .custom-navbar svg {
+        font-size: 3em;
     }
 }
 
@@ -83,46 +82,4 @@
 #active-nav:hover {
     color: #fff;
     background: darken($theme-blue, 25%);
-}
-
-// Navbar icons
-
-
-.receive {
-    background-image: url('../../img/receive-btc-link.svg');
-}
-.receive-hover div {
-    background-image: url('../../img/receive-btc-hover.svg');
-}
-#active-nav .receive  {
-    background-image: url('../../img/receive-btc-accent.svg');
-}
-.send {
-    background-image: url('../../img/send-link.svg');
-}
-.send-hover div {
-    background-image: url('../../img/send-hover.svg');
-}
-#active-nav .send  {
-    background-image: url('../../img/send-accent.svg');
-}
-
-.history {
-    background-image: url('../../img/history-link.svg');
-}
-.history-hover div {
-    background-image: url('../../img/history-hover.svg');
-}
-#active-nav .history  {
-    background-image: url('../../img/history-accent.svg');
-}
-
-.dashboard {
-    background-image: url('../../img/dashboard-link.svg');
-}
-.dashboard-hover div {
-    background-image: url('../../img/dashboard-hover.svg');
-}
-#active-nav .dashboard  {
-    background-image: url('../../img/dashboard-accent.svg');
 }
