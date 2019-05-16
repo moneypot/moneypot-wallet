@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import { Button } from 'reactstrap';
-import './receive.scss';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 import ReceiveContainer from '../../containers/receive-container';

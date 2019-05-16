@@ -5,7 +5,6 @@ $mobile-top-bar-height: 56px;
 $mobile-navbar-height: 60px;
 
 $desktop-top-bar-height: 56px;
-$desktop-footer-height: 50px;
 
 // For a Mobile view
 @include media-breakpoint-down(xs) {
@@ -37,20 +36,19 @@ $desktop-footer-height: 50px;
 @include media-breakpoint-up(sm) {
   .App-wrapper {
     display: grid;
-    grid-template-rows: $desktop-top-bar-height auto $desktop-footer-height;
+    grid-template-rows: $desktop-top-bar-height auto;
     grid-template-columns: repeat(6, 1fr);
-    grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main" "sidenav footer footer footer footer footer";
+    grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main";
     width: 100vw;
     height: 100vh;
     background: $theme-blue;
   }
 
   .App-footer {
-    grid-area: footer;
     background: $bg;
     color: $body-text;
     width: 100%;
-    height: 100%;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -63,7 +61,7 @@ $desktop-footer-height: 50px;
     color: darken($body-text, 25%);
   }
   .main-container {
-    height: calc(100vh - #{$desktop-top-bar-height} - #{$desktop-footer-height});
+    height: calc(100vh - #{$desktop-top-bar-height});
   }
 }
 @include media-breakpoint-up(md) {

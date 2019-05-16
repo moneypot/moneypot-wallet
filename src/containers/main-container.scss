@@ -23,11 +23,12 @@
 // For a Desktop view
 @include media-breakpoint-up(lg) {
     .inner-container {
-        padding: 5rem 20vw;
+        padding: 5rem 10vw;
     }
 }
 @include media-breakpoint-between(sm, md) {
     .inner-container {
-        padding: 5rem 10vw;
+        padding: 5rem 5vw;
     }
 }
+

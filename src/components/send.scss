@@ -1,9 +1,6 @@
+@import "../css/colors.scss";
 
-.form-check {
-  margin: 0 2rem;
-}
-
-.fee-fields-wrapper {
+.fee-wrapper {
   background: #f4f6f8;
   margin: .5rem -1rem;
   padding: 0.5rem 1rem;
@@ -13,18 +10,62 @@
   align-items: center;
 }
 
+.send-radio-buttons-container {
+  margin: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+.send-radio-buttons-container h5 {
+  text-transform: lowercase;
+  letter-spacing: 0.2rem;
+}
+.send-radio-buttons-container ul {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  list-style: none;
+ padding: 0;
+}
+.send-radio-buttons-container ul li:before {
+  content: '✓';
+  margin-right: 0.5rem;
+}
+.send-radio-buttons-container input[type="radio"] {
+  display:none;
+}
 
-.item-enter {
-  opacity: 0;
+.send-radio-buttons-container label {
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem 2rem;
+  margin: 1rem 1rem;
+  background-color: $white;
+  box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
+  border-radius: 0.5rem;
+  flex-grow: 0;
+  flex-basis: 150px;
+
 }
-.item-enter-active {
-  opacity: 1;
-  transition: opacity 500ms ease-in;
+
+.send-radio-buttons-container label:hover {
+  background-color: lighten($light-blue-nav-link, 20%);
 }
-.item-exit {
-  opacity: 1;
+
+.send-radio-buttons-container input[type="radio"]:checked + label {
+  background-color:$white;
+  border: 2px solid $theme-blue;
+  color: $theme-blue;
 }
-.item-exit-active {
-  opacity: 0;
-  transition: opacity 500ms ease-in;
+
+.checked-icon {
+  position: relative;
+  top: -1rem;
+  color: transparent;
+}
+
+.send-radio-buttons-container input[type="radio"]:checked + label .checked-icon {
+  color: $theme-blue;
+  background: white;
 }

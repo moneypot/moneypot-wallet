@@ -76,14 +76,17 @@ export default function LoadedApp() {
             <Route path="/history" component={History} />
             <Route component={NoMatch} />
           </Switch>
+          {!mobileView ?
+            (
+              <div className="App-footer">
+                <Footer />
+              </div>
+            )
+           : ''}
         </MainContainer>
         {mobileView ? (
           <Navbar isMobile={mobileView} />
-        ) : (
-          <div className="App-footer">
-            <Footer />
-          </div>
-        )}
+        ) : ''}
       </div>
     </Router>
   );

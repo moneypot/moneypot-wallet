@@ -2,28 +2,31 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Row, Col } from 'reactstrap';
 import Addresses from '../addresses';
+import './receive.scss';
 
 export default function Receive() {
   const [selection, setSelection] = useState('bitcoin');
   return (
     <div>
       <h3>Receive</h3>
-      <div className="inner-container" style={{ padding: '5rem 10vw' }}>
-        <p>Selection:</p>
-        <div className="custom-radio-buttons-container">
+      <div className="inner-container">
+        <p>Please select what type of address do you need:</p>
+        <div className="receive-radio-buttons-container">
           <input type="radio" id="radioBitcoin" name="receiveSelection" value="bitcoin" defaultChecked onChange={event => setSelection(event.target.value)} />
           <label htmlFor="radioBitcoin">
-            <span>Bitcoin </span>
-            <i className="fab fa-bitcoin fa-2x" />
-            <p>Use the bitcoin network</p>
+            <i className="fa fa-check-circle fa-2x checked-icon" />
+            <h5>Bitcoin </h5>
+            <i className="fab fa-btc fa-2x" />
+            <ul>
+              <li>regular bitcoin address</li>
+              <li>requires to wait for confirmation</li>
+            </ul>
           </label>
           <input type="radio" id="radioDirect" name="receiveSelection" value="direct" onChange={event => setSelection(event.target.value)} />
           <label htmlFor="radioDirect">
-            <span>Direct </span>
-            <i className="fa fa-check-circle fa-2x" />
-            <p>
-              A <b>direct address</b> allows a transaction to be:
-            </p>
+            <i className="fa fa-check-circle fa-2x checked-icon" />
+            <h5>Direct </h5>
+            <i className="fal fa-exchange fa-2x" />
             <ul>
               <li>instant (no confirmations required)</li>
               <li>irreversible</li>

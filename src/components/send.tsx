@@ -5,7 +5,7 @@ import { wallet } from '../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup, CustomInput } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import './send.scss';
+import './send.scss'
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -130,45 +130,51 @@ export default function Send({ history }: Props) {
               </InputGroup>
             </Col>
           </FormGroup>
-          <div className="fee-fields-wrapper">
-            <FormGroup row>
-              <Label for="speedSelection" sm={4}>
-                Speed:
-              </Label>
-              <Col sm={{ size: 12, offset: 0 }}>
-                <FormGroup
-                  row
-                  style={{
-                    justifyContent: 'center',
-                  }}
-                >
-                  <FormGroup check>
-                    <Label check>
-                      <Input type="radio" name="speedSelection" value="fast" defaultChecked onChange={handleSpeedSelectionChange} /> Fast
-                    </Label>
-                  </FormGroup>
-                  <FormGroup check>
-                    <Label check>
-                      <Input type="radio" name="speedSelection" value="medium" onChange={handleSpeedSelectionChange} /> Medium
-                    </Label>
-                  </FormGroup>
-                  <FormGroup check>
-                    <Label check>
-                      <Input type="radio" name="speedSelection" value="slow" onChange={handleSpeedSelectionChange} /> Slow
-                    </Label>
-                  </FormGroup>
-                  <FormGroup check>
-                    <Label check>
-                      <Input type="radio" name="speedSelection" value="custom" onChange={handleSpeedSelectionChange} /> Custom
-                    </Label>
-                  </FormGroup>
-                </FormGroup>
-              </Col>
-            </FormGroup>
+
+          <div className="send-radio-buttons-container">
+            <input type="radio" id="radioFast" name="speedSelection" value="fast" defaultChecked onChange={handleSpeedSelectionChange} />
+            <label htmlFor="radioFast">
+              <i className="fa fa-check-circle fa-2x checked-icon" />
+              <h5>Fast </h5>
+              <i className="fal fa-rabbit-fast fa-2x" />
+              <ul>
+                <li>priority</li>
+              </ul>
+              <span>
+                <i className="fab fa-btc" />
+                 <i className="fab fa-btc" />
+                 <i className="fab fa-btc" />
+              </span>
+            </label>
+            <input type="radio" id="radioSlow" name="speedSelection" value="slow" onChange={handleSpeedSelectionChange} />
+            <label htmlFor="radioSlow">
+              <i className="fa fa-check-circle fa-2x checked-icon" />
+              <h5>Slow </h5>
+              <i className="fal fa-turtle fa-2x" />
+              <ul>
+                <li>economical</li>
+              </ul>
+              <span>
+                <i className="fab fa-btc" />
+                 <i className="fab fa-btc" style={{ color: '#ced4da'}} />
+                 <i className="fab fa-btc" style={{ color: '#ced4da'}} />
+              </span>
+            </label>
+            <input type="radio" id="radioCustom" name="speedSelection" value="custom" onChange={handleSpeedSelectionChange} />
+            <label htmlFor="radioCustom">
+              <i className="fa fa-check-circle fa-2x checked-icon" />
+              <h5>Custom </h5>
+              <i className="fal fa-edit fa-2x" />
+              <ul>
+                <li>choose your fee</li>
+              </ul>
+            </label>
+          </div>
+
+          <div className="fee-wrapper">
             {speedSelection === 'custom' ? ShowCustomFeeInput() : <ShowFeeText />}
             <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
-          <i className="fas fa-inbox-in" />
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
               <i className="fa fa-edit" />

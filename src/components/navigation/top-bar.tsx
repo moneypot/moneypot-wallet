@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import './top-bar.scss';
-import '../../img/fa-js/all.min.js'; // This is FontAwesome's SVG+JS file. It is needed for the stacking icons style in the notification bell.
 import { wallet, useBalance } from '../../state/wallet';
 
 export default withRouter(TopBar);
@@ -34,7 +33,7 @@ function TopBar(props: any) {
           <button type="button" className="navbar-toggler">
             <span className="fa-layers fa-fw fa-lg">
               <i className="fa fa-bell" style={{ fontSize: '20px' }} />
-              <span className="fa-layers-counter notification-counter">28</span>
+              <span className="fa-layers-counter notification-counter"></span>
             </span>
           </button>
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
