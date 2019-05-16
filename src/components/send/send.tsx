@@ -1,18 +1,17 @@
 import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
-import { wallet } from '../state/wallet';
-import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup, CustomInput } from 'reactstrap';
+import { wallet } from '../../state/wallet';
+import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import './send.scss'
-
+import './send.scss';
+import ShowCustomFeeInput from './custom-fee';
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const [toText, setToText] = useState('');
   const [amountText, setAmountText] = useState('');
   const [speedSelection, setSpeedSelection] = useState('fast');
-  const [feeText, setFeeText] = useState('');
   const [noteText, setNoteText] = useState<string | undefined>(undefined);
 
   const send = async () => {
@@ -63,22 +62,6 @@ export default function Send({ history }: Props) {
     // TODO
   };
 
-  function ShowCustomFeeInput() {
-    return (
-      <FormGroup row>
-        <Label for="feeText" sm={3}>
-          Fee:
-        </Label>
-        <Col sm={{ size: 9, offset: 0 }}>
-          <InputGroup>
-            <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
-            <InputGroupAddon addonType="append">satoshi</InputGroupAddon>
-          </InputGroup>
-        </Col>
-      </FormGroup>
-    );
-  }
-
   function ShowNoteInput() {
     if (noteText === undefined) {
       return;
@@ -122,11 +105,9 @@ export default function Send({ history }: Props) {
               <InputGroup>
                 <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
                 <InputGroupAddon addonType="append">satoshi</InputGroupAddon>
-                <InputGroupAddon addonType="append">
-                  <Button color="danger" onClick={setMaxAmount}>
-                    max
-                  </Button>
-                </InputGroupAddon>
+                <Button className="max-button" color="danger" onClick={setMaxAmount}>
+                  max
+                </Button>
               </InputGroup>
             </Col>
           </FormGroup>
@@ -142,8 +123,8 @@ export default function Send({ history }: Props) {
               </ul>
               <span>
                 <i className="fab fa-btc" />
-                 <i className="fab fa-btc" />
-                 <i className="fab fa-btc" />
+                <i className="fab fa-btc" />
+                <i className="fab fa-btc" />
               </span>
             </label>
             <input type="radio" id="radioSlow" name="speedSelection" value="slow" onChange={handleSpeedSelectionChange} />
@@ -156,8 +137,8 @@ export default function Send({ history }: Props) {
               </ul>
               <span>
                 <i className="fab fa-btc" />
-                 <i className="fab fa-btc" style={{ color: '#ced4da'}} />
-                 <i className="fab fa-btc" style={{ color: '#ced4da'}} />
+                <i className="fab fa-btc" style={{ color: '#ced4da' }} />
+                <i className="fab fa-btc" style={{ color: '#ced4da' }} />
               </span>
             </label>
             <input type="radio" id="radioCustom" name="speedSelection" value="custom" onChange={handleSpeedSelectionChange} />
@@ -172,7 +153,7 @@ export default function Send({ history }: Props) {
           </div>
 
           <div className="fee-wrapper">
-            {speedSelection === 'custom' ? ShowCustomFeeInput() : <ShowFeeText />}
+            {speedSelection === 'custom' ? <ShowCustomFeeInput /> : <ShowFeeText />}
             <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
           <FormGroup row>

@@ -8,7 +8,7 @@ import ReceiveDirect from './receive/direct';
 import Receive from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
-import Send from './send';
+import Send from './send/send';
 import Hookins from './hookins';
 import Addresses from './addresses';
 import Transfers from './transfers';
@@ -76,17 +76,15 @@ export default function LoadedApp() {
             <Route path="/history" component={History} />
             <Route component={NoMatch} />
           </Switch>
-          {!mobileView ?
-            (
-              <div className="App-footer">
-                <Footer />
-              </div>
-            )
-           : ''}
+          {!mobileView ? (
+            <div className="App-footer">
+              <Footer />
+            </div>
+          ) : (
+            ''
+          )}
         </MainContainer>
-        {mobileView ? (
-          <Navbar isMobile={mobileView} />
-        ) : ''}
+        {mobileView ? <Navbar isMobile={mobileView} /> : ''}
       </div>
     </Router>
   );

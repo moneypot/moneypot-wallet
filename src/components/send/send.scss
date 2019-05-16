@@ -1,4 +1,4 @@
-@import "../css/colors.scss";
+@import "../../css/colors";
 
 .fee-wrapper {
   background: #f4f6f8;
@@ -68,4 +68,8 @@
 .send-radio-buttons-container input[type="radio"]:checked + label .checked-icon {
   color: $theme-blue;
   background: white;
+}
+
+.max-button {
+  margin-left: 1rem;
 }

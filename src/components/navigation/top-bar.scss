@@ -14,9 +14,20 @@
 .wallet-info {
     font-weight: bold;
 }
-.notification-counter {
-    background: $theme-blue;
-    font-size: 1.3em;
+
+.fa-stack-bell[data-count]:after{
+    position:absolute;
+    left: 55%;
+    top:10%;
+    content: attr(data-count);
+    font-size:40%;
+    padding:.4em;
+    border-radius:50%;
+    line-height:1em;
+    color: white;
+    background:$theme-blue;
+    text-align:center;
+    min-width: 1em;
 }
 
 .navbar-collapse {
@@ -77,11 +88,9 @@
     justify-content: center;
 }
 
-
-
 .nav-item-right {
     display: flex;
     flex-direction: row;
-
     justify-self: flex-end;
 }
+

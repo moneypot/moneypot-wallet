@@ -31,9 +31,8 @@ function TopBar(props: any) {
         </span>
         <span className="nav-item-right">
           <button type="button" className="navbar-toggler">
-            <span className="fa-layers fa-fw fa-lg">
-              <i className="fa fa-bell" style={{ fontSize: '20px' }} />
-              <span className="fa-layers-counter notification-counter"></span>
+            <span className="fa-stack fa-lg fa-stack-bell" data-count="28">
+              <i className="fa fa-bell fa-stack-1x xfa-inverse" />
             </span>
           </button>
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
