@@ -14,8 +14,11 @@ export default function BitcoinAddressInfo(props: RouteComponentProps<{ address:
 
   const addressDoc = useBitcoinAddress(address);
 
-  if (typeof addressDoc === 'string') {
+  if (addressDoc === 'LOADING') {
     return <div>{addressDoc}</div>;
+  }
+  if (addressDoc === undefined) {
+    return <div>not found</div>;
   }
 
   return <RenderAddress address={addressDoc} />;

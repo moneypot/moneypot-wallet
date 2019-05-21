@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import * as Docs from '../wallet/docs';
 import * as util from '../util';
-import Dexie from 'dexie';
+import { StoreName } from '../wallet/schema';
 
 const fakeWallet: any = new Error('wallet not initialized');
 export let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
@@ -16,10 +16,8 @@ export function setWallet(wdb: WalletDatabase) {
 export function useTransfers(): Docs.Transfer[] {
   const [transfers, setTransfers] = useState<Docs.Transfer[]>([]);
   async function getTransfers() {
-    const transfers = await wallet.transfers
-      .orderBy('created')
-      .reverse()
-      .toArray();
+    const transfers = await wallet.db.getAllFromIndex('transfers', 'by-created');
+
     setTransfers(transfers);
   }
 
@@ -37,7 +35,7 @@ export function useTransfer(transferHash: string): UseTransferResult {
   const [transfer, setTransfer] = useState<UseTransferResult>('LOADING');
 
   async function getTransfer() {
-    const t = await wallet.transfers.get(transferHash);
+    const t = await wallet.db.get('transfers', transferHash);
     if (t === undefined) {
       setTransfer('NOT_FOUND');
     } else {
@@ -60,7 +58,7 @@ export function useBounties() {
   const [bounties, setBounties] = useState<Docs.Bounty[]>([]);
 
   async function getAndSet() {
-    const b = await wallet.bounties.toArray();
+    const b = await wallet.db.getAll('bounties');
     setBounties(b);
   }
 
@@ -76,7 +74,7 @@ export function useBounties() {
 export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   const [addresses, setAddresses] = useState<Docs.BitcoinAddress[]>([]);
   async function getAndSetAddresses() {
-    const addresses = await wallet.bitcoinAddresses.orderBy('index').toArray();
+    const addresses = await wallet.db.getAllFromIndex('bitcoinAddresses', 'by-index');
     setAddresses(addresses);
   }
   useEffect(() => {
@@ -91,14 +89,10 @@ export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
 export function useDirectRecieveAddresses(): Docs.DirectAddress[] {
   const [addresses, setAddresses] = useState<Docs.DirectAddress[]>([]);
   async function getAndSetAddresses() {
-    const isChange = 0;
+    // TODO: optimize by hitting index...
 
-    const addresses = await wallet.directAddresses
-      .where('[isChange+index]')
-      .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
-      .toArray();
-
-    setAddresses(addresses);
+    const addresses = await wallet.db.getAll('directAddresses');
+    setAddresses(addresses.filter(address => !address.isChange));
   }
   useEffect(() => {
     const cleanup = wallet.on('table:directAddresses', getAndSetAddresses);
@@ -121,8 +115,14 @@ export function useAllInboundAddresses(): KindedAddress[] {
   const bitcoinAddresses = useBitcoinAddresses();
   const directAddresses = useDirectRecieveAddresses();
 
-  const kindedBitcoinAddresses: KindedBitcoinAddress[] = bitcoinAddresses.map(ba => ({ kind: 'bitcoin', ...ba }));
-  const kindedDirectAddresses: KindedDirectAddress[] = directAddresses.map(ba => ({ kind: 'direct', ...ba }));
+  const kindedBitcoinAddresses: KindedBitcoinAddress[] = bitcoinAddresses.map(ba => {
+    const kba: KindedBitcoinAddress = { kind: 'bitcoin', ...ba };
+    return kba;
+  });
+  const kindedDirectAddresses: KindedDirectAddress[] = directAddresses.map(ba => {
+    const kda: KindedDirectAddress = { kind: 'direct', ...ba };
+    return kda;
+  });
 
   return [...kindedBitcoinAddresses, ...kindedDirectAddresses];
 }
@@ -131,12 +131,7 @@ export function useAddressesHookins(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
   async function getAndSet() {
-    const hs = await wallet.hookins
-      .where('bitcoinAddress')
-      .equals(bitcoinAddress)
-      .reverse()
-      .sortBy('created');
-
+    const hs = await wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress);
     setHookins(hs);
   }
 
@@ -153,11 +148,7 @@ export function useHookins(): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
   async function getAndSet() {
-    const hs = await wallet.hookins
-      .orderBy('created')
-      .reverse()
-      .toArray();
-    //hs.sort((a, b) => a.created.getTime() - b.created.getTime());
+    const hs = await wallet.db.getAllFromIndex('hookins', 'by-created');
     setHookins(hs);
   }
 
@@ -174,10 +165,7 @@ export function useHookouts(): Docs.Hookout[] {
   const [hookouts, setHookouts] = useState<Docs.Hookout[]>([]);
 
   async function getAndSet() {
-    const hs = await wallet.hookouts
-      .orderBy('created')
-      .reverse()
-      .toArray();
+    const hs = await wallet.db.getAllFromIndex('hookouts', 'by-created');
     setHookouts(hs);
   }
 
@@ -190,50 +178,34 @@ export function useHookouts(): Docs.Hookout[] {
   return hookouts;
 }
 
-function useTableKey<TableType>(table: Dexie.Table<TableType, string>, key?: string) {
-  const [val, setVal] = useState<TableType | 'LOADING' | 'NOT_FOUND'>('LOADING');
-
-  async function get() {
-    if (key === undefined) {
-      setVal('NOT_FOUND');
-      return;
-    }
-
-    const v = await table.get(key);
-    if (v === undefined) {
-      console.warn('could not find key: ', key);
-      setVal('NOT_FOUND');
-      return;
-    }
-
-    setVal(v);
-  }
+function depromise<T>(p: Promise<T>) {
+  const [val, setVal] = useState<T | 'LOADING'>('LOADING');
 
   useEffect(() => {
-    get();
-  }, [key]);
+    p.then(setVal);
+  }, []);
 
   return val;
 }
 
 export function useBitcoinAddress(address: string) {
-  return useTableKey(wallet.bitcoinAddresses, address);
+  return depromise(wallet.db.get('bitcoinAddresses', address));
 }
 
 export function useDirectAddress(address: string) {
-  return useTableKey(wallet.directAddresses, address);
+  return depromise(wallet.db.get('directAddresses', address));
 }
 
 export function useBounty(bountyHash: string) {
-  return useTableKey(wallet.bounties, bountyHash);
+  return depromise(wallet.db.get('bounties', bountyHash));
 }
 
 export function useHookin(hookinHash: string) {
-  return useTableKey(wallet.hookins, hookinHash);
+  return depromise(wallet.db.get('hookins', hookinHash));
 }
 
-export function useHookout(hookoutHash?: string) {
-  return useTableKey(wallet.hookouts, hookoutHash);
+export function useHookout(hookoutHash: string) {
+  return depromise(wallet.db.get('hookouts', hookoutHash));
 }
 
 interface KindedBounty {
@@ -245,7 +217,7 @@ interface KindedHookout {
   hookout: Docs.Hookout;
 }
 
-export function useBountyOrHookout(outputHash: string): 'LOADING' | 'NOT_FOUND' | KindedBounty | KindedHookout {
+export function useBountyOrHookout(outputHash: string): 'LOADING' | undefined | KindedBounty | KindedHookout {
   const bounty = useBounty(outputHash);
   const hookout = useHookout(outputHash);
 
@@ -253,14 +225,14 @@ export function useBountyOrHookout(outputHash: string): 'LOADING' | 'NOT_FOUND' 
     return 'LOADING';
   }
 
-  if (bounty === 'NOT_FOUND' && hookout === 'NOT_FOUND') {
-    return 'NOT_FOUND';
+  if (bounty === undefined && hookout === undefined) {
+    return undefined;
   }
 
-  if (bounty !== 'NOT_FOUND') {
+  if (bounty !== undefined) {
     return { kind: 'Bounty', bounty };
   }
-  if (hookout !== 'NOT_FOUND') {
+  if (hookout !== undefined) {
     return { kind: 'Hookout', hookout };
   }
 
@@ -271,10 +243,7 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
   async function get() {
-    wallet.hookins
-      .where({ bitcoinAddress })
-      .toArray()
-      .then(hookins => setHookins(hookins));
+    wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress).then(hookins => setHookins(hookins));
   }
 
   useEffect(() => {
@@ -325,7 +294,7 @@ type BountyStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 export function useBountyStatus(bountyHash: string) {
   const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
   async function getAndSet() {
-    const claim = await wallet.claims.get(bountyHash);
+    const claim = await wallet.db.get('claims', bountyHash);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
     } else {
@@ -347,7 +316,7 @@ type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 export function useClaimStatus(claimableHash: string) {
   const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
   async function getClaim() {
-    const claim = await wallet.claims.get(claimableHash);
+    const claim = await wallet.db.get('claims', claimableHash);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
     } else {
@@ -384,10 +353,8 @@ function bestTransfer(transfers: Docs.Transfer[]): Docs.Transfer {
 export function useTransferByInputOutputHash(inputOutputHash: string): Docs.Transfer | 'LOADING' | 'NONE' {
   const [transfer, setTransfer] = useState<Docs.Transfer | 'LOADING' | 'NONE'>('LOADING');
   async function getAndSet() {
-    const transfers = await wallet.transfers
-      .where('inputOutputHashes')
-      .equals(inputOutputHash)
-      .toArray();
+    const kr = IDBKeyRange.only(inputOutputHash);
+    const transfers = await wallet.db.getAllFromIndex('transfers', 'by-input-output-hashes', kr);
 
     if (transfers.length === 0) {
       setTransfer('NONE');
@@ -409,7 +376,7 @@ export function useCoins(): Docs.Coin[] {
   const [claimed, setClaimed] = useState<Docs.Coin[]>([]);
 
   async function get() {
-    const coins = await wallet.coins.toArray();
+    const coins = await wallet.db.getAll('coins');
     setClaimed(coins);
   }
   useEffect(() => {

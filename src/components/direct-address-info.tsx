@@ -30,8 +30,11 @@ export default function DirectAddressInfo(props: RouteComponentProps<{ address: 
 
   const directAddressDoc = useDirectAddress(address);
 
-  if (typeof directAddressDoc === 'string') {
+  if (directAddressDoc === 'LOADING') {
     return <div>{directAddressDoc}</div>;
+  }
+  if (directAddressDoc === undefined) {
+    return <div>not found</div>;
   }
 
   return render(directAddressDoc);

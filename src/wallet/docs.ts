@@ -21,12 +21,6 @@ export interface Coin extends hi.POD.Coin {
   blindingNonce: string; // refs the blinding nonce that was used to create this coin
 }
 
-export interface Hookin extends hi.POD.Hookin {
-  hash: string;
-  bitcoinAddress: string; // the bitcoin address, but also references a BitcoinAddressDoc
-  created: Date;
-}
-
 export interface BitcoinAddress {
   address: string; // the actual bitcoin address
   claimant: string; // bech encoded
@@ -38,6 +32,12 @@ export interface DirectAddress {
   address: string; // bech encoded
   index: number;
   isChange: 0 | 1;
+  created: Date;
+}
+
+export interface Hookin extends hi.POD.Hookin {
+  hash: string;
+  bitcoinAddress: string; // the bitcoin address, but also references a BitcoinAddressDoc
   created: Date;
 }
 

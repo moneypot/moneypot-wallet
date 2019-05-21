@@ -1,11 +1,9 @@
-import Dexie from 'dexie';
 import * as Docs from './docs';
 import * as hi from 'hookedin-lib';
 import * as util from '../util';
+import * as idb from 'idb';
 
 import * as bip39 from '../bip39';
-
-import 'dexie-observable';
 
 import submitTransfer from './requests/submit-transfer';
 import { RequestError } from './requests/make-request';
@@ -14,7 +12,6 @@ import makeClaim from './requests/make-claim';
 import fetchBitcoinReceives, { BitcoinReceiveInfo } from './requests/bitcoin-receives';
 import EventEmitter from './event-emitter';
 import * as coinselection from './coin-selection';
-import { DatabaseChangeType } from 'dexie-observable/api';
 import lookupCoin from './requests/lookup-coin';
 import lookupTransfer from './requests/lookup-transfer';
 import lookupBountiesByClaimant from './requests/lookup-bounties-by-claimant';
@@ -22,98 +19,70 @@ import lookupBountiesByClaimant from './requests/lookup-bounties-by-claimant';
 import getCustodianInfo from './requests/get-custodian-info';
 
 import Config from './config';
+import Schema, { schemaPOD, StoreName } from './schema';
+import * as dbInfo from './database-info';
 
 export default class Database extends EventEmitter {
-  db: Dexie;
+  db: idb.IDBPDatabase<Schema>;
+  config: Config; // if not set, wallet is locked.
 
-  bounties: Dexie.Table<Docs.Bounty, string>;
-  claims: Dexie.Table<Docs.Claim, string>;
-  coins: Dexie.Table<Docs.Coin, string>;
-  hookins: Dexie.Table<Docs.Hookin, string>;
-  bitcoinAddresses: Dexie.Table<Docs.BitcoinAddress, string>;
-  directAddresses: Dexie.Table<Docs.DirectAddress, string>;
-  hookouts: Dexie.Table<Docs.Hookout, string>;
-  transfers: Dexie.Table<Docs.Transfer, string>;
-
-  config: Config | undefined; // if not set, wallet is locked.
-
-  constructor(name: string) {
+  constructor(db: idb.IDBPDatabase<Schema>, config: Config) {
     super();
+    this.db = db;
+    this.config = config;
 
-    this.db = new Dexie(name);
-    this.db.version(1).stores({
-      bitcoinAddresses: 'address, &index',
-      // All bounties are from the server, unless it's attached to a transfer that's PENDING | CONFLICTED
-      // we can have bounties that we can't claim (since they're not ours as we don't have the directAddress)
-      bounties: 'hash, claimant',
-      config: 'one',
-      coins: 'hash, claimHash',
-      claims: 'claimRequest.claim', // is the claimHash...
-      directAddresses: 'address, [isChange+index]',
-      hookins: 'hash, bitcoinAddress, created',
-      hookouts: 'hash, created',
-      transfers: 'hash, *inputOutputHashes, status.kind, created',
-    });
+    // this.db.on('changes', changes => {
+    //   for (const change of changes) {
+    //     console.log('Got db change: ', change);
 
-    this.bounties = this.db.table('bounties');
-    this.bitcoinAddresses = this.db.table('bitcoinAddresses');
-    this.claims = this.db.table('claims');
-    this.coins = this.db.table('coins');
-    this.directAddresses = this.db.table('directAddresses');
-    this.hookins = this.db.table('hookins');
-    this.hookouts = this.db.table('hookouts');
-    this.transfers = this.db.table('transfers');
+    //     this.emit(`table:${change.table}`);
+    //     this.emit(`key:${change.key}`);
 
-    this.db.on('changes', changes => {
-      for (const change of changes) {
-        console.log('Got db change: ', change);
+    //     const obj = change.type === DatabaseChangeType.Delete ? (change as any).oldObj : (change as any).obj;
 
-        this.emit(`table:${change.table}`);
-        this.emit(`key:${change.key}`);
+    //     if (change.table === 'bounties') {
+    //       this.emit(`bounties.claimant:${obj.claimant}`);
+    //     }
 
-        const obj = change.type === DatabaseChangeType.Delete ? (change as any).oldObj : (change as any).obj;
+    //     if (change.table === 'hookins') {
+    //       this.emit(`hookins.bitcoinAddress:${obj.bitcoinAddress}`);
+    //     }
 
-        if (change.table === 'bounties') {
-          this.emit(`bounties.claimant:${obj.claimant}`);
-        }
-
-        if (change.table === 'hookins') {
-          this.emit(`hookins.bitcoinAddress:${obj.bitcoinAddress}`);
-        }
-
-        if (change.table === 'transfers') {
-          for (const hash of obj.inputOutputHashes) {
-            this.emit(`transfers.inputOutputHashes:${hash}`);
-          }
-        }
-      }
-    });
+    //     if (change.table === 'transfers') {
+    //       for (const hash of obj.inputOutputHashes) {
+    //         this.emit(`transfers.inputOutputHashes:${hash}`);
+    //       }
+    //     }
+    //   }
+    // });
   }
 
-  public static async restore(name: string, config: Config): Promise<Database | Error> {
-    const db = new Database(name);
+  public static async open(name: string, password: string) {
+    // upgrade stuff will go here....
+    const db = await idb.openDB<Schema>(name, 1);
 
-    try {
-      await db.db.table('config').add(config.toDoc());
-    } catch (err) {
-      console.error('got error when trying to restore a config', err);
-      return new Error('WALLET_ALREADY_INITIALIZED');
+    const configDoc = await db.get('config', 1);
+    if (!configDoc) {
+      return 'NO_SUCH_DB';
     }
 
-    db.config = config;
+    const config = await Config.fromDoc(configDoc, password);
+    if (config === 'INVALID_PASSWORD') {
+      return config;
+    }
 
-    return db;
+    return new Database(db, config);
   }
 
   public static async create(name: string, custodianUrl: string, password: string): Promise<Database | Error> {
-    const mnemonic = bip39.generateMnemonic();
-
-    const gapLimit = 10; // default
-
     const custodian = await getCustodianInfo(custodianUrl);
     if (custodian instanceof Error) {
       return custodian;
     }
+
+    const mnemonic = bip39.generateMnemonic();
+
+    const gapLimit = 10; // default
 
     // If the custodianUrl has a # for verification, we want to strip it now
     const n = custodianUrl.indexOf('#');
@@ -127,104 +96,119 @@ export default class Database extends EventEmitter {
       return config;
     }
 
-    return await Database.restore(name, config);
+    // new db
+    const res = await idb.openDB<Schema>(name, 1, {
+      upgrade(database, oldVersion, newVersion, transaction) {
+        const db = database as idb.IDBPDatabase<unknown>;
+        for (const { store, keyPath, indexes } of schemaPOD) {
+          const objectStore = db.createObjectStore(store, { keyPath });
+
+          for (const index of indexes) {
+            objectStore.createIndex(index.name, index.keyPath, index.params);
+          }
+        }
+      },
+    });
+
+    await res.add('config', config.toDoc());
+    await dbInfo.add(name);
+
+    return new Database(res, config);
   }
 
-  public async unlock(password: string): Promise<Error | undefined> {
-    const configDoc = util.mustExist(await this.db.table('config').get(1));
+  public async newChangeBounty(
+    transaction: idb.IDBPTransaction<Schema, ('bounties' | 'directAddresses')[]>,
+    amount: number
+  ): Promise<[hi.Bounty, Docs.Bounty]> {
+    const isChange = 1;
+    // const maxIndex = await this.directAddresses
+    //   .where('[isChange+index]')
+    //   .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
+    //   .last();
 
-    const config = await Config.fromDoc(configDoc, password);
-    if (config === 'INVALID_PASSWORD') {
-      return new Error('INVALID_PASSWORD');
+    const indx = transaction.objectStore('directAddresses').index('by-is-change-and-index');
+    const lowerBound = IDBKeyRange.lowerBound([isChange, Number.MIN_SAFE_INTEGER]);
+
+    let prevIndex = -1;
+
+    const cursor = await indx.openKeyCursor(lowerBound, 'prev');
+    if (cursor) {
+      prevIndex = cursor.key[1];
     }
 
-    this.config = config;
-  }
+    const index = prevIndex + 1;
 
-  // must be called inside a transaction (directAddresses, bounties)
-  public async newChangeBounty(amount: number): Promise<[hi.Bounty, Docs.Bounty]> {
-    const isChange = 1;
-    const maxIndex = await this.directAddresses
-      .where('[isChange+index]')
-      .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
-      .last();
-
-    const index = maxIndex === undefined ? 0 : maxIndex.index + 1;
-
-    const [claimant, address] = await this.addDirectAddress(index, true);
+    const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['directAddresses']>;
+    const [claimant, address] = await this.addDirectAddress(tx, index, true);
     const nonce = hi.random(32);
 
     const bounty = new hi.Bounty(amount, claimant, nonce);
-
-    const doc: Docs.Bounty = {
+    const bountyDoc: Docs.Bounty = {
       hash: bounty.hash().toPOD(),
       ...bounty.toPOD(),
     };
 
-    await this.bounties.add(doc);
+    transaction.objectStore('bounties').add(bountyDoc);
 
-    return [bounty, doc];
+    return [bounty, bountyDoc];
   }
 
   private async processClaimResponse(acknowledgedClaimResponse: hi.AcknowledgedClaimResponse) {
-    const config = util.mustExist(this.config);
+    const claimResponse = acknowledgedClaimResponse.contents;
+    const { claimRequest, blindedReceipts } = claimResponse;
+
+    const claimHash = claimRequest.claim;
+
+    util.mustEqual(claimRequest.coins.length, blindedReceipts.length);
 
     // basically just adds the appropriate coins, and adds the claim
+    const transaction = this.db.transaction(['coins', 'claims'], 'readwrite');
+    const coinStore = transaction.objectStore('coins');
 
-    this.db.transaction('rw', this.coins, this.claims, async () => {
-      const claimResponse = acknowledgedClaimResponse.contents;
-      const { claimRequest, blindedReceipts } = claimResponse;
+    for (let i = 0; i < claimRequest.coins.length; i++) {
+      const coinClaim = claimRequest.coins[i];
+      const blindedExistenceProof = blindedReceipts[i];
 
-      const claimHash = claimRequest.claim;
+      const blindingSecret = this.config.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
+      const newOwner = this.config.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
 
-      util.mustEqual(claimRequest.coins.length, blindedReceipts.length);
+      const signer = hi.Params.blindingCoinPublicKeys[coinClaim.magnitude.n];
 
-      for (let i = 0; i < claimRequest.coins.length; i++) {
-        const coinClaim = claimRequest.coins[i];
-        const blindedExistenceProof = blindedReceipts[i];
+      const [unblinder, blindedOwner] = hi.blindMessage(blindingSecret, coinClaim.blindingNonce, signer, newOwner.buffer);
 
-        const blindingSecret = config.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
-        const newOwner = config.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
+      util.mustEqual(blindedOwner.toPOD(), coinClaim.blindedOwner.toPOD());
 
-        const signer = hi.Params.blindingCoinPublicKeys[coinClaim.magnitude.n];
+      const existenceProof = hi.unblind(unblinder, blindedExistenceProof);
 
-        const [unblinder, blindedOwner] = hi.blindMessage(blindingSecret, coinClaim.blindingNonce, signer, newOwner.buffer);
+      util.mustEqual(existenceProof.verify(newOwner.buffer, signer), true);
 
-        util.mustEqual(blindedOwner.toPOD(), coinClaim.blindedOwner.toPOD());
+      const coin = new hi.Coin(newOwner, coinClaim.magnitude, existenceProof);
 
-        const existenceProof = hi.unblind(unblinder, blindedExistenceProof);
-
-        util.mustEqual(existenceProof.verify(newOwner.buffer, signer), true);
-
-        const coin = new hi.Coin(newOwner, coinClaim.magnitude, existenceProof);
-
-        await this.coins.put({
-          hash: coin.hash().toPOD(),
-          claimHash: claimHash.toPOD(),
-          blindingNonce: coinClaim.blindingNonce.toPOD(),
-          ...coin.toPOD(),
-        });
-      }
-
-      await this.claims.put({
-        ...acknowledgedClaimResponse.toPOD(),
+      coinStore.put({
+        hash: coin.hash().toPOD(),
+        claimHash: claimHash.toPOD(),
+        blindingNonce: coinClaim.blindingNonce.toPOD(),
+        ...coin.toPOD(),
       });
+    }
+
+    transaction.objectStore('claims').put({
+      ...acknowledgedClaimResponse.toPOD(),
     });
+
+    await transaction.done;
 
     // TODO: validate ...
   }
 
   public async claimBounty(bountyDoc: Docs.Bounty) {
-    const address = util.mustExist(await this.directAddresses.get(bountyDoc.claimant));
+    const address = util.mustExist(await this.db.get('directAddresses', bountyDoc.claimant));
+
     return this.claimBountyWithAddress(bountyDoc, address);
   }
 
   private async claimBountyWithAddress(bountyDoc: Docs.Bounty, address: Docs.DirectAddress) {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
-    const claim = await this.claims.get(bountyDoc.hash);
+    const claim = await this.db.get('claims', bountyDoc.hash);
     if (claim) {
       console.log('bounty: ', bountyDoc.hash, ' already claimed, no need to reclaim', claim);
       return;
@@ -242,17 +226,13 @@ export default class Database extends EventEmitter {
   }
 
   public async claimHookin(hookinDoc: Docs.Hookin) {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
-    const claim = await this.claims.get(hookinDoc.hash);
+    const claim = this.db.get('claims', hookinDoc.hash);
     if (claim) {
       console.log('hookin: ', hookinDoc.hash, ' already claimed, no need to reclaim', claim);
       return;
     }
 
-    const bitcoinAddressDoc = util.mustExist(await this.bitcoinAddresses.get(hookinDoc.bitcoinAddress));
+    const bitcoinAddressDoc = util.mustExist(await this.db.get('bitcoinAddresses', hookinDoc.bitcoinAddress));
 
     const { claimant } = this.deriveBitcoinAddressIndex(bitcoinAddressDoc.index);
 
@@ -266,32 +246,53 @@ export default class Database extends EventEmitter {
   }
 
   public async reset() {
-    for (const table of this.db.tables) {
-      if (table.name === 'config' || table.name[0] === '_') {
-        console.log('skipping clearing table: ', table.name);
+    for (const store of this.db.objectStoreNames) {
+      if (store === 'config') {
+        console.log('skipping clearing table: ', store);
         continue;
       }
-      console.log('clearing table: ', table.name);
-      await table.clear();
+      console.log('clearing store: ', store);
+      await this.db.clear(store);
     }
   }
 
   public async listUnspent(): Promise<Docs.Coin[]> {
-    const spentTransfers = await this.transfers
-      .where('status.kind')
-      .notEqual('CONFLICTED')
-      .toArray();
+    const transaction = this.db.transaction(['coins', 'transfers'], 'readonly');
+    return this.listUnspentT(transaction);
+  }
 
+  // transaction must have read access to transfers and coins
+  private async listUnspentT(transaction: idb.IDBPTransaction<Schema, ('coins' | 'transfers')[]>): Promise<Docs.Coin[]> {
     const spentCoinHashes: Set<string> = new Set();
 
-    for (const transfer of spentTransfers) {
-      for (const hash of transfer.inputOutputHashes) {
-        // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
-        spentCoinHashes.add(hash);
+    let transfersCursor = await transaction.objectStore('transfers').openCursor();
+    while (transfersCursor) {
+      const transfer = transfersCursor.value;
+
+      if (transfer.status.kind !== 'CONFLICTED') {
+        for (const hash of transfer.inputOutputHashes) {
+          // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
+          spentCoinHashes.add(hash);
+        }
       }
+
+      transfersCursor = await transfersCursor.continue();
     }
 
-    return await this.coins.filter(coin => !spentCoinHashes.has(coin.hash)).toArray();
+    const coins = [];
+    let coinsCursor = await transaction.objectStore('coins').openCursor();
+    while (coinsCursor) {
+      const coin = coinsCursor.value;
+
+      // Only push if it hasn't been spent...
+      if (!spentCoinHashes.has(coin.hash)) {
+        coins.push(coin);
+      }
+
+      coinsCursor = await coinsCursor.continue();
+    }
+
+    return coins;
   }
 
   public async getBalance() {
@@ -306,13 +307,10 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
     let gapCount = 0;
 
-    const addresses = await this.bitcoinAddresses.orderBy('index').toArray();
+    const addresses = await this.db.getAllFromIndex('bitcoinAddresses', 'by-index');
+
     for (const address of addresses) {
       const used = await this.checkBitcoinAddress(address);
 
@@ -330,12 +328,13 @@ export default class Database extends EventEmitter {
         console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
 
         // Add all missing addresses...
+        const transaction = this.db.transaction('bitcoinAddresses', 'readwrite');
         for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
           console.log('adding skipped bitcoin address: ', addIndex);
-          await this.addBitcoinAddress(addIndex);
+          await this.addBitcoinAddress(transaction, addIndex);
         }
 
-        const bitcoinAddressDoc = await this.addBitcoinAddress(checkIndex);
+        const bitcoinAddressDoc = await this.addBitcoinAddress(transaction, checkIndex);
         await this.addHookins(bitcoinAddressDoc, receives);
         lastAddressIndex = checkIndex;
         gapCount = 0;
@@ -353,14 +352,21 @@ export default class Database extends EventEmitter {
   }
 
   async syncHookins() {
-    const allClaims = await this.claims.toArray();
+    const transaction = this.db.transaction(['claims', 'hookins'], 'readonly');
 
     const allClaimed = new Set<string>();
-    for (const claim of allClaims) {
+
+    for (const claim of await transaction.objectStore('claims').getAll()) {
       allClaimed.add(claim.claimRequest.claim);
     }
 
-    const unclaimedHookins = await this.hookins.filter(hookin => !allClaimed.has(hookin.hash)).toArray();
+    const unclaimedHookins: Docs.Hookin[] = [];
+    for (const hookin of await transaction.objectStore('hookins').getAll()) {
+      if (!allClaimed.has(hookin.hash)) {
+        unclaimedHookins.push(hookin);
+      }
+    }
+
     console.log('Claiming: ', unclaimedHookins.length, ' hookins');
 
     for (const hookin of unclaimedHookins) {
@@ -369,35 +375,47 @@ export default class Database extends EventEmitter {
   }
 
   async getUnusedBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    return await this.db.transaction('rw', this.bitcoinAddresses, this.hookins, async () => {
-      const bitcoinAddress = await this.bitcoinAddresses
-        .orderBy('index')
-        .reverse()
-        .first();
+    const transaction = this.db.transaction(['bitcoinAddresses', 'hookins'], 'readwrite');
 
-      if (bitcoinAddress) {
-        const hookinCount = await this.hookins.where({ bitcoinAddress: bitcoinAddress.address }).count();
-        if (hookinCount > 0) {
-          return await this.addBitcoinAddress(bitcoinAddress.index + 1);
-        } else {
-          return bitcoinAddress;
-        }
-      } else {
-        return await this.addBitcoinAddress(0);
-      }
-    });
+    const cursor = await transaction
+      .objectStore('bitcoinAddresses')
+      .index('by-index')
+      .openCursor(undefined, 'prev');
+
+    if (!cursor) {
+      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['bitcoinAddresses']>;
+      return await this.addBitcoinAddress(tx, 0);
+    }
+
+    const bitcoinAddress = cursor.value;
+
+    const hookinCursor = await transaction
+      .objectStore('hookins')
+      .index('by-bitcoin-address')
+      .openKeyCursor(bitcoinAddress.address);
+    if (!hookinCursor) {
+      // hasn't been used...
+      return bitcoinAddress;
+    } else {
+      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['bitcoinAddresses']>;
+      return await this.addBitcoinAddress(tx, bitcoinAddress.index + 1);
+    }
   }
 
   public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    return await this.db.transaction('rw', this.bitcoinAddresses, async () => {
-      const maxIndex = await this.bitcoinAddresses.orderBy('index').last();
-      const index = maxIndex === undefined ? 0 : maxIndex.index + 1;
+    const transaction = this.db.transaction('bitcoinAddresses', 'readwrite');
 
-      return this.addBitcoinAddress(index);
-    });
+    let maxIndex = -1;
+    const cursor = await transaction.store.index('by-index').openKeyCursor(undefined, 'prev');
+    if (cursor) {
+      maxIndex = cursor.key;
+    }
+
+    return this.addBitcoinAddress(transaction, maxIndex + 1);
   }
 
-  private async addBitcoinAddress(index: number): Promise<Docs.BitcoinAddress> {
+  // transaction must support write to 'bitcoinAddresses'
+  private async addBitcoinAddress(transaction: idb.IDBPTransaction<Schema, ['bitcoinAddresses']>, index: number): Promise<Docs.BitcoinAddress> {
     const hookinInfo = this.deriveBitcoinAddressIndex(index);
 
     const claimant = hookinInfo.claimant.toPublicKey().toPOD();
@@ -410,7 +428,7 @@ export default class Database extends EventEmitter {
       created: new Date(),
     };
 
-    await this.bitcoinAddresses.put(bitcoinAddressDoc);
+    await transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
 
     return bitcoinAddressDoc;
   }
@@ -425,41 +443,66 @@ export default class Database extends EventEmitter {
   }
 
   async getUnusedDirectAddress(): Promise<Docs.DirectAddress> {
-    return await this.db.transaction('rw', this.directAddresses, this.bounties, async () => {
-      const isChange = 0;
+    const transaction = this.db.transaction(['directAddresses', 'bounties'], 'readwrite');
 
-      const directAddress = await this.directAddresses
-        .where('[isChange+index]')
-        .between([isChange, Dexie.minKey], [isChange, Dexie.maxKey])
-        .last();
+    const isChange = 0;
 
-      if (directAddress) {
-        const bountyCount = await this.bounties.where({ claimant: directAddress.address }).count();
-        if (bountyCount > 0) {
-          return (await this.addDirectAddress(directAddress.index + 1, false))[1];
-        } else {
-          return directAddress;
-        }
-      } else {
-        return (await this.addDirectAddress(0, false))[1];
-      }
-    });
+    const notChange = IDBKeyRange.upperBound([isChange, Number.MAX_SAFE_INTEGER]);
+    const addressCursor = await transaction
+      .objectStore('directAddresses')
+      .index('by-is-change-and-index')
+      .openCursor(notChange, 'prev');
+
+    if (!addressCursor) {
+      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['directAddresses']>;
+      return (await this.addDirectAddress(tx, 0, false))[1];
+    }
+
+    const directAddress = addressCursor.value;
+
+    const bountyCursor = await transaction
+      .objectStore('bounties')
+      .index('by-claimant')
+      .openKeyCursor(directAddress.address);
+    if (bountyCursor) {
+      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['directAddresses']>;
+      return (await this.addDirectAddress(tx, directAddress.index + 1, false))[1];
+    }
+
+    return addressCursor.value;
   }
 
   async newDirectAddress() {
-    return await this.db.transaction('rw', this.directAddresses, async () => {
-      const maxIndex = await this.directAddresses.orderBy('index').last();
-      const index = maxIndex === undefined ? 0 : maxIndex.index + 1;
+    // const transaction = this.db.transaction(['bitcoinAddresses'], 'readwrite');
 
-      return this.addDirectAddress(index, false);
-    });
-  }
+    // let maxIndex = -1;
+    // const cursor = await transaction.objectStore('bitcoinAddresses').index('by-index').openKeyCursor(undefined, 'prev');
+    // if (cursor) {
+    //   maxIndex = cursor.key;
+    // }
 
-  private async addDirectAddress(index: number, isChange: boolean): Promise<[hi.Address, Docs.DirectAddress]> {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
+    // return this.addBitcoinAddress(transaction, maxIndex + 1);
+
+    const transaction = this.db.transaction('directAddresses', 'readwrite');
+    let maxIndex = -1;
+
+    const isChange = 0;
+    const notChange = IDBKeyRange.upperBound([isChange, Number.MAX_SAFE_INTEGER]);
+    const cursor = await transaction.store.index('by-is-change-and-index').openKeyCursor(notChange, 'prev');
+    if (cursor) {
+      maxIndex = cursor.key[1];
     }
 
+    const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['directAddresses']>;
+    return this.addDirectAddress(tx, maxIndex + 1, false);
+  }
+
+  // transaction must have readwrite access to 'directAddresses'
+  private async addDirectAddress(
+    transaction: idb.IDBPTransaction<Schema, ['directAddresses']>,
+    index: number,
+    isChange: boolean
+  ): Promise<[hi.Address, Docs.DirectAddress]> {
     const claimant = this.deriveClaimantIndex(index, isChange);
 
     const address = new hi.Address(this.config.custodian.prefix(), claimant.toPublicKey());
@@ -471,16 +514,12 @@ export default class Database extends EventEmitter {
       created: new Date(),
     };
 
-    await this.directAddresses.put(directAddressDoc);
+    transaction.objectStore('directAddresses').add(directAddressDoc);
 
     return [address, directAddressDoc];
   }
 
   public async checkDirectAddress(directAddressDoc: Docs.DirectAddress) {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
     const bounties = await lookupBountiesByClaimant(this.config, directAddressDoc.address);
 
     for (const b of bounties) {
@@ -491,7 +530,7 @@ export default class Database extends EventEmitter {
         ...bounty.toPOD(),
       };
 
-      await this.bounties.put(bountyDoc);
+      await this.db.put('bounties', bountyDoc);
       await this.claimBountyWithAddress(bountyDoc, directAddressDoc);
     }
   }
@@ -509,7 +548,7 @@ export default class Database extends EventEmitter {
         ...hookin.toPOD(),
       };
 
-      await this.hookins.put(hookinDoc);
+      await this.db.put('hookins', hookinDoc);
 
       await this.claimHookin(hookinDoc);
     }
@@ -522,14 +561,10 @@ export default class Database extends EventEmitter {
 
     console.warn('discarding transfer: ', transferDoc.hash);
     transferDoc.status = { kind: 'CONFLICTED' };
-    this.transfers.put(transferDoc);
+    this.db.put('transfers', transferDoc);
   }
 
   async finalizeTransfer(transferDoc: Docs.Transfer): Promise<void> {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
     if (transferDoc.status.kind !== 'PENDING') {
       throw new Error('transfer must be pending');
     }
@@ -539,20 +574,20 @@ export default class Database extends EventEmitter {
     let output: hi.Bounty | hi.Hookout;
     let outputDoc: Docs.Bounty | Docs.Hookout;
 
-    let b = await this.bounties.get(transferDoc.outputHash);
+    let b = await this.db.get('bounties', transferDoc.outputHash);
     if (b !== undefined) {
       outputDoc = b;
       output = util.notError(hi.Bounty.fromPOD(outputDoc));
     } else {
-      outputDoc = util.mustExist(await this.hookouts.get(transferDoc.outputHash));
+      outputDoc = util.mustExist(await this.db.get('hookouts', transferDoc.outputHash));
       output = util.notError(hi.Hookout.fromPOD(outputDoc));
     }
 
-    const changeDoc = util.mustExist(await this.bounties.get(transferDoc.changeHash));
+    const changeDoc = util.mustExist(await this.db.get('bounties', transferDoc.changeHash));
     const change = util.notError(hi.Bounty.fromPOD(changeDoc));
 
     // We just have this now, so we're sure we can claim the change...
-    const changeAddress = util.mustExist(await this.directAddresses.get(changeDoc.claimant));
+    const changeAddress = util.mustExist(await this.db.get('directAddresses', changeDoc.claimant));
 
     const authorization = util.notError(hi.Signature.fromPOD(transferDoc.authorization));
 
@@ -586,11 +621,11 @@ export default class Database extends EventEmitter {
             inputOutputHashes: Docs.getInputOutputHashes(conflictTransfer.contents),
             ...conflictTransfer.toPOD(),
           };
-          await this.transfers.put(conflictTransferDoc);
+          await this.db.put('transfers', conflictTransferDoc);
         }
 
         transferDoc.status = { kind: 'CONFLICTED' };
-        this.transfers.put(transferDoc);
+        await this.db.put('transfers', transferDoc);
       }
 
       console.error('Got other server error: ', acknowledgement);
@@ -605,140 +640,130 @@ export default class Database extends EventEmitter {
     });
 
     transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
-    await this.transfers.put(transferDoc);
+    await this.db.put('transfers', transferDoc);
   }
 
   public async sendDirect(to: hi.Address, amount: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
-    const config = util.mustExist(this.config);
-
     util.mustEqual(amount > 0, true);
 
     const totalToSend = amount + hi.Params.basicTransferFee;
 
-    const res = await this.db.transaction('rw', this.bounties, this.coins, this.directAddresses, this.transfers, async () => {
-      const unspent = await this.listUnspent();
+    const transaction = this.db.transaction(['bounties', 'coins', 'directAddresses', 'transfers'], 'readwrite');
 
-      const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
-      if (!coinsToUse) {
-        return 'NOT_ENOUGH_FUNDS';
-      }
+    const utx = (transaction as unknown) as idb.IDBPTransaction<Schema, ('coins' | 'transfers')[]>;
+    const unspent = await this.listUnspentT(utx);
 
-      const bounty = new hi.Bounty(amount, to, hi.random(32));
-      const bountyDoc: Docs.Bounty = {
-        hash: bounty.hash().toPOD(),
-        ...bounty.toPOD(),
-      };
-      await this.bounties.add(bountyDoc);
-
-      const [changeBounty, changeBountyDoc] = await this.newChangeBounty(coinsToUse.excess);
-
-      const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
-      hi.Transfer.sort(inputs);
-
-      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), bounty.hash(), changeBounty.hash());
-
-      const owners: hi.PrivateKey[] = [];
-
-      for (const coin of inputs) {
-        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
-        const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
-        const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
-        owners.push(config.deriveOwner(claimHash, blindingNonce));
-      }
-
-      const sig = hi.Signature.computeMu(transferHash.buffer, owners);
-
-      const transfer = new hi.FullTransfer(inputs, bounty, changeBounty, sig);
-
-      const prunedTransfer = transfer.prune();
-
-      const transferDoc: Docs.Transfer = {
-        hash: transfer.hash().toPOD(),
-        status: { kind: 'PENDING' },
-        created: new Date(),
-        inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
-        ...prunedTransfer.toPOD(),
-      };
-
-      await this.transfers.add(transferDoc);
-
-      return { bountyDoc, transferDoc, transferHash };
-    });
-
-    if (res === 'NOT_ENOUGH_FUNDS') {
-      return res;
+    const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
+    if (!coinsToUse) {
+      return 'NOT_ENOUGH_FUNDS';
     }
 
-    await this.finalizeTransfer(res.transferDoc);
-    return res.transferHash;
+    const bounty = new hi.Bounty(amount, to, hi.random(32));
+    const bountyDoc: Docs.Bounty = {
+      hash: bounty.hash().toPOD(),
+      ...bounty.toPOD(),
+    };
+
+    await this.db.add('bounties', bountyDoc);
+
+    const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ('bounties' | 'directAddresses')[]>;
+    const [changeBounty, changeBountyDoc] = await this.newChangeBounty(tx, coinsToUse.excess);
+
+    const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
+    hi.Transfer.sort(inputs);
+
+    const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), bounty.hash(), changeBounty.hash());
+
+    const owners: hi.PrivateKey[] = [];
+
+    for (const coin of inputs) {
+      const coinDoc = util.mustExist(await this.db.get('coins', coin.hash().toPOD()));
+      const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
+      const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
+      owners.push(this.config.deriveOwner(claimHash, blindingNonce));
+    }
+
+    const sig = hi.Signature.computeMu(transferHash.buffer, owners);
+
+    const transfer = new hi.FullTransfer(inputs, bounty, changeBounty, sig);
+
+    const prunedTransfer = transfer.prune();
+
+    const transferDoc: Docs.Transfer = {
+      hash: transfer.hash().toPOD(),
+      status: { kind: 'PENDING' },
+      created: new Date(),
+      inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
+      ...prunedTransfer.toPOD(),
+    };
+
+    this.db.add('transfers', transferDoc);
+
+    await this.finalizeTransfer(transferDoc);
+    return transferHash;
   }
 
   public async sendToBitcoinAddress(address: string, amount: number, feeRate: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
-    const config = util.mustExist(this.config);
-
     const totalToSend = amount + Math.ceil(feeRate * hi.Params.templateTransactionWeight);
 
-    const res = await this.db.transaction('rw', this.bounties, this.coins, this.directAddresses, this.hookouts, this.transfers, async () => {
-      const unspent = await this.listUnspent();
+    const transaction = this.db.transaction(['bounties', 'coins', 'directAddresses', 'hookouts', 'transfers'], 'readwrite');
 
-      const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
-      if (!coinsToUse) {
-        return 'NOT_ENOUGH_FUNDS';
-      }
+    const utx = (transaction as unknown) as idb.IDBPTransaction<Schema, ('coins' | 'transfers')[]>;
+    const unspent = await this.listUnspentT(utx);
 
-      const hookout = new hi.Hookout(amount, address, true, hi.random(32));
-      const hookoutDoc: Docs.Hookout = {
-        hash: hookout.hash().toPOD(),
-        created: new Date(),
-        ...hookout.toPOD(),
-      };
-      await this.hookouts.add(hookoutDoc);
-
-      const [changeBounty, changeBountyDoc] = await this.newChangeBounty(coinsToUse.excess);
-
-      const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
-      hi.Transfer.sort(inputs);
-
-      const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), hookout.hash(), changeBounty.hash());
-
-      const owners: hi.PrivateKey[] = [];
-
-      for (const coin of inputs) {
-        const coinDoc = util.mustExist(await this.coins.get(coin.hash().toPOD()));
-        const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
-        const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
-        owners.push(config.deriveOwner(claimHash, blindingNonce));
-      }
-
-      const auth = hi.Signature.computeMu(transferHash.buffer, owners);
-
-      const transfer = new hi.FullTransfer(inputs, hookout, changeBounty, auth);
-
-      if (!transfer.isValid()) {
-        console.error('transfer hash is: ', transfer.hash().toPOD(), ' and expected: ', transferHash.toPOD());
-        throw new Error('just created transfer is not valid');
-      }
-
-      const prunedTransfer = transfer.prune();
-
-      const transferDoc: Docs.Transfer = {
-        hash: transferHash.toPOD(),
-        ...prunedTransfer.toPOD(),
-        created: new Date(),
-        inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
-        status: { kind: 'PENDING' },
-      };
-      await this.transfers.add(transferDoc);
-
-      return { transferDoc, transferHash };
-    });
-
-    if (res === 'NOT_ENOUGH_FUNDS') {
-      return res;
+    const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
+    if (!coinsToUse) {
+      return 'NOT_ENOUGH_FUNDS';
     }
 
-    await this.finalizeTransfer(res.transferDoc);
-    return res.transferHash;
+    const hookout = new hi.Hookout(amount, address, true, hi.random(32));
+    const hookoutDoc: Docs.Hookout = {
+      hash: hookout.hash().toPOD(),
+      created: new Date(),
+      ...hookout.toPOD(),
+    };
+
+    await this.db.add('hookouts', hookoutDoc);
+
+    const ctx = (transaction as unknown) as idb.IDBPTransaction<Schema, ('bounties' | 'directAddresses')[]>;
+    const [changeBounty, changeBountyDoc] = await this.newChangeBounty(ctx, coinsToUse.excess);
+
+    const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
+    hi.Transfer.sort(inputs);
+
+    const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), hookout.hash(), changeBounty.hash());
+
+    const owners: hi.PrivateKey[] = [];
+
+    for (const coin of inputs) {
+      const coinDoc = util.mustExist(await this.db.get('coins', coin.hash().toPOD()));
+      const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
+      const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
+      owners.push(this.config.deriveOwner(claimHash, blindingNonce));
+    }
+
+    const auth = hi.Signature.computeMu(transferHash.buffer, owners);
+
+    const transfer = new hi.FullTransfer(inputs, hookout, changeBounty, auth);
+
+    if (!transfer.isValid()) {
+      console.error('transfer hash is: ', transfer.hash().toPOD(), ' and expected: ', transferHash.toPOD());
+      throw new Error('just created transfer is not valid');
+    }
+
+    const prunedTransfer = transfer.prune();
+
+    const transferDoc: Docs.Transfer = {
+      hash: transferHash.toPOD(),
+      ...prunedTransfer.toPOD(),
+      created: new Date(),
+      inputOutputHashes: Docs.getInputOutputHashes(prunedTransfer),
+      status: { kind: 'PENDING' },
+    };
+    await this.db.put('transfers', transferDoc);
+
+    await this.finalizeTransfer(transferDoc);
+    return transferHash;
   }
 
   public deriveBitcoinAddressIndex(i: number) {
@@ -746,10 +771,6 @@ export default class Database extends EventEmitter {
   }
 
   public deriveBitcoinAddress(n: Uint8Array) {
-    if (!this.config) {
-      throw new Error('wallet must be unlocked');
-    }
-
     const claimant = seedToBitcoinAddressGenerator(this.config.seed).derive(n);
     const claimantPub = claimant.toPublicKey();
 
@@ -768,10 +789,6 @@ export default class Database extends EventEmitter {
   }
 
   public deriveClaimant(n: Uint8Array, isChange: boolean): hi.PrivateKey {
-    if (!this.config) {
-      throw new Error('wallet is locked');
-    }
-
     const addressGenerator = isChange ? this.config.changeAddressGenerator() : this.config.directAddressGenerator();
 
     return addressGenerator.derive(n);

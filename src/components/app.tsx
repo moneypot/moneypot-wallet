@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import LoadedApp from './loaded-app';
-import Dexie from 'dexie';
 import CreateWallet from './create-wallet';
 import SelectWallet from './select-wallet';
 import { BrowserRouter, HashRouter, Route, Switch } from 'react-router-dom';
+import * as dbInfo from '../wallet/database-info';
 const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
 export default function App() {
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);
   useEffect(() => {
-    Dexie.getDatabaseNames().then(dbs => {
+    dbInfo.list().then(dbs => {
       setExistingDbs(dbs);
     });
   }, []);

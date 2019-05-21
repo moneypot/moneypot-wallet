@@ -8,8 +8,11 @@ export default function HookinInfo(props: RouteComponentProps<{ hash: string }>)
 
   const hookinDoc = useHookin(hash);
 
-  if (typeof hookinDoc === 'string') {
+  if (hookinDoc === 'LOADING') {
     return <div>{hookinDoc}</div>;
+  }
+  if (hookinDoc === undefined) {
+    return <div>not found</div>;
   }
 
   return (

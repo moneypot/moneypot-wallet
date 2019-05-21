@@ -1,5 +1,5 @@
 export function mustExist<T>(v: T | undefined): T {
-  if (v === undefined) {
+  if (v === undefined || v === null) {
     console.trace('assertion: does not exist');
     throw new Error('assertion: must exist');
   }

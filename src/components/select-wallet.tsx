@@ -1,31 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
-import Dexie from 'dexie';
 import { Link } from 'react-router-dom';
 import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import './select-wallet.scss';
+
+import * as dbInfo from '../wallet/database-info';
+
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
   useEffect(() => {
-    Dexie.getDatabaseNames().then(dbs => {
-      setExistingDbs(dbs);
+    dbInfo.list().then(dbNames => {
+      setExistingDbs(dbNames);
 
-      if (dbs.indexOf('autoload') !== -1) {
+      if (dbNames.indexOf('autoload') !== -1) {
         loadWallet('autoload', '');
       }
     });
   }, []);
 
   async function loadWallet(walletName: string, password: string) {
-    const db = new WalletDatabase(walletName);
-    const err = await db.unlock(password);
-    if (err) {
-      toast.error('Oops! ' + err.message);
-      console.error(err.message);
+    const db = await WalletDatabase.open(walletName, password);
+    if (typeof db === 'string') {
+      toast.error('Oops! ' + db);
+      console.error(db);
       return;
     }
 
