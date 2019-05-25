@@ -2,7 +2,7 @@ import * as hi from 'hookedin-lib';
 import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
-export default async function(config: Config, transfer: hi.FullTransfer): Promise<hi.Signature | RequestError> {
+export default async function(config: Config, transfer: hi.Transfer): Promise<hi.Signature | RequestError> {
   const resp = await makeRequest<string>(config.custodianUrl + '/transfer', transfer.toPOD());
 
   if (resp instanceof RequestError) {
@@ -15,7 +15,7 @@ export default async function(config: Config, transfer: hi.FullTransfer): Promis
   }
 
   // TODO: something that validates the signature
-  const at: hi.AcknowledgedTransfer = new hi.Acknowledged(transfer.prune(), sig);
+  const at: hi.AcknowledgedTransfer = new hi.Acknowledged(transfer, sig);
 
   return at.acknowledgement;
 }

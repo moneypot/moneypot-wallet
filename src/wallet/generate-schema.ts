@@ -13,14 +13,6 @@ const schema = `{
     keyPath: 'one',
     value: Docs.Config
   },
-  bounties: {
-    key: string,
-    keyPath: 'hash',
-    value: Docs.Bounty,
-    indexes: [
-      { name: 'by-claimant', keyPath: 'claimant', value: string }
-    ]
-  },
   claims: {
     key: string,
     keyPath: 'claimRequest.claim',
@@ -32,15 +24,6 @@ const schema = `{
     value: Docs.Coin,
     indexes: [
       { name: 'by-claim-hash', keyPath: 'claimHash', value: string }
-    ]
-  },
-  directAddresses: {
-    key: string,
-    keyPath: 'address',
-    value: Docs.DirectAddress,
-    indexes: [
-      { name: 'by-is-change-and-index', keyPath: ['isChange', 'index'], value: [number, number] },
-      { name: 'by-created', keyPath: 'created', value: Date }
     ]
   },
   hookins: {
@@ -65,7 +48,8 @@ const schema = `{
     keyPath: 'hash',
     value: Docs.Transfer,
     indexes: [
-      { name: 'by-input-output-hashes', keyPath: 'inputOutputHashes', value: Array<string>, params: { multiEntry: true } },
+      { name: 'by-input-hashes', keyPath: 'inputHashes', value: Array<string>, params: { multiEntry: true } },
+      { name: 'by-index', keyPath: 'index', value: number },
       { name: 'by-created', keyPath: 'created', value: Date }
     ]
   }

@@ -3,11 +3,10 @@ import { RouteComponentProps } from 'react-router';
 import * as hi from 'hookedin-lib';
 import * as Docs from '../wallet/docs';
 
-import { wallet, useTransfer, useBountyOrHookout, useBounty, useHookout } from '../state/wallet';
+import { wallet, useTransfer,  useHookout } from '../state/wallet';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
-  const output = useBountyOrHookout(transfer.outputHash);
-  const change = useBounty(transfer.changeHash);
+  const output = useHookout(transfer.outputHash);
 
   return (
     <div>
@@ -41,7 +40,7 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
       <hr />
       <strong>Change: </strong>
       <pre>
-        <code>{JSON.stringify(change, null, 2)}</code>
+        <code>{JSON.stringify(transfer.change, null, 2)}</code>
       </pre>
       <hr />
       <pre>

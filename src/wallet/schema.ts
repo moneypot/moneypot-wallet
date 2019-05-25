@@ -19,14 +19,6 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Config;
     indexes: {};
   };
-  bounties: {
-    key: string;
-    keyPath: 'hash';
-    value: Docs.Bounty;
-    indexes: {
-      'by-claimant': string;
-    };
-  };
   claims: {
     key: string;
     keyPath: 'claimRequest.claim';
@@ -39,15 +31,6 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Coin;
     indexes: {
       'by-claim-hash': string;
-    };
-  };
-  directAddresses: {
-    key: string;
-    keyPath: 'address';
-    value: Docs.DirectAddress;
-    indexes: {
-      'by-is-change-and-index': [number, number];
-      'by-created': Date;
     };
   };
   hookins: {
@@ -72,13 +55,14 @@ export default interface Schema extends idb.DBSchema {
     keyPath: 'hash';
     value: Docs.Transfer;
     indexes: {
-      'by-input-output-hashes': Array<string>;
+      'by-input-hashes': Array<string>;
+      'by-index': number;
       'by-created': Date;
     };
   };
 }
 
-export type StoreName = 'bitcoinAddresses' | 'config' | 'bounties' | 'claims' | 'coins' | 'directAddresses' | 'hookins' | 'hookouts' | 'transfers';
+export type StoreName = 'bitcoinAddresses' | 'config' | 'claims' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
 
 interface StoreInfo {
   store: StoreName;
@@ -107,16 +91,6 @@ export const schemaPOD: StoreInfo[] = [
     indexes: [],
   },
   {
-    store: 'bounties',
-    keyPath: 'hash',
-    indexes: [
-      {
-        name: 'by-claimant',
-        keyPath: 'claimant',
-      },
-    ],
-  },
-  {
     store: 'claims',
     keyPath: 'claimRequest.claim',
     indexes: [],
@@ -128,20 +102,6 @@ export const schemaPOD: StoreInfo[] = [
       {
         name: 'by-claim-hash',
         keyPath: 'claimHash',
-      },
-    ],
-  },
-  {
-    store: 'directAddresses',
-    keyPath: 'address',
-    indexes: [
-      {
-        name: 'by-is-change-and-index',
-        keyPath: ['isChange', 'index'],
-      },
-      {
-        name: 'by-created',
-        keyPath: 'created',
       },
     ],
   },
@@ -174,11 +134,15 @@ export const schemaPOD: StoreInfo[] = [
     keyPath: 'hash',
     indexes: [
       {
-        name: 'by-input-output-hashes',
-        keyPath: 'inputOutputHashes',
+        name: 'by-input-hashes',
+        keyPath: 'inputHashes',
         params: {
           multiEntry: true,
         },
+      },
+      {
+        name: 'by-index',
+        keyPath: 'index',
       },
       {
         name: 'by-created',

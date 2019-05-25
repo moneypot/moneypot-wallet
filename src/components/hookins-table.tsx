@@ -37,7 +37,7 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Hookin }) {
     } else {
       return (
         <span>
-          Claimed by <code>{spentStatus.claimRequest.claim.substring(0, 8)}...</code>
+          Claimed by <code>{spentStatus.claimRequest.claimHash.substring(0, 8)}...</code>
         </span>
       );
     }

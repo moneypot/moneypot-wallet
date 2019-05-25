@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useTransfers, useBountyOrHookout, useBounty } from '../state/wallet';
+import { useTransfers, useHookout  } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 import * as Docs from '../wallet/docs';
@@ -32,17 +32,8 @@ export default function Transfers() {
 }
 
 function Transfer({ transfer }: { transfer: Docs.Transfer }) {
-  const output = useBountyOrHookout(transfer.outputHash);
-  let change = useBounty(transfer.changeHash);
+  const output = useHookout(transfer.outputHash);
 
-  let changeElem =
-    typeof change === 'object' ? (
-      <Link to={`/bounties/${change.hash}`}>
-        {change.amount} to {change.claimant}
-      </Link>
-    ) : (
-      change
-    );
 
   return (
     <tr>
@@ -53,7 +44,7 @@ function Transfer({ transfer }: { transfer: Docs.Transfer }) {
         <textarea cols={50} rows={8} value={JSON.stringify(transfer.inputs, null, 2)} readOnly />
       </td>
       <td>{JSON.stringify(output, null, 2)}</td>
-      <td>{changeElem}</td>
+      <td>{JSON.stringify(transfer.change, null, 2)}</td>
       <td>{transfer.created.toISOString()}</td>
       <td>{transfer.status.kind}</td>
     </tr>

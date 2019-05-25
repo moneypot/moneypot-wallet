@@ -25,29 +25,20 @@ export default function Send({ history }: Props) {
     const isBitcoinSend =
       address.startsWith('tb1') || address.startsWith('bc1') || address.startsWith('1') || address.startsWith('2') || address.startsWith('3');
 
+    if (!isBitcoinSend) {
+      toast.error('Oops! not a bitcoin address');
+      return;
+    }
+
     const amount = Number.parseInt(amountText);
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('Oops! invalid amount');
       return;
     }
 
-    let transferHash: 'NOT_ENOUGH_FUNDS' | hi.Hash;
+    const feeRate = 0.25;
 
-    if (isBitcoinSend) {
-      const feeRate = 0.25;
-
-      transferHash = await wallet.sendToBitcoinAddress(address, amount, feeRate);
-    } else {
-      const to = hi.Address.fromPOD(address);
-      if (to instanceof Error) {
-        console.warn('could not parse address, got: ', to);
-        toast.error('Oops! invalid direct address');
-        return;
-      }
-      // TODO: make sure sending to same custodian, lolz
-
-      transferHash = await wallet.sendDirect(to, amount);
-    }
+    const transferHash = await wallet.sendToBitcoinAddress(address, amount, feeRate);
 
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
       toast.error('Oops! not enough funds');

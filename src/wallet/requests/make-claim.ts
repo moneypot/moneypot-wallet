@@ -3,40 +3,34 @@ import makeRequest, { RequestError } from './make-request';
 import genNonces from './gen-nonces';
 import Config from '../config';
 
-export default async function makeClaim(config: Config, claimaint: hi.PrivateKey, claim: hi.Bounty | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
+export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claim: hi.Transfer | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
+
+  const claimHash = claim.hash();
 
   const seenNonces = new Set<string>();
 
   const maxRetries = 64;
+
+
   for (let retry = 1; retry <= maxRetries; retry++) {
     const nonces = await genNonces(config, coinsMagnitudes.length, seenNonces);
 
-    const claimHash = claim.hash();
+    const coinsRequest = config.deriveCoinsRequest(claimHash, nonces, coinsMagnitudes);
 
-    const coinClaims: CoinClaim[] = [];
+    const claimReq =  hi.ClaimRequest.newAuthorized(claim.hash(), coinsRequest, claimant);
 
-    for (let i = 0; i < nonces.length; i++) {
-      const blindingNonce = nonces[i];
-      const magnitude = coinsMagnitudes[i];
+    let claimResp;
 
-      const blindingSecret = config.deriveBlindingSecret(claimHash, blindingNonce);
-      const newOwner = config.deriveOwner(claimHash, blindingNonce);
-      const newOwnerPub = newOwner.toPublicKey();
-
-      const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, hi.Params.blindingCoinPublicKeys[magnitude.n], newOwnerPub.buffer);
-
-      coinClaims.push({ blindingNonce, blindedOwner, magnitude: magnitude });
-    }
-
-    let claimResp: any;
-    if (claim instanceof hi.Bounty) {
-      const claimReq = await hi.ClaimBountyRequest.newAuthorized(claimaint, claim, coinClaims);
-      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-bounty', claimReq.toPOD());
+    if (claim instanceof hi.Transfer) {
+      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-transfer-change', claimReq.toPOD());
     } else if (claim instanceof hi.Hookin) {
-      const claimReq = await hi.ClaimHookinRequest.newAuthorized(claimaint, claim, coinClaims);
-      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-hookin', claimReq.toPOD());
+      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-hookin', {
+          claimRequest: claimReq.toPOD(),
+          hookin: claim.toPOD()
+      } );
+
     } else {
       const _: never = claim;
       throw new Error('unreachable!');
@@ -64,8 +58,3 @@ export default async function makeClaim(config: Config, claimaint: hi.PrivateKey
   throw new Error('After ' + maxRetries + ' could not claim!');
 }
 
-type CoinClaim = {
-  blindingNonce: hi.PublicKey;
-  blindedOwner: hi.BlindedMessage;
-  magnitude: hi.Magnitude;
-};

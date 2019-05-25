@@ -104,12 +104,12 @@ export default class Config {
     return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
   }
 
-  changeAddressGenerator() {
-    return Config.seedToChangeAddressGenerator(this.seed);
+  changeGenerator() {
+    return Config.seedToChangeGenerator(this.seed);
   }
 
-  static seedToChangeAddressGenerator(seed: Uint8Array): hi.PrivateKey {
-    const hash = hi.Hash.fromMessage('changeAddressGenerator', seed);
+  static seedToChangeGenerator(seed: Uint8Array): hi.PrivateKey {
+    const hash = hi.Hash.fromMessage('changeGenerator', seed);
     return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
   }
 
@@ -122,6 +122,30 @@ export default class Config {
     const hash = hi.Hash.fromMessage('deriveBlindingSecret', this.seed, claimHash.buffer, blindingNonce.buffer);
     return hash.buffer;
   }
+
+
+  deriveCoinsRequest(claimHash: hi.Hash, nonces: hi.PublicKey[], coinsMagnitudes: hi.Magnitude[]) {
+
+    util.mustEqual(nonces.length, coinsMagnitudes.length)
+
+    const coinRequests: hi.CoinRequest[] = [];
+
+    for (let i = 0; i < nonces.length; i++) {
+      const blindingNonce = nonces[i];
+      const magnitude = coinsMagnitudes[i];
+
+      const blindingSecret = this.deriveBlindingSecret(claimHash, blindingNonce);
+      const newOwner = this.deriveOwner(claimHash, blindingNonce);
+      const newOwnerPub = newOwner.toPublicKey();
+
+      const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, hi.Params.blindingCoinPublicKeys[magnitude.n], newOwnerPub.buffer);
+
+      coinRequests.push({ blindingNonce, blindedOwner, magnitude: magnitude });
+    }
+
+    return coinRequests;
+  }
+
 }
 
 function expectString(s: any): string {

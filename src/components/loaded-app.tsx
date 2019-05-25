@@ -2,9 +2,7 @@ import React from 'react';
 
 import Splash from './splash/splash';
 import BitcoinAddressInfo from './bitcoin-address-info';
-import DirectAddressInfo from './direct-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
-import ReceiveDirect from './receive/direct';
 import Receive from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
@@ -12,8 +10,6 @@ import Send from './send/send';
 import Hookins from './hookins';
 import Addresses from './addresses';
 import Transfers from './transfers';
-import Bounty from './bounty';
-import Bounties from './bounties';
 import Coins from './coins';
 import Transfer from './transfer';
 import Config from './config';
@@ -56,9 +52,7 @@ export default function LoadedApp() {
             <Route path="/" exact component={Splash} />
             <Route path="/receive" exact component={Receive} />
             <Route path="/receive/bitcoin" render={props => <ReceiveBitcoin {...props} />} />
-            <Route path="/receive/direct" render={props => <ReceiveDirect {...props} />} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
-            <Route path="/addresses/direct/:address" component={DirectAddressInfo} />
 
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" component={Send} />
@@ -67,8 +61,6 @@ export default function LoadedApp() {
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={Transfer} />
             <Route path="/transfers" component={Transfers} />
-            <Route path="/bounties/:hash" component={Bounty} />
-            <Route path="/bounties" component={Bounties} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />

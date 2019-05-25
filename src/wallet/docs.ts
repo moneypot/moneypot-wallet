@@ -9,11 +9,10 @@ export interface Config {
   gapLimit: number;
 }
 
-export interface Bounty extends hi.POD.Bounty {
-  hash: string;
-}
 
-export interface Claim extends hi.POD.ClaimResponse, hi.POD.Acknowledged {}
+export interface Claim extends hi.POD.ClaimResponse, hi.POD.Acknowledged {
+  which: 'Hookin' | 'TransferChange'
+}
 
 export interface Coin extends hi.POD.Coin {
   hash: string;
@@ -28,13 +27,6 @@ export interface BitcoinAddress {
   created: Date;
 }
 
-export interface DirectAddress {
-  address: string; // bech encoded
-  index: number;
-  isChange: 0 | 1;
-  created: Date;
-}
-
 export interface Hookin extends hi.POD.Hookin {
   hash: string;
   bitcoinAddress: string; // the bitcoin address, but also references a BitcoinAddressDoc
@@ -46,22 +38,13 @@ export interface Hookout extends hi.POD.Hookout {
   created: Date;
 }
 
-export function getInputOutputHashes(transfer: hi.Transfer) {
-  const hashes: string[] = [];
-
-  for (const coin of transfer.inputs) {
-    hashes.push(coin.hash().toPOD());
-  }
-
-  hashes.push(transfer.outputHash.toPOD());
-  hashes.push(transfer.changeHash.toPOD());
-
-  return hashes;
+export function getInputHashes(transfer: hi.Transfer): string[] {
+  return transfer.inputs.map(coin => coin.hash().toPOD());
 }
 
 export interface Transfer extends hi.POD.Transfer {
   hash: string;
   status: { kind: 'PENDING' } | { kind: 'CONFLICTED' } | { kind: 'ACKNOWLEDGED'; acknowledgement: string };
-  inputOutputHashes: string[]; // for the index of all inputs and outputs (including change)
+  inputHashes: string[]; // for the index of all inputs hashes
   created: Date;
 }
