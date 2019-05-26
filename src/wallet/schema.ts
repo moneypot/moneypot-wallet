@@ -21,7 +21,7 @@ export default interface Schema extends idb.DBSchema {
   };
   claims: {
     key: string;
-    keyPath: 'claimRequest.claim';
+    keyPath: 'claimRequest.claimHash';
     value: Docs.Claim;
     indexes: {};
   };
@@ -92,7 +92,7 @@ export const schemaPOD: StoreInfo[] = [
   },
   {
     store: 'claims',
-    keyPath: 'claimRequest.claim',
+    keyPath: 'claimRequest.claimHash',
     indexes: [],
   },
   {

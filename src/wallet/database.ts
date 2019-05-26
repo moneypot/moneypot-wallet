@@ -187,7 +187,7 @@ export default class Database extends EventEmitter {
   }
 
   public async claimHookin(hookinDoc: Docs.Hookin) {
-    const claim = this.db.get('claims', hookinDoc.hash);
+    const claim = await this.db.get('claims', hookinDoc.hash);
     if (claim) {
       console.log('hookin: ', hookinDoc.hash, ' already claimed, no need to reclaim', claim);
       return;

@@ -15,7 +15,7 @@ const schema = `{
   },
   claims: {
     key: string,
-    keyPath: 'claimRequest.claim',
+    keyPath: 'claimRequest.claimHash',
     value: Docs.Claim
   },
   coins: {
