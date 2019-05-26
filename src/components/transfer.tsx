@@ -3,7 +3,7 @@ import { RouteComponentProps } from 'react-router';
 import * as hi from 'hookedin-lib';
 import * as Docs from '../wallet/docs';
 
-import { wallet, useTransfer,  useHookout } from '../state/wallet';
+import { wallet, useTransfer, useHookout } from '../state/wallet';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   const output = useHookout(transfer.outputHash);

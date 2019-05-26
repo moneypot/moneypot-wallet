@@ -39,7 +39,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
   );
 }
 
-export default function Receive(props: any) {
+export default function Receive() {
   const address = useUnusedBitcoinAddress();
 
   if (address === undefined) {

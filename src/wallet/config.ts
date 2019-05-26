@@ -123,10 +123,8 @@ export default class Config {
     return hash.buffer;
   }
 
-
   deriveCoinsRequest(claimHash: hi.Hash, nonces: hi.PublicKey[], coinsMagnitudes: hi.Magnitude[]) {
-
-    util.mustEqual(nonces.length, coinsMagnitudes.length)
+    util.mustEqual(nonces.length, coinsMagnitudes.length);
 
     const coinRequests: hi.CoinRequest[] = [];
 
@@ -145,7 +143,6 @@ export default class Config {
 
     return coinRequests;
   }
-
 }
 
 function expectString(s: any): string {

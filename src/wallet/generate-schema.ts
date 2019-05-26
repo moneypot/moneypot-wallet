@@ -1,4 +1,12 @@
 const schema = `{
+  events: {
+    key: number,
+    keyPath: 'id',
+    value: Docs.Event,
+    autoIncrement: true,
+    indexes: [
+    ]
+  },
   bitcoinAddresses: {
     key: string,
     keyPath: 'address',
@@ -65,6 +73,7 @@ try {
 
 const pod = Object.entries(schemaJs)
   .map(([store, descr]) => {
+    const autoIncrement = !!(descr as any).autoIncrement;
     const keyPath = (descr as any).keyPath;
 
     const indexes = [];
@@ -72,7 +81,7 @@ const pod = Object.entries(schemaJs)
       indexes.push({ name, keyPath, params });
     }
 
-    const obj = { store, keyPath, indexes };
+    const obj = { store, keyPath, autoIncrement, indexes };
     return JSON.stringify(obj, null, 2);
   })
   .join(', ');
@@ -104,6 +113,7 @@ export type StoreName = ${storeNames};
 interface StoreInfo {
   store: StoreName;
   keyPath: string;
+  autoIncrement: boolean;
   indexes: { name: string, keyPath: string|Array<string>, params?: IDBIndexParameters }[];
 }
 
@@ -117,7 +127,7 @@ function stringify(x: any, nakedSymbols: boolean, indent: number = 0): string {
   }
 
   // primitives
-  if (typeof x === 'string' || typeof x === 'number') {
+  if (typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean') {
     return JSON.stringify(x);
   }
 

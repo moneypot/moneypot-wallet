@@ -24,11 +24,16 @@ import * as dbInfo from './database-info';
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
   config: Config; // if not set, wallet is locked.
+  bestEventId?: number;
+  pollId: any; // number? can't type this for now
 
   constructor(db: idb.IDBPDatabase<Schema>, config: Config) {
     super();
     this.db = db;
     this.config = config;
+
+    this.pollForEvents(); // fire off immediately
+    this.pollId = setInterval(() => this.pollForEvents(), 5000);
 
     // this.db.on('changes', changes => {
     //   for (const change of changes) {
@@ -54,6 +59,37 @@ export default class Database extends EventEmitter {
     //     }
     //   }
     // });
+  }
+
+  private async pollForEvents() {
+    let cursor = await this.db.transaction('events', 'readonly').store.openCursor(undefined, 'prev');
+    const newEventId = cursor ? cursor.key : -1;
+
+    if (this.bestEventId === undefined) {
+      // This was the first poll
+      this.bestEventId = newEventId;
+      return;
+    }
+
+    const eventsToEmit = [];
+    while (cursor && cursor.key > this.bestEventId) {
+      const eventName = cursor.value.name;
+      eventsToEmit.push(eventName);
+      cursor = await cursor.continue();
+    }
+    this.bestEventId = newEventId;
+
+    for (let i = eventsToEmit.length - 1; i >= 0; i--) {
+      const eventName = eventsToEmit[i];
+      super.emit(eventName);
+    }
+  }
+
+  emit(name: string) {
+    this.db.put('events', { name });
+  }
+  emitInTransaction<S extends StoreName>(name: string, transaction: idb.IDBPTransaction<Schema, (S | 'events')[]>) {
+    transaction.objectStore('events').put({ name });
   }
 
   public static async open(name: string, password: string) {
@@ -99,8 +135,8 @@ export default class Database extends EventEmitter {
     const res = await idb.openDB<Schema>(name, 1, {
       upgrade(database, oldVersion, newVersion, transaction) {
         const db = database as idb.IDBPDatabase<unknown>;
-        for (const { store, keyPath, indexes } of schemaPOD) {
-          const objectStore = db.createObjectStore(store, { keyPath });
+        for (const { store, keyPath, autoIncrement, indexes } of schemaPOD) {
+          const objectStore = db.createObjectStore(store, { autoIncrement, keyPath });
 
           for (const index of indexes) {
             objectStore.createIndex(index.name, index.keyPath, index.params);
@@ -122,11 +158,10 @@ export default class Database extends EventEmitter {
 
     const claimHash = claimRequest.claimHash;
 
-
     util.mustEqual(coinRequests.length, blindedReceipts.length);
 
     // basically just adds the appropriate coins, and adds the claim
-    const transaction = this.db.transaction(['coins', 'claims'], 'readwrite');
+    const transaction = this.db.transaction(['coins', 'claims', 'events'], 'readwrite');
     const coinStore = transaction.objectStore('coins');
 
     for (let i = 0; i < coinRequests.length; i++) {
@@ -155,11 +190,13 @@ export default class Database extends EventEmitter {
         ...coin.toPOD(),
       });
     }
+    this.emitInTransaction('table:coins', transaction);
 
     transaction.objectStore('claims').put({
       ...acknowledgedClaimResponse.toPOD(),
-      which
+      which,
     });
+    this.emitInTransaction('table:claims', transaction);
 
     await transaction.done;
 
@@ -168,7 +205,6 @@ export default class Database extends EventEmitter {
 
   // TODO: put in a transaction?
   public async claimChange(transfer: hi.Transfer) {
-
     const transferHash = transfer.hash().toPOD();
 
     const claim = await this.db.get('claims', transferHash);
@@ -176,7 +212,7 @@ export default class Database extends EventEmitter {
       console.log('transfer: ', transferHash, ' already claimed, no need to reclaim', claim);
       return;
     }
-  
+
     const claimant = this.deriveChangeClaimant(transfer.inputs);
 
     const magnitudes = hi.amountToMagnitudes(transfer.change.amount);
@@ -223,7 +259,7 @@ export default class Database extends EventEmitter {
   }
 
   // transaction must have read access to transfers and coins
-  private async listUnspentT(transaction: idb.IDBPTransaction<Schema, ('coins' | 'transfers')[]>): Promise<Docs.Coin[]> {
+  private async listUnspentT<S extends StoreName>(transaction: idb.IDBPTransaction<Schema, (S | 'coins' | 'transfers')[]>): Promise<Docs.Coin[]> {
     const spentCoinHashes: Set<string> = new Set();
 
     let transfersCursor = await transaction.objectStore('transfers').openCursor();
@@ -289,7 +325,7 @@ export default class Database extends EventEmitter {
         console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
 
         // Add all missing addresses...
-        const transaction = this.db.transaction('bitcoinAddresses', 'readwrite');
+        const transaction = this.db.transaction(['bitcoinAddresses'], 'readwrite');
         for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
           console.log('adding skipped bitcoin address: ', addIndex);
           await this.addBitcoinAddress(transaction, addIndex);
@@ -336,7 +372,7 @@ export default class Database extends EventEmitter {
   }
 
   async getUnusedBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    const transaction = this.db.transaction(['bitcoinAddresses', 'hookins'], 'readwrite');
+    const transaction = this.db.transaction(['events', 'bitcoinAddresses', 'hookins'], 'readwrite');
 
     const cursor = await transaction
       .objectStore('bitcoinAddresses')
@@ -344,8 +380,7 @@ export default class Database extends EventEmitter {
       .openCursor(undefined, 'prev');
 
     if (!cursor) {
-      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['bitcoinAddresses']>;
-      return await this.addBitcoinAddress(tx, 0);
+      return await this.addBitcoinAddress(transaction, 0);
     }
 
     const bitcoinAddress = cursor.value;
@@ -358,16 +393,18 @@ export default class Database extends EventEmitter {
       // hasn't been used...
       return bitcoinAddress;
     } else {
-      const tx = (transaction as unknown) as idb.IDBPTransaction<Schema, ['bitcoinAddresses']>;
-      return await this.addBitcoinAddress(tx, bitcoinAddress.index + 1);
+      return await this.addBitcoinAddress(transaction, bitcoinAddress.index + 1);
     }
   }
 
   public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    const transaction = this.db.transaction('bitcoinAddresses', 'readwrite');
+    const transaction = this.db.transaction(['bitcoinAddresses'], 'readwrite');
 
     let maxIndex = -1;
-    const cursor = await transaction.store.index('by-index').openKeyCursor(undefined, 'prev');
+    const cursor = await transaction
+      .objectStore('bitcoinAddresses')
+      .index('by-index')
+      .openKeyCursor(undefined, 'prev');
     if (cursor) {
       maxIndex = cursor.key;
     }
@@ -376,7 +413,10 @@ export default class Database extends EventEmitter {
   }
 
   // transaction must support write to 'bitcoinAddresses'
-  private async addBitcoinAddress(transaction: idb.IDBPTransaction<Schema, ['bitcoinAddresses']>, index: number): Promise<Docs.BitcoinAddress> {
+  private async addBitcoinAddress<S extends StoreName>(
+    transaction: idb.IDBPTransaction<Schema, (S | 'events' | 'bitcoinAddresses')[]>,
+    index: number
+  ): Promise<Docs.BitcoinAddress> {
     const hookinInfo = this.deriveBitcoinAddress(index);
 
     const claimant = hookinInfo.claimant.toPublicKey().toPOD();
@@ -389,7 +429,8 @@ export default class Database extends EventEmitter {
       created: new Date(),
     };
 
-    await transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
+    transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
+    this.emitInTransaction('table:bitcoinAddresses', transaction);
 
     return bitcoinAddressDoc;
   }
@@ -402,8 +443,6 @@ export default class Database extends EventEmitter {
 
     return receives.length > 0;
   }
-
-  
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
     for (const receive of receives) {
@@ -419,6 +458,7 @@ export default class Database extends EventEmitter {
       };
 
       await this.db.put('hookins', hookinDoc);
+      this.emit('table:hookins');
 
       await this.claimHookin(hookinDoc);
     }
@@ -431,7 +471,8 @@ export default class Database extends EventEmitter {
 
     console.warn('discarding transfer: ', transferDoc.hash);
     transferDoc.status = { kind: 'CONFLICTED' };
-    this.db.put('transfers', transferDoc);
+    await this.db.put('transfers', transferDoc);
+    this.emit('table:transfers');
   }
 
   async finalizeTransfer(transferDoc: Docs.Transfer): Promise<void> {
@@ -470,10 +511,12 @@ export default class Database extends EventEmitter {
             ...conflictTransfer.toPOD(),
           };
           await this.db.put('transfers', conflictTransferDoc);
+          this.emit('table:transfers');
         }
 
         transferDoc.status = { kind: 'CONFLICTED' };
         await this.db.put('transfers', transferDoc);
+        this.emit('table:transfers');
       }
 
       console.error('Got other server error: ', acknowledgement);
@@ -489,16 +532,15 @@ export default class Database extends EventEmitter {
 
     transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
     await this.db.put('transfers', transferDoc);
+    this.emit('table:transfers');
   }
-
 
   public async sendToBitcoinAddress(address: string, amount: number, feeRate: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
     const totalToSend = amount + Math.ceil(feeRate * hi.Params.templateTransactionWeight);
 
-    const transaction = this.db.transaction(['coins', 'hookouts', 'transfers'], 'readwrite');
+    const transaction = this.db.transaction(['events', 'coins', 'hookouts', 'transfers'], 'readwrite');
 
-    const utx = (transaction as unknown) as idb.IDBPTransaction<Schema, ('coins' | 'transfers')[]>;
-    const unspent = await this.listUnspentT(utx);
+    const unspent = await this.listUnspentT(transaction);
 
     const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
     if (!coinsToUse) {
@@ -513,8 +555,7 @@ export default class Database extends EventEmitter {
     };
 
     await this.db.add('hookouts', hookoutDoc);
-
-
+    this.emit('table:hookouts');
 
     const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
     hi.Transfer.sort(inputs);
@@ -551,6 +592,7 @@ export default class Database extends EventEmitter {
       status: { kind: 'PENDING' },
     };
     await this.db.put('transfers', transferDoc);
+    this.emit('table:transfers');
 
     await this.finalizeTransfer(transferDoc);
     return transferHash;
@@ -571,7 +613,7 @@ export default class Database extends EventEmitter {
   }
 
   public deriveChangeClaimant(transferInputs: readonly hi.Coin[]): hi.PrivateKey {
-    const ti = hi.Buffutils.concat( ...transferInputs.map(coin => coin.buffer) );
+    const ti = hi.Buffutils.concat(...transferInputs.map(coin => coin.buffer));
     return this.config.changeGenerator().derive(ti);
   }
 }

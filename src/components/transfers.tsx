@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useTransfers, useHookout  } from '../state/wallet';
+import { useTransfers, useHookout } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 import * as Docs from '../wallet/docs';
@@ -33,7 +33,6 @@ export default function Transfers() {
 
 function Transfer({ transfer }: { transfer: Docs.Transfer }) {
   const output = useHookout(transfer.outputHash);
-
 
   return (
     <tr>

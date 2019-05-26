@@ -4,6 +4,13 @@ import * as idb from 'idb';
 import * as Docs from './docs';
 
 export default interface Schema extends idb.DBSchema {
+  events: {
+    key: number;
+    keyPath: 'id';
+    value: Docs.Event;
+    autoIncrement: true;
+    indexes: {};
+  };
   bitcoinAddresses: {
     key: string;
     keyPath: 'address';
@@ -62,18 +69,26 @@ export default interface Schema extends idb.DBSchema {
   };
 }
 
-export type StoreName = 'bitcoinAddresses' | 'config' | 'claims' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
+export type StoreName = 'events' | 'bitcoinAddresses' | 'config' | 'claims' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
 
 interface StoreInfo {
   store: StoreName;
   keyPath: string;
+  autoIncrement: boolean;
   indexes: { name: string; keyPath: string | Array<string>; params?: IDBIndexParameters }[];
 }
 
 export const schemaPOD: StoreInfo[] = [
   {
+    store: 'events',
+    keyPath: 'id',
+    autoIncrement: true,
+    indexes: [],
+  },
+  {
     store: 'bitcoinAddresses',
     keyPath: 'address',
+    autoIncrement: false,
     indexes: [
       {
         name: 'by-index',
@@ -88,16 +103,19 @@ export const schemaPOD: StoreInfo[] = [
   {
     store: 'config',
     keyPath: 'one',
+    autoIncrement: false,
     indexes: [],
   },
   {
     store: 'claims',
     keyPath: 'claimRequest.claimHash',
+    autoIncrement: false,
     indexes: [],
   },
   {
     store: 'coins',
     keyPath: 'hash',
+    autoIncrement: false,
     indexes: [
       {
         name: 'by-claim-hash',
@@ -108,6 +126,7 @@ export const schemaPOD: StoreInfo[] = [
   {
     store: 'hookins',
     keyPath: 'hash',
+    autoIncrement: false,
     indexes: [
       {
         name: 'by-bitcoin-address',
@@ -122,6 +141,7 @@ export const schemaPOD: StoreInfo[] = [
   {
     store: 'hookouts',
     keyPath: 'hash',
+    autoIncrement: false,
     indexes: [
       {
         name: 'by-created',
@@ -132,6 +152,7 @@ export const schemaPOD: StoreInfo[] = [
   {
     store: 'transfers',
     keyPath: 'hash',
+    autoIncrement: false,
     indexes: [
       {
         name: 'by-input-hashes',

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import * as Docs from '../wallet/docs';
 import * as util from '../util';
-import { StoreName } from '../wallet/schema';
 
 const fakeWallet: any = new Error('wallet not initialized');
 export let wallet: WalletDatabase = fakeWallet; // typed wrong for convience
@@ -44,7 +43,7 @@ export function useTransfer(transferHash: string): UseTransferResult {
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`key:${transferHash}`, getTransfer);
+    const cleanup = wallet.on(`table:transfers`, getTransfer);
 
     getTransfer();
 
@@ -53,7 +52,6 @@ export function useTransfer(transferHash: string): UseTransferResult {
 
   return transfer;
 }
-
 
 export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   const [addresses, setAddresses] = useState<Docs.BitcoinAddress[]>([]);
@@ -70,7 +68,6 @@ export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   return addresses;
 }
 
-
 export function useAddressesHookins(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
@@ -80,7 +77,7 @@ export function useAddressesHookins(bitcoinAddress: string): Docs.Hookin[] {
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`hookins.bitcoinAddress:${bitcoinAddress}`, getAndSet);
+    const cleanup = wallet.on(`table:hookins`, getAndSet);
     getAndSet();
     return cleanup;
   }, []);
@@ -144,8 +141,6 @@ export function useHookout(hookoutHash: string) {
   return depromise(wallet.db.get('hookouts', hookoutHash));
 }
 
-
-
 export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
@@ -154,7 +149,7 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`hookins.bitcoinAddress:${bitcoinAddress}`, get);
+    const cleanup = wallet.on(`table:hookins`, get);
 
     get();
 
@@ -163,7 +158,6 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
 
   return hookins;
 }
-
 
 type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
 
@@ -179,7 +173,7 @@ export function useClaimStatus(claimableHash: string) {
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`key:${claimableHash}`, getClaim); // get the claim
+    const cleanup = wallet.on(`table:claims`, getClaim); // get the claim
     getClaim();
     return cleanup;
   }, [claimableHash]);
@@ -218,7 +212,7 @@ export function useTransferByInputHash(inputHash: string): Docs.Transfer | 'LOAD
     setTransfer(bestTransfer(transfers));
   }
   useEffect(() => {
-    const cleanup = wallet.on(`transfers.inputOutputHashes:${inputHash}`, getAndSet);
+    const cleanup = wallet.on(`table:transfers`, getAndSet);
     getAndSet();
     return cleanup;
   }, [inputHash]);
@@ -270,7 +264,7 @@ export function useUnusedBitcoinAddress(): Docs.BitcoinAddress | undefined {
     setAddress(await wallet.getUnusedBitcoinAddress());
   }
   useEffect(() => {
-    const listenTo = address ? `hookins.bitcoinAddress:${address.address}` : 'table:hookins';
+    const listenTo = address ? 'table:hookins' : 'table:hookins';
     return wallet.on(listenTo, getAddress);
   }, [address ? address.address : undefined]);
 
@@ -280,4 +274,3 @@ export function useUnusedBitcoinAddress(): Docs.BitcoinAddress | undefined {
 
   return address;
 }
-

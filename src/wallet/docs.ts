@@ -9,9 +9,8 @@ export interface Config {
   gapLimit: number;
 }
 
-
 export interface Claim extends hi.POD.ClaimResponse, hi.POD.Acknowledged {
-  which: 'Hookin' | 'TransferChange'
+  which: 'Hookin' | 'TransferChange';
 }
 
 export interface Coin extends hi.POD.Coin {
@@ -47,4 +46,9 @@ export interface Transfer extends hi.POD.Transfer {
   status: { kind: 'PENDING' } | { kind: 'CONFLICTED' } | { kind: 'ACKNOWLEDGED'; acknowledgement: string };
   inputHashes: string[]; // for the index of all inputs hashes
   created: Date;
+}
+
+export interface Event {
+  id?: number;
+  name: string;
 }

@@ -13,13 +13,12 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
   const maxRetries = 64;
 
-
   for (let retry = 1; retry <= maxRetries; retry++) {
     const nonces = await genNonces(config, coinsMagnitudes.length, seenNonces);
 
     const coinsRequest = config.deriveCoinsRequest(claimHash, nonces, coinsMagnitudes);
 
-    const claimReq =  hi.ClaimRequest.newAuthorized(claim.hash(), coinsRequest, claimant);
+    const claimReq = hi.ClaimRequest.newAuthorized(claim.hash(), coinsRequest, claimant);
 
     let claimResp;
 
@@ -27,10 +26,9 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
       claimResp = await makeRequest<any>(config.custodianUrl + '/claim-transfer-change', claimReq.toPOD());
     } else if (claim instanceof hi.Hookin) {
       claimResp = await makeRequest<any>(config.custodianUrl + '/claim-hookin', {
-          claimRequest: claimReq.toPOD(),
-          hookin: claim.toPOD()
-      } );
-
+        claimRequest: claimReq.toPOD(),
+        hookin: claim.toPOD(),
+      });
     } else {
       const _: never = claim;
       throw new Error('unreachable!');
@@ -57,4 +55,3 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
   throw new Error('After ' + maxRetries + ' could not claim!');
 }
-
