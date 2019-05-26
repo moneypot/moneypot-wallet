@@ -482,9 +482,12 @@ export default class Database extends EventEmitter {
 
     const transfer = util.notError(hi.Transfer.fromPOD(transferDoc));
 
-    util.isTrue(transfer.isValid());
+    util.isTrue(transfer.isAuthorized());
 
-    const acknowledgement = await submitTransfer(this.config, transfer);
+    const hookoutDoc = util.mustExist(await this.db.get('hookouts', transferDoc.outputHash));
+    const hookout = util.notError(hi.Hookout.fromPOD(hookoutDoc));
+
+    const acknowledgement = await submitTransfer(this.config, transfer, hookout);
 
     if (acknowledgement instanceof RequestError) {
       if (acknowledgement.message === 'INPUT_SPENT') {
@@ -575,20 +578,15 @@ export default class Database extends EventEmitter {
 
     const auth = hi.Signature.computeMu(transferHash.buffer, owners);
 
-    const transfer = new hi.BitcoinTransfer(inputs, hookout, change, auth);
+    const transfer = new hi.Transfer(inputs, hookout.hash(), change, auth);
 
-    if (!transfer.isValid()) {
-      console.error('transfer hash is: ', transfer.hash().toPOD(), ' and expected: ', transferHash.toPOD());
-      throw new Error('just created transfer is not valid');
-    }
-
-    const prunedTransfer = transfer.prune();
+    util.isTrue(transfer.isAuthorized());
 
     const transferDoc: Docs.Transfer = {
       hash: transferHash.toPOD(),
-      ...prunedTransfer.toPOD(),
+      ...transfer.toPOD(),
       created: new Date(),
-      inputHashes: Docs.getInputHashes(prunedTransfer),
+      inputHashes: Docs.getInputHashes(transfer),
       status: { kind: 'PENDING' },
     };
     await this.db.put('transfers', transferDoc);

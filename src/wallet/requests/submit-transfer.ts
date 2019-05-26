@@ -2,8 +2,13 @@ import * as hi from 'hookedin-lib';
 import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
-export default async function(config: Config, transfer: hi.Transfer): Promise<hi.Signature | RequestError> {
-  const resp = await makeRequest<string>(config.custodianUrl + '/transfer', transfer.toPOD());
+export default async function(config: Config, transfer: hi.Transfer, hookout: hi.Hookout): Promise<hi.Signature | RequestError> {
+  
+  
+  const resp = await makeRequest<string>(config.custodianUrl + '/transfer', {
+    transfer: transfer.toPOD(),
+    hookout: hookout.toPOD(),
+  });
 
   if (resp instanceof RequestError) {
     return resp;
