@@ -1,6 +1,3 @@
-@import '../../css/colors.scss';
-@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
-
 .navbar-brand {
     font-weight: 600;
     font-size: 2rem;
@@ -15,20 +12,6 @@
     font-weight: bold;
 }
 
-.fa-stack-bell[data-count]:after{
-    position:absolute;
-    left: 55%;
-    top:10%;
-    content: attr(data-count);
-    font-size:40%;
-    padding:.4em;
-    border-radius:50%;
-    line-height:1em;
-    color: white;
-    background:$theme-blue;
-    text-align:center;
-    min-width: 1em;
-}
 
 .navbar-collapse {
     background: $lighter-gray;

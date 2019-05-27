@@ -25,7 +25,7 @@
     .navbar-link-text {
         display: none;
     }
-    .custom-navbar .fal {
+    .custom-navbar .fal, .custom-navbar .fab  {
         font-size: 1.3em;
     }
 
@@ -68,9 +68,10 @@
     .navbar-link-text {
         margin-top: 0.5rem;
     }
-    .custom-navbar .fal {
+    .custom-navbar .fal, .custom-navbar .fab  {
         font-size: 3em;
     }
+
 }
 
 // General

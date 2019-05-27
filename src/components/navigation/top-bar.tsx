@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
-import './top-bar.scss';
 import { wallet, useBalance } from '../../state/wallet';
 
 export default withRouter(TopBar);
@@ -30,11 +29,6 @@ function TopBar(props: any) {
           {props.isMobile ? '' : wallet.db.name} {balance} sat
         </span>
         <span className="nav-item-right">
-          <button type="button" className="navbar-toggler">
-            <span className="fa-stack fa-lg fa-stack-bell" data-count="28">
-              <i className="fa fa-bell fa-stack-1x xfa-inverse" />
-            </span>
-          </button>
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
             <i className="fa fa-chevron-square-down" />
           </button>

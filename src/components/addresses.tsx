@@ -1,7 +1,6 @@
 import React from 'react';
 import { useBitcoinAddresses } from '../state/wallet';
 import { Link } from 'react-router-dom';
-import './addresses.scss';
 
 export default function Addresses(props: any) {
   const allAddresses = useBitcoinAddresses();

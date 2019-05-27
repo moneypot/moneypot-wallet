@@ -1,18 +1,15 @@
-import React, { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 // @ts-ignore
 import { TheQr } from 'the-qr';
 import { Button } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
-import ReceiveContainer from '../../containers/receive-container';
 import Note from './note';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
       <h3>Receive</h3>
-      <ReceiveContainer page="bitcoin">
         <TheQr text={addressDoc.address.toUpperCase()} />
         <h5>Address</h5>
         <div className="address-text-container">
@@ -33,7 +30,6 @@ function show(addressDoc: Docs.BitcoinAddress) {
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
         </Button>
-      </ReceiveContainer>
     </div>
   );
 }
@@ -43,9 +39,7 @@ export default function Receive() {
 
   if (address === undefined) {
     return (
-      <ReceiveContainer>
         <p>Loading...</p>
-      </ReceiveContainer>
     );
   }
 

@@ -6,7 +6,6 @@ import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import './select-wallet.scss';
 
 import * as dbInfo from '../wallet/database-info';
 

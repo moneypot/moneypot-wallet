@@ -1,11 +1,9 @@
-import * as hi from 'hookedin-lib';
 import React, { useState } from 'react';
 
 import { wallet } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import './send.scss';
 import ShowCustomFeeInput from './custom-fee';
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {

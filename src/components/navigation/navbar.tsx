@@ -1,5 +1,4 @@
 import React from 'react';
-import './navbar.scss';
 import { Link, withRouter } from 'react-router-dom';
 
 export default withRouter(NavBar);
@@ -39,6 +38,10 @@ function NavBar(props: any) {
       <NavLink path={props.location.pathname} to="/history">
         <i className="fal fa-history" />
         <span className="navbar-link-text">History</span>
+      </NavLink>
+      <NavLink path={props.location.pathname} to="/support">
+        <i className="fab fa-telegram" />
+        <span className="navbar-link-text">Support</span>
       </NavLink>
     </div>
   );

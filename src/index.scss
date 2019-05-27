@@ -50,6 +50,18 @@ code {
 }
 
 
+// Component specific scss files
+@import './components/loaded-app.scss';
+@import './components/navigation/navbar.scss';
+@import './components/navigation/top-bar.scss';
+@import './components/receive/receive.scss';
+@import './components/addresses.scss';
+@import 'components/history';
+@import './components/select-wallet.scss';
+@import './containers/full-page-container.scss';
+@import './containers/main-container.scss';
+
+
 //Buttons
 .btn-hookedin {
   font-weight: bold;

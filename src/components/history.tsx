@@ -1,6 +1,5 @@
 import React from 'react';
 import { Badge } from 'reactstrap';
-import './history-card.scss';
 
 export default function History() {
   return (

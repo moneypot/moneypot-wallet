@@ -2,7 +2,7 @@ import React from 'react';
 
 import Splash from './splash/splash';
 import BitcoinAddressInfo from './bitcoin-address-info';
-import ReceiveBitcoin from './receive/bitcoin';
+import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send/send';
@@ -13,7 +13,6 @@ import Coins from './coins';
 import Transfer from './transfer';
 import Config from './config';
 import Hookouts from './hookouts';
-import './loaded-app.scss';
 import TopBar from './navigation/top-bar';
 import Navbar from './navigation/navbar';
 import MainContainer from '../containers/main-container';
