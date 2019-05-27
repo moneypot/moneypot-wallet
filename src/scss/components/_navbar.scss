@@ -5,7 +5,7 @@
     .custom-navbar {
         display: grid;
         grid-area: navbar;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         justify-items: center;
         color: $white;
         height: $mobile-navbar-height;

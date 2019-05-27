@@ -25,9 +25,8 @@ $desktop-top-bar-height: 56px;
     align-items: center;
     justify-content: center;
   }
-  .main-container {
-    height: calc(100vh - #{$mobile-top-bar-height} - #{$mobile-navbar-height});
-  }
+
+
 }
 
 // For a Desktop view
@@ -58,9 +57,6 @@ $desktop-top-bar-height: 56px;
   }
   .App-footer a:hover {
     color: darken($body-text, 25%);
-  }
-  .main-container {
-    height: calc(100vh - #{$desktop-top-bar-height});
   }
 }
 @include media-breakpoint-up(md) {
