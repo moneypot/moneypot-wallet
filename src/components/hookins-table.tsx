@@ -28,6 +28,7 @@ export default function HookinsTable({ hookins }: { hookins: Docs.Hookin[] }) {
 
 function Hookin({ hookinDoc }: { hookinDoc: Docs.Hookin }) {
   const spentStatus = useClaimStatus(hookinDoc.hash);
+  console.log('hooking spent status: ', spentStatus, ' for hookinHash: ', hookinDoc.hash);
 
   function renderSpentStatus() {
     if (spentStatus === 'LOADING') {

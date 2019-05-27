@@ -159,12 +159,13 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   return hookins;
 }
 
-type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.Claim;
+type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.ClaimResponse;
 
 export function useClaimStatus(claimableHash: string) {
   const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
   async function getClaim() {
-    const claim = await wallet.db.get('claims', claimableHash);
+    const claim = await wallet.db.getFromIndex('claimResponses', 'by-claimable-hash', claimableHash);
+    console.log('claim status: ', claim, claimableHash.length);
     if (claim === undefined) {
       setSpentStatus('UNCOLLECTED');
     } else {

@@ -9,7 +9,8 @@ export interface Config {
   gapLimit: number;
 }
 
-export interface Claim extends hi.POD.ClaimResponse, hi.POD.Acknowledged {
+export interface ClaimResponse extends hi.POD.ClaimResponse, hi.POD.Acknowledged {
+  hash: string;
   which: 'Hookin' | 'TransferChange';
 }
 

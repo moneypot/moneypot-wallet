@@ -85,7 +85,7 @@ export default function Send({ history }: Props) {
               To:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
-              <Input value={toText} onChange={event => setToText(event.target.value)} placeholder="bitcoin address (or direct address)" type="text" required />
+              <Input value={toText} onChange={event => setToText(event.target.value)} placeholder="bitcoin address" type="text" required />
             </Col>
           </FormGroup>
           <FormGroup row>

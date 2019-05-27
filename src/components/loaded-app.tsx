@@ -3,7 +3,6 @@ import React from 'react';
 import Splash from './splash/splash';
 import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/bitcoin';
-import Receive from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send/send';

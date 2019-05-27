@@ -1,12 +1,38 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
+import { Link } from 'react-router-dom';
+
 import * as hi from 'hookedin-lib';
 import * as Docs from '../wallet/docs';
 
-import { wallet, useTransfer, useHookout } from '../state/wallet';
+import { wallet, useTransfer, useHookout, useClaimStatus } from '../state/wallet';
+import { notError } from '../util';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   const output = useHookout(transfer.outputHash);
+  const spentStatus = useClaimStatus(transfer.hash);
+
+  let changeButton;
+  if (spentStatus == 'UNCOLLECTED') {
+    changeButton = (
+      <button
+        onClick={() => {
+          const t = notError(hi.Transfer.fromPOD(transfer));
+          wallet.claimChange(t);
+        }}
+      >
+        Collect Change
+      </button>
+    );
+  } else if (spentStatus == 'LOADING') {
+    changeButton = 'checking...';
+  } else {
+    changeButton = (
+      <span>
+        Collected by <Link to={`/claim-responses/${spentStatus.hash}`}>{spentStatus.hash}</Link>
+      </span>
+    );
+  }
 
   return (
     <div>
@@ -42,6 +68,7 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
       <pre>
         <code>{JSON.stringify(transfer.change, null, 2)}</code>
       </pre>
+      {changeButton}
       <hr />
       <pre>
         <code>{JSON.stringify(transfer, null, 2)}</code>

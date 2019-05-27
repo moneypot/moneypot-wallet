@@ -22,15 +22,15 @@ export default function Splash() {
         <img src={logo} className="Splash-logo pulse" alt="logo" />
         <div>
           <Link to="/receive/bitcoin" {...deafProps}>
-            Receive Bitcoin
-          </Link>{' '}
-          /{' '}
-          <Link to="/receive/direct" {...blindProps}>
-            Receive Direct
+            Receive
           </Link>{' '}
           /{' '}
           <Link to="/send" {...muteProps}>
             Send
+          </Link>{' '}
+          /{' '}
+          <Link to="/history" {...blindProps}>
+            History
           </Link>{' '}
         </div>
       </header>

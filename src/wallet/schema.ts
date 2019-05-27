@@ -26,11 +26,13 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Config;
     indexes: {};
   };
-  claims: {
+  claimResponses: {
     key: string;
-    keyPath: 'claimRequest.claimHash';
-    value: Docs.Claim;
-    indexes: {};
+    keyPath: 'hash';
+    value: Docs.ClaimResponse;
+    indexes: {
+      'by-claimable-hash': string;
+    };
   };
   coins: {
     key: string;
@@ -69,7 +71,7 @@ export default interface Schema extends idb.DBSchema {
   };
 }
 
-export type StoreName = 'events' | 'bitcoinAddresses' | 'config' | 'claims' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
+export type StoreName = 'events' | 'bitcoinAddresses' | 'config' | 'claimResponses' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
 
 interface StoreInfo {
   store: StoreName;
@@ -107,10 +109,15 @@ export const schemaPOD: StoreInfo[] = [
     indexes: [],
   },
   {
-    store: 'claims',
-    keyPath: 'claimRequest.claimHash',
+    store: 'claimResponses',
+    keyPath: 'hash',
     autoIncrement: false,
-    indexes: [],
+    indexes: [
+      {
+        name: 'by-claimable-hash',
+        keyPath: 'claimRequest.claimHash',
+      },
+    ],
   },
   {
     store: 'coins',

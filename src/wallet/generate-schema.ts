@@ -21,10 +21,13 @@ const schema = `{
     keyPath: 'one',
     value: Docs.Config
   },
-  claims: {
+  claimResponses: {
     key: string,
-    keyPath: 'claimRequest.claimHash',
-    value: Docs.Claim
+    keyPath: 'hash',
+    value: Docs.ClaimResponse,
+    indexes: [
+      { name: 'by-claimable-hash', keyPath: 'claimRequest.claimHash', value: string }
+    ]
   },
   coins: {
     key: string,

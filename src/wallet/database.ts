@@ -161,7 +161,7 @@ export default class Database extends EventEmitter {
     util.mustEqual(coinRequests.length, blindedReceipts.length);
 
     // basically just adds the appropriate coins, and adds the claim
-    const transaction = this.db.transaction(['coins', 'claims', 'events'], 'readwrite');
+    const transaction = this.db.transaction(['coins', 'claimResponses', 'events'], 'readwrite');
     const coinStore = transaction.objectStore('coins');
 
     for (let i = 0; i < coinRequests.length; i++) {
@@ -192,7 +192,8 @@ export default class Database extends EventEmitter {
     }
     this.emitInTransaction('table:coins', transaction);
 
-    transaction.objectStore('claims').put({
+    transaction.objectStore('claimResponses').put({
+      hash: acknowledgedClaimResponse.hash().toPOD(),
       ...acknowledgedClaimResponse.toPOD(),
       which,
     });
@@ -207,7 +208,7 @@ export default class Database extends EventEmitter {
   public async claimChange(transfer: hi.Transfer) {
     const transferHash = transfer.hash().toPOD();
 
-    const claim = await this.db.get('claims', transferHash);
+    const claim = await this.db.getFromIndex('claimResponses', 'by-claimable-hash', transferHash);
     if (claim) {
       console.log('transfer: ', transferHash, ' already claimed, no need to reclaim', claim);
       return;
@@ -223,9 +224,9 @@ export default class Database extends EventEmitter {
   }
 
   public async claimHookin(hookinDoc: Docs.Hookin) {
-    const claim = await this.db.get('claims', hookinDoc.hash);
+    const claim = await this.db.getFromIndex('claimResponses', 'by-claimable-hash', hookinDoc.hash);
     if (claim) {
-      console.log('hookin: ', hookinDoc.hash, ' already claimed, no need to reclaim', claim);
+      console.log('hookin: ', hookinDoc.hash.length, ' already claimed, no need to reclaim', claim);
       return;
     }
 
@@ -349,11 +350,11 @@ export default class Database extends EventEmitter {
   }
 
   async syncHookins() {
-    const transaction = this.db.transaction(['claims', 'hookins'], 'readonly');
+    const transaction = this.db.transaction(['claimResponses', 'hookins'], 'readonly');
 
     const allClaimed = new Set<string>();
 
-    for (const claim of await transaction.objectStore('claims').getAll()) {
+    for (const claim of await transaction.objectStore('claimResponses').getAll()) {
       allClaimed.add(claim.claimRequest.claimHash);
     }
 

@@ -26,8 +26,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
             <span>
               <i className="fa fa-info-circle" />{' '}
             </span>
-            After N confirmations, funds will be usable. For faster, cheaper and more private transfers, you can use{' '}
-            <Link to="/receive/direct">Hookedin-> Hookedin direct.</Link>
+            After N confirmations, funds will be usable.
           </p>
         </div>
         <Note />
