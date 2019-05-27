@@ -14,7 +14,6 @@
 
 //Components
 @import 'components/addresses';
-@import 'components/_buttons';
 @import 'components/history';
 @import 'components/loaded-app';
 @import 'components/navbar';
@@ -22,8 +21,8 @@
 @import 'components/send';
 @import 'components/top-bar';
 
-//Containers
-@import 'containers/full-page-container';
-@import 'containers/main-container';
+//Layout
+@import 'layout/buttons';
+@import 'layout/containers';
 
 

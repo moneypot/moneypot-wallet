@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import { Link } from 'react-router-dom';
-import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
@@ -34,7 +33,7 @@ export default function SelectWallet(props: any) {
   }
 
   return (
-    <FullPageContainer>
+    <div className="full-page-container">
       <ToastContainer />
       <h2 className="main-heading">Select Wallet</h2>
       <div className="select-wallet-table">
@@ -49,7 +48,7 @@ export default function SelectWallet(props: any) {
           </Link>
         </Col>
       </FormGroup>
-    </FullPageContainer>
+    </div>
   );
 }
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
-import FullPageContainer from '../containers/full-page-container';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
@@ -26,7 +25,7 @@ export default function CreateWallet(props: any) {
     console.log('wallet created: ', walletName);
   }
   return (
-    <FullPageContainer>
+    <div className="full-page-container">
       <ToastContainer />
       <h2 className="main-heading">Create New Wallet</h2>
       <Form>
@@ -66,6 +65,6 @@ export default function CreateWallet(props: any) {
           </Col>
         </FormGroup>
       </Form>
-    </FullPageContainer>
+    </div>
   );
 }

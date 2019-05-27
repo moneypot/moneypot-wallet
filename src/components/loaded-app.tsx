@@ -15,7 +15,6 @@ import Config from './config';
 import Hookouts from './hookouts';
 import TopBar from './navigation/top-bar';
 import Navbar from './navigation/navbar';
-import MainContainer from '../containers/main-container';
 import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
@@ -44,7 +43,7 @@ export default function LoadedApp() {
       <div className="App-wrapper">
         <TopBar isMobile={mobileView} />
         {!mobileView ? <Navbar isMobile={mobileView} /> : ''}
-        <MainContainer>
+        <div className="main-container">
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Splash} />
@@ -72,7 +71,7 @@ export default function LoadedApp() {
           ) : (
             ''
           )}
-        </MainContainer>
+        </div>
         {mobileView ? <Navbar isMobile={mobileView} /> : ''}
       </div>
     </Router>

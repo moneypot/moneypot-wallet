@@ -10,6 +10,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
       <h3>Receive</h3>
+      <div className="inner-container">
         <TheQr text={addressDoc.address.toUpperCase()} />
         <h5>Address</h5>
         <div className="address-text-container">
@@ -30,6 +31,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
         </Button>
+      </div>
     </div>
   );
 }
