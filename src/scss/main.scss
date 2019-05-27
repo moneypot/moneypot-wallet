@@ -1,0 +1,29 @@
+// Utils
+@import 'utils/variables';
+@import 'utils/colors';
+@import 'utils/fonts';
+
+// Vendors
+@import 'vendors/custom-bootstrap';
+//Fontawesome
+@import 'vendors/fontawesome/fontawesome.scss';
+@import "vendors/fontawesome/solid.scss";
+@import "vendors/fontawesome/regular.scss";
+@import "vendors/fontawesome/light.scss";
+@import "vendors/fontawesome/brands.scss";
+
+//Components
+@import 'components/addresses';
+@import 'components/_buttons';
+@import 'components/history';
+@import 'components/loaded-app';
+@import 'components/navbar';
+@import 'components/receive';
+@import 'components/send';
+@import 'components/top-bar';
+
+//Containers
+@import 'containers/full-page-container';
+@import 'containers/main-container';
+
+

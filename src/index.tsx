@@ -4,6 +4,6 @@ import App from './components/app';
 
 import './wallet/database';
 
-import './index.scss';
+import './scss/main.scss';
 
 ReactDOM.render(<App />, document.getElementById('root'));
