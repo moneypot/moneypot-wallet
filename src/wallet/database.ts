@@ -151,8 +151,7 @@ export default class Database extends EventEmitter {
     return new Database(res, config);
   }
 
-  private async processClaimResponse(which: 'Hookin' | 'TransferChange', acknowledgedClaimResponse: hi.AcknowledgedClaimResponse) {
-    const claimResponse = acknowledgedClaimResponse.contents;
+  private async processClaimResponse(which: 'Hookin' | 'TransferChange', claimResponse: hi.ClaimResponse) {
     const { claimRequest, blindedReceipts } = claimResponse;
     const { coinRequests } = claimRequest;
 
@@ -193,9 +192,10 @@ export default class Database extends EventEmitter {
     this.emitInTransaction('table:coins', transaction);
 
     transaction.objectStore('claimResponses').put({
-      hash: acknowledgedClaimResponse.hash().toPOD(),
-      ...acknowledgedClaimResponse.toPOD(),
+      hash: claimResponse.hash().toPOD(),
+      ...claimResponse.toPOD(),
       which,
+      acknowledgement: 'TODO:...'
     });
     this.emitInTransaction('table:claims', transaction);
 
@@ -326,7 +326,7 @@ export default class Database extends EventEmitter {
         console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
 
         // Add all missing addresses...
-        const transaction = this.db.transaction(['bitcoinAddresses'], 'readwrite');
+        const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
         for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
           console.log('adding skipped bitcoin address: ', addIndex);
           await this.addBitcoinAddress(transaction, addIndex);
@@ -399,7 +399,7 @@ export default class Database extends EventEmitter {
   }
 
   public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    const transaction = this.db.transaction(['bitcoinAddresses'], 'readwrite');
+    const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
 
     let maxIndex = -1;
     const cursor = await transaction

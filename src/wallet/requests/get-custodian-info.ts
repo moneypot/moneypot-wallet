@@ -18,17 +18,21 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
     throw res;
   }
 
-  const aci: hi.AcknowledgedCustodianInfo | Error = hi.Acknowledged.fromPOD(hi.CustodianInfo.fromPOD, res); // make sure it's all good..
-  if (aci instanceof Error) {
-    return aci;
+  const ci = hi.CustodianInfo.fromPOD(res); // make sure it's all good..
+  if (ci instanceof Error) {
+    return ci;
   }
 
+  // TODO: ack verification..
   if (ackString.length > 0) {
-    const ackKey = notError(hi.PublicKey.fromPOD(ackString));
-    if (!aci.verify(ackKey)) {
-      return new Error('custodian info was not property acknowledged by expected key');
+    //const ackKey = notError(hi.PublicKey.fromPOD(ackString));
+    // if (!aci.verify(ackKey)) {
+    //   return new Error('custodian info was not property acknowledged by expected key');
+    // }
+    if (ci.acknowledgementKey.toPOD() !== ackString) {
+        return new Error('custodian info was not property acknowledged by expected key');
     }
   }
 
-  return aci.contents;
+  return ci;
 }

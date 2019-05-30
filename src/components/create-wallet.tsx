@@ -16,8 +16,8 @@ export default function CreateWallet(props: any) {
   async function createWallet() {
     const db = await WalletDatabase.create(walletName, custodianUrl, password);
     if (db instanceof Error) {
+      console.error(db);
       toast.error('Oops! ' + db.message);
-      console.error(db.message);
       return;
     }
     setWallet(db);
