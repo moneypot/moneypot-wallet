@@ -30,7 +30,7 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
     //   return new Error('custodian info was not property acknowledged by expected key');
     // }
     if (ci.acknowledgementKey.toPOD() !== ackString) {
-        return new Error('custodian info was not property acknowledged by expected key');
+      return new Error('custodian info was not property acknowledged by expected key');
     }
   }
 

@@ -20,6 +20,8 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history';
 import HookinInfo from './hookin-info';
+import HookoutInfo from './hookout-info';
+
 import Support from './support';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -54,6 +56,7 @@ export default function LoadedApp() {
             <Route path="/send" component={Send} />
             <Route path="/hookins/:hash" component={HookinInfo} />
             <Route path="/hookins" component={Hookins} />
+            <Route path="/hookouts/:hash" component={HookoutInfo} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={Transfer} />
             <Route path="/transfers" component={Transfers} />

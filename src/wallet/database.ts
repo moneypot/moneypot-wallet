@@ -195,7 +195,7 @@ export default class Database extends EventEmitter {
       hash: claimResponse.hash().toPOD(),
       ...claimResponse.toPOD(),
       which,
-      acknowledgement: 'TODO:...'
+      acknowledgement: 'TODO:...',
     });
     this.emitInTransaction('table:claims', transaction);
 

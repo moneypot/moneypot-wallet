@@ -40,9 +40,7 @@ export default function Receive() {
   const address = useUnusedBitcoinAddress();
 
   if (address === undefined) {
-    return (
-        <p>Loading...</p>
-    );
+    return <p>Loading...</p>;
   }
 
   return show(address);
