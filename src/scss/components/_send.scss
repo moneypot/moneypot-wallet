@@ -41,10 +41,11 @@
   padding: 0 1.5rem 2rem;
   margin: 1rem 1rem;
   background-color: $white;
-  box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
+  border: 1px solid #ced4da;
+  //box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
   border-radius: 0.5rem;
   flex-grow: 0;
-  flex-basis: 150px;
+  flex-basis: 200px;
 
 }
 

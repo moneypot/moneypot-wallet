@@ -95,7 +95,7 @@ export default function Send({ history }: Props) {
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
                 <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
-                <BitcoinUnitSwitch/>
+                <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat"/>
                 <Button className="max-button" color="danger" onClick={setMaxAmount}>
                   max
                 </Button>
@@ -111,6 +111,7 @@ export default function Send({ history }: Props) {
               <i className="fal fa-rabbit-fast fa-2x" />
               <ul>
                 <li>priority</li>
+                <li>we will increase the fee as needed</li>
               </ul>
               <span>
                 <i className="fab fa-btc" />
@@ -118,19 +119,30 @@ export default function Send({ history }: Props) {
                 <i className="fab fa-btc" />
               </span>
             </label>
-            <input type="radio" id="radioSlow" name="speedSelection" value="slow" onChange={handleSpeedSelectionChange} />
-            <label htmlFor="radioSlow">
+            <input type="radio" id="radioBatched" name="speedSelection" value="batched" onChange={handleSpeedSelectionChange} />
+            <label htmlFor="radioBatched">
               <i className="fa fa-check-circle fa-2x checked-icon" />
-              <h5>Slow </h5>
-              <i className="fal fa-turtle fa-2x" />
+              <h5>Batched </h5>
+              <i className="fal fa-abacus fa-2x" />
               <ul>
                 <li>economical</li>
+                <li> > 1 hr </li>
               </ul>
               <span>
                 <i className="fab fa-btc" />
                 <i className="fab fa-btc" style={{ color: '#ced4da' }} />
                 <i className="fab fa-btc" style={{ color: '#ced4da' }} />
               </span>
+            </label>
+            <input type="radio" id="radioFree" name="speedSelection" value="free" onChange={handleSpeedSelectionChange} />
+            <label htmlFor="radioFree">
+              <i className="fa fa-check-circle fa-2x checked-icon" />
+              <h5>Free </h5>
+              <i className="fal fa-turtle fa-2x" />
+              <ul>
+                <li>Minimum 0.01 btc</li>
+                <li>slow ~ 1 week</li>
+              </ul>
             </label>
             <input type="radio" id="radioCustom" name="speedSelection" value="custom" onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioCustom">
@@ -145,7 +157,6 @@ export default function Send({ history }: Props) {
 
           <div className="fee-wrapper">
             {speedSelection === 'custom' ? <ShowCustomFeeInput /> : <ShowFeeText />}
-            <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
           </div>
           <FormGroup row>
             <Button color="light" onClick={handleNoteSelected}>
@@ -174,6 +185,7 @@ function ShowFeeText() {
       <Col sm={{ size: 9, offset: 0 }}>
         <p style={{ fontWeight: 'bold' }}>1078 satoshi</p>
       </Col>
+      <small className="text-muted">This transaction will be sent with 324 sat/byte and a ETA of 3 blocks (30 mins).</small>
     </Row>
   );
 }
