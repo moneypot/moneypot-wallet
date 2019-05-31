@@ -5,6 +5,8 @@ import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, Input
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import ShowCustomFeeInput from './custom-fee';
+import BitcoinUnitSwitch from './bitcoin-unit-switch';
+
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const [toText, setToText] = useState('');
@@ -93,7 +95,7 @@ export default function Send({ history }: Props) {
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
                 <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
-                <InputGroupAddon addonType="append">satoshi</InputGroupAddon>
+                <BitcoinUnitSwitch/>
                 <Button className="max-button" color="danger" onClick={setMaxAmount}>
                   max
                 </Button>

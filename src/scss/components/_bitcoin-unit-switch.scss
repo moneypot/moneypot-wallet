@@ -1,0 +1,62 @@
+.switch {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: $form-input-border-radius;
+  border-bottom-right-radius: $form-input-border-radius;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  height: 38px;
+  width: 126px;
+  background: $bg;
+  border-right: 1px solid #ced4da;
+  border-top: 1px solid #ced4da;
+  border-bottom: 1px solid #ced4da;
+}
+
+.switch-label {
+  position: relative;
+  z-index: 2;
+  float: left;
+  width: 60px;
+  line-height: 38px;
+  font-size: 11px;
+  color: darken($table-border,10%);
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 0;
+  padding-left: 3px;
+}
+.switch-label:active {
+  font-weight: bold;
+}
+
+
+.switch-input {
+  display: none;
+}
+.switch-input:checked + .switch-label {
+  font-weight: bold;
+  color: #fff;
+  transition: 0.15s ease-out;
+  transition-property: color, text-shadow;
+}
+.switch-input:checked + .switch-label-on ~ .switch-selection {
+  left: 62px;
+}
+
+.switch-selection {
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  left: 2px;
+  display: block;
+  width: 60px;
+  height: 32px;
+  border-radius: $form-input-border-radius;
+  transition: left 0.15s ease-out;
+  background-color: $theme-blue;
+}
+
+
+
