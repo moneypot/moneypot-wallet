@@ -5,6 +5,7 @@ export interface BitcoinReceiveInfo {
   txid: Uint8Array;
   vout: number;
   amount: number; // satoshis
+  confirmed: boolean;
 }
 
 interface AddressInfoTx {
@@ -13,6 +14,9 @@ interface AddressInfoTx {
     scriptpubkey_address: string;
     value: number;
   }>;
+  fee: number;
+  weight: number;
+  status: { confirmed: boolean; block_height: number|null };
 }
 
 export default async function(address: string): Promise<BitcoinReceiveInfo[]> {
@@ -35,7 +39,7 @@ export default async function(address: string): Promise<BitcoinReceiveInfo[]> {
           throw txid;
         }
 
-        const txinfo = { txid, vout: v, amount };
+        const txinfo = { txid, vout: v, amount, confirmed: tx.status.confirmed };
 
         res.push(txinfo);
       }

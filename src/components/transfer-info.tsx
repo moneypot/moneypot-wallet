@@ -8,6 +8,8 @@ import * as Docs from '../wallet/docs';
 import { wallet, useTransfer, useHookout, useClaimStatus } from '../state/wallet';
 import { notError } from '../util';
 
+import { HookoutTable } from './hookout-info'
+
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   const output = useHookout(transfer.outputHash);
   const spentStatus = useClaimStatus(transfer.hash);
@@ -59,10 +61,8 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
         </span>
       )}
       <hr />
-      <strong>Output: </strong>
-      <pre>
-        <code>{JSON.stringify(output, null, 2)}</code>
-      </pre>
+      <h1>Hookout</h1>
+      { output && output !== "LOADING" && <HookoutTable hookout={output} /> }
       <hr />
       <strong>Change: </strong>
       <pre>
@@ -77,7 +77,7 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   );
 }
 
-export default function Transfer(props: RouteComponentProps<{ hash: string }>) {
+export default function TransferInfo(props: RouteComponentProps<{ hash: string }>) {
   const transferHashStr = props.match.params.hash;
   const transferHash = hi.Hash.fromPOD(transferHashStr);
 

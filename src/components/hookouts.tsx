@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Link } from 'react-router-dom';
 import { wallet, useHookouts } from '../state/wallet';
 
 import * as Docs from '../wallet/docs';
@@ -10,19 +11,37 @@ export default function Hookins() {
   return (
     <div>
       <h1>Hookouts ( {hookouts.length} )</h1>
-      {hookouts.map(hookout => (
-        <Hookout key={hookout.hash} hookoutDoc={hookout} />
-      ))}
+      <table className="table">
+        <tbody>
+          <tr>
+            <th>#</th>
+            <th>bitcoin address</th>
+            <th>amount</th>
+            <th>created</th>
+          </tr>
+          {hookouts.map(hookout => (
+            <Hookout key={hookout.hash} hookoutDoc={hookout} />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
 function Hookout({ hookoutDoc }: { hookoutDoc: Docs.Hookout }) {
   return (
-    <div style={{ border: '1px solid black' }}>
-      <code>
-        <pre>{JSON.stringify(hookoutDoc, null, 2)}</pre>
-      </code>
-    </div>
+    <tr>
+      <td>
+        <Link to={`hookouts/${hookoutDoc.hash}`}>{hookoutDoc.hash.substring(0, 8)}...</Link>
+      </td>
+      <td>
+        {' '}
+        <a href={`https://blockstream.info/testnet/address/${hookoutDoc.bitcoinAddress}`} target="_blank">
+          {hookoutDoc.bitcoinAddress}
+        </a>
+      </td>
+      <td>{hookoutDoc.amount} sats</td>
+      <td>{hookoutDoc.created.toISOString()}</td>
+    </tr>
   );
 }

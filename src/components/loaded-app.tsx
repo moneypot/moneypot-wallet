@@ -10,7 +10,7 @@ import Hookins from './hookins';
 import Addresses from './addresses';
 import Transfers from './transfers';
 import Coins from './coins';
-import Transfer from './transfer';
+import TransferInfo from './transfer-info';
 import Config from './config';
 import Hookouts from './hookouts';
 import TopBar from './navigation/top-bar';
@@ -58,7 +58,7 @@ export default function LoadedApp() {
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts/:hash" component={HookoutInfo} />
             <Route path="/hookouts" component={Hookouts} />
-            <Route path="/transfers/:hash" component={Transfer} />
+            <Route path="/transfers/:hash" component={TransferInfo} />
             <Route path="/transfers" component={Transfers} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
