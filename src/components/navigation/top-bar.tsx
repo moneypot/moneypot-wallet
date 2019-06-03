@@ -26,7 +26,7 @@ function TopBar(props: any) {
           ''
         )}
         <span className="wallet-info">
-          {props.isMobile ? '' : wallet.db.name} {balance} sat
+          {props.isMobile ? '' : wallet.db.name} {props.location.pathname !== '/' ? balance +' sat' : ''}
         </span>
         <span className="nav-item-right">
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>

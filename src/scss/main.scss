@@ -14,7 +14,9 @@
 
 //Components
 @import 'components/addresses';
-@import 'components/_bitcoin-unit-switch.scss';
+@import 'components/bitcoin-unit-switch';
+@import 'components/dashboard';
+
 @import 'components/history';
 @import 'components/loaded-app';
 @import 'components/navbar';

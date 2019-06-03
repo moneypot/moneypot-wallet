@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Splash from './splash/splash';
+import Dashboard from './dashboard/dashboard';
 import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
@@ -18,7 +18,7 @@ import Navbar from './navigation/navbar';
 import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
-import History from './history';
+import History from './history/history';
 import HookinInfo from './hookin-info';
 import HookoutInfo from './hookout-info';
 
@@ -48,7 +48,7 @@ export default function LoadedApp() {
         <div className="main-container">
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
-            <Route path="/" exact component={Splash} />
+            <Route path="/" exact component={Dashboard} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
 
