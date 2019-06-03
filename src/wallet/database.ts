@@ -539,8 +539,8 @@ export default class Database extends EventEmitter {
     this.emit('table:transfers');
   }
 
-  public async sendToBitcoinAddress(address: string, amount: number, feeRate: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
-    const totalToSend = amount + Math.ceil(feeRate * hi.Params.templateTransactionWeight);
+  public async sendToBitcoinAddress(address: string, amount: number, priority: 'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE', fee: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+    const totalToSend = amount + fee;
 
     const transaction = this.db.transaction(['events', 'coins', 'hookouts', 'transfers'], 'readwrite');
 
@@ -551,7 +551,7 @@ export default class Database extends EventEmitter {
       return 'NOT_ENOUGH_FUNDS';
     }
 
-    const hookout = new hi.Hookout(amount, address, 'CUSTOM', hi.random(32));
+    const hookout = new hi.Hookout(amount, address, priority, hi.random(32));
     const hookoutDoc: Docs.Hookout = {
       hash: hookout.hash().toPOD(),
       created: new Date(),

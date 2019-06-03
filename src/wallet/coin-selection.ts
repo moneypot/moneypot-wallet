@@ -1,4 +1,3 @@
-import * as hi from 'hookedin-lib';
 import { isTrue } from '../util';
 
 interface Coin {
@@ -10,8 +9,6 @@ type FindResult<T> = { found: T[]; excess: number };
 export function findAtLeast<T extends Coin>(coins: T[], target: number): FindResult<T> | undefined {
   isTrue(Number.isSafeInteger(target));
   isTrue(target > 0);
-
-  target += hi.Params.basicTransferFee;
 
   const candidates = [...coins] // first we copy (avoid mutation)
     .sort((a, b) => b.magnitude - a.magnitude) // sort by biggest first...
