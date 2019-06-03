@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function BitcoinUnitSwitch(props: any) {
   return (
-    <div className="switch">
+    <div className={"switch"+' '+props.className}>
       <input type="radio" className="switch-input" name={props.name} value={props.valueOne} id={props.valueOne} defaultChecked />
         <label htmlFor={props.valueOne} className="switch-label switch-label-off">{props.valueOne}</label>
         <input type="radio" className="switch-input" name={props.name} value={props.valueTwo} id={props.valueTwo} />

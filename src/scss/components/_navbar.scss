@@ -34,7 +34,7 @@
         grid-area: sidenav;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(8, 1fr);
+        grid-template-rows: repeat(8, 110px);
         color: $white;
         align-items: center;
         text-align: center;

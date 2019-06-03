@@ -30,7 +30,7 @@ function TopBar(props: any) {
         </span>
         <span className="nav-item-right">
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
-            <i className="fa fa-chevron-square-down" />
+            <i className="fa fa-cog" />
           </button>
         </span>
         <Collapse isOpen={isOpen} navbar>

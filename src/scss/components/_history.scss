@@ -1,48 +1,41 @@
 
-.content-card {
+.transaction-card {
   background-color: #fff;
   padding: 1.5rem;
   box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
   border-radius: 0.2rem;
   margin: 1rem 0;
 }
-.content-card:hover{
+.transaction-card:hover{
   box-shadow: 0 5px 24px 0 rgba(0,0,0,.1);
 }
-
-
-
-.circle-icon {
+.transaction-card i {
   margin-right: 0.5rem;
 }
-
-.circle-icon.confirmed {
-  color: $wintergreen;
+.transaction-card i.fa-long-arrow-up {
+  color: $bright-red;
+  background: $bg;
+  padding: 10px;
+  border-radius:5px;
 }
-
-.circle-icon.not-confirmed {
+.transaction-card i.fa-long-arrow-down{
+  color: $wintergreen;
+  background: $bg;
+  padding: 10px;
+  border-radius:5px;
+}
+.transaction-card .badge {
+  margin: 0 0.4rem;
+}
+.transaction-card span.sent {
   color: $bright-red;
 }
-.content-card .badge {
-  margin: 0 0.2rem;
-}
-.content-card .badge.sent {
-  color: $bright-red;
-  background-color: transparent;
-}
-.content-card .badge.received {
-  color: $wintergreen;
-  background-color: transparent;
-}
-.content-card span.sent {
-  color: $bright-red;
-}
-.content-card span.received {
+.transaction-card span.received {
   color: $wintergreen;
 }
-.content-card .badge.confirmed{
+.transaction-card .badge.confirmed{
   background-color: $wintergreen;
 }
-.content-card .badge.not-confirmed{
-  background-color: gray;
+.transaction-card .badge.pending{
+  background-color: $light-gray;
 }

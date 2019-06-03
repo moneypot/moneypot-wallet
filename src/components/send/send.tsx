@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as hi from 'hookedin-lib';
 
 import { wallet } from '../../state/wallet';
-import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroupAddon, InputGroup } from 'reactstrap';
+import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import ShowCustomFeeInput from './custom-fee';
@@ -91,14 +91,18 @@ export default function Send({ history }: Props) {
 
   function ShowFeeText() {
     return (
+      <div>
       <Row>
-        <Col sm={3}>Fee:</Col>
+        <Col sm={{ size: 1, offset: 1 }}><p>Fee:</p></Col>
         <Col sm={{ size: 9, offset: 0 }}>
-          <p style={{ fontWeight: 'bold' }}>{ calcFee() } satoshis</p>
+          <p style={{ fontWeight: 'bold' }}>{ calcFee() } sat</p>
         </Col>
-        <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
       </Row>
-    );
+        <Row style={{ justifyContent: 'center'}}>
+      <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+        </Row>
+      </div>
+  );
   }
 
   function handleSpeedSelectionChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -121,7 +125,18 @@ export default function Send({ history }: Props) {
               To:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
-              <Input value={toText} onChange={event => setToText(event.target.value)} placeholder="bitcoin address" type="text" required />
+              <InputGroup>
+
+              <Input value={toText}
+                     onChange={event => setToText(event.target.value)}
+                     placeholder="bitcoin address"
+                     type="text"
+                     className="to-text-input"
+                     required />
+              <Button className="scan-button"  color="light">
+                <i className="far fa-camera-alt" />
+              </Button>
+              </InputGroup>
             </Col>
           </FormGroup>
           <FormGroup row>
@@ -144,53 +159,31 @@ export default function Send({ history }: Props) {
             <label htmlFor="radioImmediate">
               <i className="fa fa-check-circle fa-2x checked-icon" />
               <h5>Immediate </h5>
-              <i className="fal fa-rabbit-immediate fa-2x" />
-              <ul>
-                <li>priority</li>
-                <li>transaction sent immediately</li>
-                <li>we will increase the fee as needed</li>
-                { feeSchedule && <li>{ Math.round(feeSchedule.immediateFeeRate * hi.Params.templateTransactionWeight) } sats</li> }
-              </ul>
-              <span>
-                <i className="fab fa-btc" />
-                <i className="fab fa-btc" />
-                <i className="fab fa-btc" />
-              </span>
+              <i className="fal fa-dragon fa-2x" />
+                <p>we will increase the fee as needed</p>
             </label>
             <input type="radio" id="radioBatched" name="speedSelection" value="BATCH" onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioBatched">
               <i className="fa fa-check-circle fa-2x checked-icon" />
               <h5>Batched </h5>
-              <i className="fal fa-abacus fa-2x" />
-              <ul>
-                <li>economical</li>
-                <li>~1 hr </li>
-                { feeSchedule && <li>{ Math.round(feeSchedule.immediateFeeRate * 32) } sats</li> }
-              </ul>
-              <span>
-                <i className="fab fa-btc" />
-                <i className="fab fa-btc" style={{ color: '#ced4da' }} />
-                <i className="fab fa-btc" style={{ color: '#ced4da' }} />
-              </span>
+              <i className="fal fa-alicorn fa-2x" />
+                <p>economical</p>
+                <p>fast ~1 hr </p>
             </label>
             <input type="radio" id="radioFree" name="speedSelection" value="FREE" onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioFree">
               <i className="fa fa-check-circle fa-2x checked-icon" />
               <h5>Free </h5>
-              <i className="fal fa-turtle fa-2x" />
-              <ul>
-                <li>Minimum 0.01 btc</li>
-                <li>slow ~ 1 week</li>
-              </ul>
+              <i className="fal fa-unicorn fa-2x" />
+                <p>Minimum 0.01 btc</p>
+                <p>slow ~ 1 week</p>
             </label>
             <input type="radio" id="radioCustom" name="speedSelection" value="CUSTOM" onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioCustom">
               <i className="fa fa-check-circle fa-2x checked-icon" />
               <h5>Custom </h5>
-              <i className="fal fa-edit fa-2x" />
-              <ul>
-                <li>choose your fee</li>
-              </ul>
+              <i className="fal fa-wand-magic fa-2x" />
+                <p>choose your fee</p>
             </label>
           </div>
 

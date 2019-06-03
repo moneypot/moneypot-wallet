@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
+import { FormGroup, Label, Input, Col, InputGroup, Row } from "reactstrap";
 import BitcoinUnitSwitch from './bitcoin-unit-switch'
 export default function ShowCustomFeeInput(props: any) {
   const [feeText, setFeeText] = useState('');
 
 
   return (
+    <div>
     <FormGroup row>
-      <Label for="feeText" sm={2}>
-        Fee:
-      </Label>
-      <Col sm={8}>
+      <Col sm={{ size: 1, offset: 1 }}><p>Fee:</p></Col>
+      <Col sm={{ size: 9, offset: 0 }}>
         <InputGroup>
           <Input value={feeText}
                  onChange={event => setFeeText(event.target.value)} />
-          <BitcoinUnitSwitch name="units" valueOne="sat/vbyte" valueTwo="sat/weight"/>
+          <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight"/>
         </InputGroup>
       </Col>
-      <small className="text-muted">The ETA for this transactions is 3 blocks (30 mins).</small>
     </FormGroup>
+      <Row style={{ justifyContent: 'center'}}>
+        <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+      </Row>
+    </div>
   );
 }

@@ -1,12 +1,12 @@
 
 .fee-wrapper {
-  background: #f4f6f8;
+  //background: #f4f6f8;
   margin: .5rem -1rem;
   padding: 0.5rem 1rem;
   border-radius: 0.3rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  //align-items: center;
 }
 
 .send-radio-buttons-container {
@@ -19,17 +19,13 @@
   text-transform: lowercase;
   letter-spacing: 0.2rem;
 }
-.send-radio-buttons-container ul {
+.send-radio-buttons-container p {
   font-size: 0.9rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  list-style: none;
- padding: 0;
+  margin-top: 0.4rem;
+  margin-bottom: 0.1rem;
+  padding: 0;
 }
-.send-radio-buttons-container ul li:before {
-  content: '✓';
-  margin-right: 0.5rem;
-}
+
 .send-radio-buttons-container input[type="radio"] {
   display:none;
 }
@@ -38,14 +34,14 @@
   display:flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 1.5rem 2rem;
-  margin: 1rem 1rem;
+  padding: 0 1rem 1.5rem;
+  margin: 1rem 0.4rem;
   background-color: $white;
   border: 1px solid #ced4da;
   //box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
   border-radius: 0.5rem;
-  flex-grow: 0;
   flex-basis: 200px;
+  flex-grow: 0;
 
 }
 
@@ -72,4 +68,13 @@
 
 .max-button {
   margin-left: 1rem;
+}
+
+.scan-button {
+  margin-left: 1rem;
+}
+
+.input-group.to-text-input > .form-control:not(:last-child) {
+  border-bottom-right-radius: $form-input-border-radius;
+  border-bottom-left-radius: $form-input-border-radius;
 }

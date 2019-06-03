@@ -14,16 +14,15 @@ export default function History() {
 
 function HistoryTransaction(props: any) {
   return (
-    <div className="content-card">
+    <div className="transaction-card">
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
-          <i className={props.confirmed ? 'fa fa-circle confirmed circle-icon' : 'fa fa-circle not-confirmed circle-icon'} />
+          <i className={props.type === 'sent' ? 'fas fa-long-arrow-up fa-lg' : 'fas fa-long-arrow-down fa-lg'} />
           <span className={props.type === 'sent' ? 'sent' : 'received'}>{props.amount} BTC</span>
-          <Badge className={props.type === 'sent' ? 'sent' : 'received'}>{props.type === 'sent' ? 'sent' : 'received'}</Badge>
+          <Badge className={props.confirmed ? 'confirmed' : 'pending'}>{props.confirmed ? 'confirmed' : 'pending'}</Badge>
         </div>
         <span className="text-muted">{props.time}</span>
       </div>
-      <Badge className={props.confirmed ? 'confirmed' : 'not-confirmed'}>{props.confirmed ? 'confirmed' : 'not-confirmed'}</Badge>
     </div>
   );
 }
