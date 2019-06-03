@@ -551,7 +551,7 @@ export default class Database extends EventEmitter {
       return 'NOT_ENOUGH_FUNDS';
     }
 
-    const hookout = new hi.Hookout(amount, address, hi.random(32));
+    const hookout = new hi.Hookout(amount, address, 'CUSTOM', hi.random(32));
     const hookoutDoc: Docs.Hookout = {
       hash: hookout.hash().toPOD(),
       created: new Date(),
