@@ -28,11 +28,11 @@ function NavBar(props: any) {
         <span className="navbar-link-text">Dashboard</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/receive">
-        <i className="fal fa-inbox-in" />
+        <i className="fal fa-arrow-from-top" />
         <span className="navbar-link-text">Receive</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/send">
-        <i className="fal fa-inbox-out" />
+        <i className="fal fa-arrow-to-top" />
         <span className="navbar-link-text">Send</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/history">

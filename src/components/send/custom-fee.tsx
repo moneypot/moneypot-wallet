@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FormGroup, Label, Input, Col, InputGroup, Row } from "reactstrap";
+import { FormGroup, Input, Col, InputGroup, Row } from "reactstrap";
 import BitcoinUnitSwitch from './bitcoin-unit-switch'
 export default function ShowCustomFeeInput(props: any) {
   const [feeText, setFeeText] = useState('');

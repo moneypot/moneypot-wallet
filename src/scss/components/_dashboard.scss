@@ -16,3 +16,14 @@
   font-size: 0.9rem;
   color: $light-blue-nav-link-hover;
 }
+
+.flex-container-columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  margin: 3rem 0;
+}
+
+.same-width-btn-dashboard {
+width: 150px;
+}
