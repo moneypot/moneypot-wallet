@@ -34,10 +34,11 @@
         grid-area: sidenav;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(8, 110px);
+        grid-template-rows: repeat(6, 110px) 1fr;
         color: $white;
         align-items: center;
         text-align: center;
+        height: 100vh;
     }
 
     .custom-navbar a {

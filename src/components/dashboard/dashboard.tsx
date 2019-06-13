@@ -17,10 +17,6 @@ export default function Dashboard() {
 
       <h5>Actions</h5>
         <div className="flex-container-columns">
-          <Link to="/send" className="btn btn-warning btn-hookedin same-width-btn-dashboard" >
-            Buy Bitcoin <i className="fa fa-external-link fa" />
-
-          </Link>
 
           <Link to="/receive" className="btn btn-success btn-hookedin same-width-btn-dashboard">
             Receive <i className="far fa-arrow-from-top fa" />

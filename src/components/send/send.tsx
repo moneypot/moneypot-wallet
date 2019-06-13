@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import ShowCustomFeeInput from './custom-fee';
 import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
+import OptionalNote from '../optional-note';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -15,7 +16,6 @@ export default function Send({ history }: Props) {
   const [toText, setToText] = useState('');
   const [amountText, setAmountText] = useState('');
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
-  const [noteText, setNoteText] = useState<string | undefined>(undefined);
 
   const send = async () => {
     const address = toText;
@@ -54,18 +54,6 @@ export default function Send({ history }: Props) {
     // TODO
   };
 
-  function ShowNoteInput() {
-    if (noteText === undefined) {
-      return;
-    }
-    return (
-      <FormGroup row>
-        <Col sm={{ size: 12, offset: 0 }}>
-          <Input type="text" value={noteText} placeholder="Optional text" onChange={event => setNoteText(event.target.value)} />
-        </Col>
-      </FormGroup>
-    );
-  }
 
   function calcFee(): number {
     if (!feeSchedule) {
@@ -93,7 +81,7 @@ export default function Send({ history }: Props) {
     return (
       <div>
       <Row>
-        <Col sm={{ size: 1, offset: 1 }}><p>Fee:</p></Col>
+        <Col sm={{ size: 1, offset: 0 }}><p>Fee:</p></Col>
         <Col sm={{ size: 9, offset: 0 }}>
           <p style={{ fontWeight: 'bold' }}>{ calcFee() } sat</p>
         </Col>
@@ -110,14 +98,10 @@ export default function Send({ history }: Props) {
     setPrioritySelection(v);
   }
 
-  function handleNoteSelected() {
-    setNoteText(noteText === undefined ? '' : undefined);
-  }
-
   return (
     <div>
       <ToastContainer />
-      <h3>Send</h3>
+      <h5>Send</h5>
       <div className="inner-container">
         <Form>
           <FormGroup row>
@@ -153,7 +137,11 @@ export default function Send({ history }: Props) {
               </InputGroup>
             </Col>
           </FormGroup>
-
+          <FormGroup row>
+            <Label for="amountText" sm={3}>
+              Type of Fee:
+            </Label>
+          </FormGroup>
           <div className="send-radio-buttons-container">
             <input type="radio" id="radioImmediate" name="speedSelection" value="IMMEDIATE" defaultChecked onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioImmediate">
@@ -190,13 +178,7 @@ export default function Send({ history }: Props) {
           <div className="fee-wrapper">
             {prioritySelection === 'CUSTOM' ? <ShowCustomFeeInput /> : <ShowFeeText />}
           </div>
-          <FormGroup row>
-            <Button color="light" onClick={handleNoteSelected}>
-              <i className="fa fa-edit" />
-              Add Optional Note
-            </Button>
-          </FormGroup>
-          {ShowNoteInput()}
+          <OptionalNote />
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-hookedin" onClick={send}>

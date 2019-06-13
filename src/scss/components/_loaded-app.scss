@@ -37,7 +37,6 @@ $desktop-top-bar-height: 56px;
     grid-template-rows: $desktop-top-bar-height auto;
     grid-template-columns: repeat(6, 1fr);
     grid-template-areas: "sidenav topbar topbar topbar topbar topbar" "sidenav main main main main main";
-    width: 100vw;
     min-height: 100vh;
     background: $theme-blue;
   }

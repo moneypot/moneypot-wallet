@@ -3,7 +3,7 @@ import React from 'react';
 export default function Support() {
   return (
     <div>
-      <h3>Support</h3>
+      <h5>Support</h5>
       <div className="inner-container">
         <p>
           You might find the support you need in our website's{' '}

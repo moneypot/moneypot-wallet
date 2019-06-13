@@ -4,12 +4,13 @@ import { TheQr } from 'the-qr';
 import { Button, Row, Col } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
-import Note from './note';
+import OptionalNote from '../optional-note';
+import CopyToClipboard from '../../util/copy-to-clipboard';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
-      <h3>Receive</h3>
+      <h5>Receive</h5>
       <div className="inner-container">
         <div className="qr-code-wrapper">
         <div className="qr-code-container"><span>
@@ -22,9 +23,9 @@ function show(addressDoc: Docs.BitcoinAddress) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="address-text-container">
               <code>{addressDoc.address}</code>{' '}
-              <Button color="light">
+              <CopyToClipboard  className='btn btn-light' style={{}} text={addressDoc.address}>
                 <i className="fa fa-copy" />
-              </Button>
+              </CopyToClipboard>
             </div>
           </Col>
         </Row>
@@ -38,7 +39,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
             After N confirmations, funds will be usable.
           </p>
         </div>
-        <Note />
+        <OptionalNote />
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
         </Button>
