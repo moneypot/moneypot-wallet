@@ -10,6 +10,7 @@ import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import OptionalNote from '../optional-note';
 
+
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const feeSchedule = useFeeSchedule();
@@ -61,7 +62,7 @@ export default function Send({ history }: Props) {
     } 
 
     if (prioritySelection === 'IMMEDIATE') {
-      return Math.round(feeSchedule.immediateFeeRate * hi.Params.templateTransactionWeight);
+      return Math.round(feeSchedule.immediateFeeRate * 46);
     }
     if (prioritySelection === 'BATCH') {
       return Math.round(feeSchedule.immediateFeeRate * 32);

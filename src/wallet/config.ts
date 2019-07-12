@@ -5,6 +5,8 @@ import * as bip39 from '../bip39';
 import * as util from '../util';
 import * as Docs from './docs';
 
+import { templateTransactionWeight } from '../config';
+
 export default class Config {
   static async fromDoc(d: any, password: string): Promise<Config | 'INVALID_PASSWORD'> {
     if (typeof d !== 'object') {
@@ -136,7 +138,7 @@ export default class Config {
       const newOwner = this.deriveOwner(claimHash, blindingNonce);
       const newOwnerPub = newOwner.toPublicKey();
 
-      const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, hi.Params.blindingCoinPublicKeys[magnitude.n], newOwnerPub.buffer);
+      const [_unblinder, blindedOwner] = hi.blindMessage(blindingSecret, blindingNonce, this.custodian.blindCoinKeys[magnitude.n], newOwnerPub.buffer);
 
       coinRequests.push({ blindingNonce, blindedOwner, magnitude: magnitude });
     }

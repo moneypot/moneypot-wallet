@@ -21,6 +21,8 @@ import Config from './config';
 import Schema, { schemaPOD, StoreName } from './schema';
 import * as dbInfo from './database-info';
 
+import { inputWeight, templateTransactionWeight } from '../config';
+
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
   config: Config; // if not set, wallet is locked.
@@ -170,7 +172,7 @@ export default class Database extends EventEmitter {
       const blindingSecret = this.config.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
       const newOwner = this.config.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
 
-      const signer = hi.Params.blindingCoinPublicKeys[coinClaim.magnitude.n];
+      const signer = this.config.custodian.blindCoinKeys[coinClaim.magnitude.n];
 
       const [unblinder, blindedOwner] = hi.blindMessage(blindingSecret, coinClaim.blindingNonce, signer, newOwner.buffer);
 
@@ -236,7 +238,9 @@ export default class Database extends EventEmitter {
 
     const hookin = util.notError(hi.Hookin.fromPOD(hookinDoc));
 
-    const magnitudes = hi.amountToMagnitudes(hookin.amount - hi.Params.transactionConsolidationFee);
+    const transactionConsolidationFee = Math.floor((inputWeight + 32) / 4); // TODO: ..
+
+    const magnitudes = hi.amountToMagnitudes(hookin.amount - transactionConsolidationFee);
 
     const claimResponse = await makeClaim(this.config, claimant, hookin, magnitudes);
 
@@ -606,7 +610,7 @@ export default class Database extends EventEmitter {
 
     const tweakPubkey = tweak.toPublicKey();
 
-    const pubkey = hi.Params.fundingPublicKey.tweak(tweakPubkey);
+    const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
 
     return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
   }
