@@ -8,7 +8,7 @@ import * as Docs from '../wallet/docs';
 import { wallet, useTransfer, useHookout, useClaimStatus } from '../state/wallet';
 import { notError } from '../util';
 
-import { HookoutTable } from './hookout-info'
+import { HookoutTable } from './hookout-info';
 
 function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
   const output = useHookout(transfer.outputHash);
@@ -62,7 +62,7 @@ function RenderTransfer({ transfer }: { transfer: Docs.Transfer }) {
       )}
       <hr />
       <h1>Hookout</h1>
-      { output && output !== "LOADING" && <HookoutTable hookout={output} /> }
+      {output && output !== 'LOADING' && <HookoutTable hookout={output} />}
       <hr />
       <strong>Change: </strong>
       <pre>

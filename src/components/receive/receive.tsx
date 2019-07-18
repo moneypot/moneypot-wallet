@@ -13,23 +13,25 @@ function show(addressDoc: Docs.BitcoinAddress) {
       <h5>Receive</h5>
       <div className="inner-container">
         <div className="qr-code-wrapper">
-        <div className="qr-code-container"><span>
-          <TheQr text={addressDoc.address.toUpperCase()} />
-          </span>
-        </div>
+          <div className="qr-code-container">
+            <span>
+              <TheQr text={addressDoc.address.toUpperCase()} />
+            </span>
+          </div>
         </div>
         <Row>
-          <Col sm={{ size: 2, offset: 0 }}><p className="address-title">Address:</p></Col>
+          <Col sm={{ size: 2, offset: 0 }}>
+            <p className="address-title">Address:</p>
+          </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="address-text-container">
               <code>{addressDoc.address}</code>{' '}
-              <CopyToClipboard  className='btn btn-light' style={{}} text={addressDoc.address}>
+              <CopyToClipboard className="btn btn-light" style={{}} text={addressDoc.address}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
           </Col>
         </Row>
-
 
         <div className="text-container">
           <p className="text-muted">

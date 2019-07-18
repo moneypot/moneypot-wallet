@@ -20,20 +20,21 @@ export default function HookoutInfo(props: RouteComponentProps<{ hash: string }>
     return <div>not found</div>;
   }
 
-  return <div>
-    <HookoutTable hookout={ hookoutDoc } />
-    <hr />
+  return (
+    <div>
+      <HookoutTable hookout={hookoutDoc} />
+      <hr />
       <h3>Raw Hookout</h3>
       <div>
         <pre>
           <code>{JSON.stringify(hookoutDoc, null, 2)}</code>
         </pre>
       </div>
-  </div>
+    </div>
+  );
 }
 
 export function HookoutTable({ hookout }: { hookout: Docs.Hookout }) {
-
   return (
     <div>
       <table className="table">
@@ -76,33 +77,29 @@ function RenderHookoutTxInfo({ hookout }: { hookout: Docs.Hookout }) {
   const bri = useBitcoinSendTo(hookout.bitcoinAddress, hookout.amount);
 
   if (bri === 'LOADING') {
-    return <div>searching for transaction...</div>
+    return <div>searching for transaction...</div>;
   }
 
   if (bri === 'NOT_FOUND') {
-    return <div>Unable to find transaction on blockchain, for help use support</div>
+    return <div>Unable to find transaction on blockchain, for help use support</div>;
   }
 
   const txid = hi.Buffutils.toHex(bri.txid);
 
-  return <span>
-      <a href={`https://blockstream.info/testnet/tx/${ txid }?output:${ bri.vout }`} target="_blank">
-      { txid }
-    </a>
-    { bri.confirmed ? ' (confirmed)' : ' (not confirmed)' }
+  return (
+    <span>
+      <a href={`https://blockstream.info/testnet/tx/${txid}?output:${bri.vout}`} target="_blank">
+        {txid}
+      </a>
+      {bri.confirmed ? ' (confirmed)' : ' (not confirmed)'}
     </span>
-
-
+  );
 }
 
-
 function useBitcoinSendTo(bitcoinAddress: string, amount: number): BitcoinReceiveInfo | 'LOADING' | 'NOT_FOUND' {
-
   const [bri, setBri] = useState<BitcoinReceiveInfo | 'LOADING' | 'NOT_FOUND'>('LOADING');
   useEffect(() => {
-
     fetchBitcoinReceives(bitcoinAddress).then(ris => {
-
       let alreadyFound = false;
       for (const ri of ris) {
         if (ri.amount === amount) {
@@ -115,10 +112,6 @@ function useBitcoinSendTo(bitcoinAddress: string, amount: number): BitcoinReceiv
         }
       }
     });
-
-
-
   }, [bitcoinAddress, amount]);
   return bri;
-
 }
