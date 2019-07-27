@@ -20,5 +20,6 @@ export default async function(config: Config, transfer: hi.Transfer, hookout: hi
   // TODO: something that validates the signature
   const at: hi.AcknowledgedTransfer = new hi.Acknowledged(transfer, sig);
 
+
   return at.acknowledgement;
 }

@@ -69,9 +69,36 @@ export default interface Schema extends idb.DBSchema {
       'by-created': Date;
     };
   };
+  lightningInvoices: {
+    key: string;
+    keyPath: 'hash';
+    value: Docs.LightningInvoice;
+    indexes: {
+      'by-created': Date;
+      'by-claimant': string;
+    };
+  };
+  lightningInvoicePayments: {
+    key: string;
+    keyPath: 'lightningInvoiceHash';
+    value: Docs.LightningInvoicePayment;
+    indexes: {
+      'by-created': Date;
+    };
+  };
 }
 
-export type StoreName = 'events' | 'bitcoinAddresses' | 'config' | 'claimResponses' | 'coins' | 'hookins' | 'hookouts' | 'transfers';
+export type StoreName =
+  | 'events'
+  | 'bitcoinAddresses'
+  | 'config'
+  | 'claimResponses'
+  | 'coins'
+  | 'hookins'
+  | 'hookouts'
+  | 'transfers'
+  | 'lightningInvoices'
+  | 'lightningInvoicePayments';
 
 interface StoreInfo {
   store: StoreName;
@@ -172,6 +199,32 @@ export const schemaPOD: StoreInfo[] = [
         name: 'by-index',
         keyPath: 'index',
       },
+      {
+        name: 'by-created',
+        keyPath: 'created',
+      },
+    ],
+  },
+  {
+    store: 'lightningInvoices',
+    keyPath: 'hash',
+    autoIncrement: false,
+    indexes: [
+      {
+        name: 'by-created',
+        keyPath: 'created',
+      },
+      {
+        name: 'by-claimant',
+        keyPath: 'claimant',
+      },
+    ],
+  },
+  {
+    store: 'lightningInvoicePayments',
+    keyPath: 'lightningInvoiceHash',
+    autoIncrement: false,
+    indexes: [
       {
         name: 'by-created',
         keyPath: 'created',

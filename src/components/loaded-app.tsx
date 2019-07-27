@@ -11,6 +11,7 @@ import Addresses from './addresses';
 import Transfers from './transfers';
 import Coins from './coins';
 import TransferInfo from './transfer-info';
+import LightningInvoiceInfo from './lightning-invoice-info';
 import Config from './config';
 import Hookouts from './hookouts';
 import TopBar from './navigation/top-bar';
@@ -23,6 +24,7 @@ import HookinInfo from './hookin-info';
 import HookoutInfo from './hookout-info';
 
 import Support from './support';
+import ReceiveLightning from './receive/lightning';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -50,6 +52,7 @@ export default function LoadedApp() {
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Dashboard} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
+            <Route path="/receive/lightning" exact component={ReceiveLightning} />
             <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
 
             <Route path="/addresses" component={Addresses} />
@@ -60,6 +63,7 @@ export default function LoadedApp() {
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={TransferInfo} />
             <Route path="/transfers" component={Transfers} />
+            <Route path="/lightning-invoice/:hash" component={LightningInvoiceInfo} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />

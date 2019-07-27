@@ -11,7 +11,7 @@ export interface Config {
 
 export interface ClaimResponse extends hi.POD.ClaimResponse {
   hash: string;
-  which: 'Hookin' | 'TransferChange';
+  which: 'Hookin' | 'TransferChange' | 'LightningInvoice';
   acknowledgement: string;
 }
 
@@ -36,6 +36,18 @@ export interface Hookin extends hi.POD.Hookin {
 
 export interface Hookout extends hi.POD.Hookout {
   hash: string;
+  created: Date;
+}
+
+export interface LightningInvoice extends hi.POD.LightningInvoice, hi.POD.Acknowledged {
+  hash: string;
+  created: Date;
+}
+
+export interface LightningInvoicePayment {
+  lightningInvoiceHash: string; // both primary key, and references lightninginvoice
+  rPreimage: string; // hex
+  amount: number;
   created: Date;
 }
 

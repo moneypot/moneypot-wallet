@@ -8,6 +8,7 @@ import * as bip39 from '../bip39';
 import submitTransfer from './requests/submit-transfer';
 import { RequestError } from './requests/make-request';
 import makeClaim from './requests/make-claim';
+import addInvoice from './requests/add-invoice';
 
 import fetchBitcoinReceives, { BitcoinReceiveInfo } from './requests/bitcoin-receives';
 import EventEmitter from './event-emitter';
@@ -22,6 +23,8 @@ import Schema, { schemaPOD, StoreName } from './schema';
 import * as dbInfo from './database-info';
 
 import { inputWeight, templateTransactionWeight } from '../config';
+import getInvoiceByClaimant from './requests/get-invoice-payment';
+import getInvoicePayment from './requests/get-invoice-payment';
 
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
@@ -223,6 +226,49 @@ export default class Database extends EventEmitter {
     const claimResponse = await makeClaim(this.config, claimant, transfer, magnitudes);
 
     await this.processClaimResponse('TransferChange', claimResponse);
+  }
+
+  public async requestLightningInvoice(memo: string, amount: number) {
+    const privKey = hi.PrivateKey.fromRand(); // TODO: store the priv...
+    const pubKey = privKey.toPublicKey();
+
+    const invoice = await addInvoice(this.config, pubKey, memo, amount);
+
+    const transaction = this.db.transaction(['lightningInvoices', 'events'], 'readwrite');
+
+    const invoiceDoc = {
+      ...invoice.toPOD(),
+      hash: invoice.hash().toPOD(),
+      created: new Date(),
+    };
+
+    await transaction.objectStore('lightningInvoices').add(invoiceDoc);
+    await this.emitInTransaction('table:lightningInvoices', transaction);
+
+    await transaction.done;
+
+    return invoiceDoc;
+  }
+
+  public async checkLightningInvoiceForPayment(invoiceDoc: Docs.LightningInvoice) {
+
+
+    const payment = await getInvoicePayment(this.config, invoiceDoc.hash);
+    if (!payment) {
+      return;
+    }
+
+    const paymentDoc: Docs.LightningInvoicePayment = {
+      ...payment,
+      lightningInvoiceHash: invoiceDoc.hash,
+      created: new Date(),
+    };
+
+    const transaction = this.db.transaction(['lightningInvoicePayments', 'events'], 'readwrite');
+    await this.emitInTransaction('table:lightningInvoicePayments', transaction);
+    await this.db.put('lightningInvoicePayments', paymentDoc)
+    // TODO: emit the payment.invoiceHash to listen to
+    await transaction.done;
   }
 
   public async claimHookin(hookinDoc: Docs.Hookin) {

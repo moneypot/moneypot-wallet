@@ -137,6 +137,10 @@ export function useHookin(hookinHash: string) {
   return depromise(wallet.db.get('hookins', hookinHash));
 }
 
+export function useLightningInvoice(hash: string) {
+  return depromise(wallet.db.get('lightningInvoices', hash));
+}
+
 export function useHookout(hookoutHash: string) {
   return depromise(wallet.db.get('hookouts', hookoutHash));
 }
@@ -145,7 +149,7 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
   const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
 
   async function get() {
-    wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress).then(hookins => setHookins(hookins));
+    wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress).then(setHookins);
   }
 
   useEffect(() => {
@@ -158,6 +162,25 @@ export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
 
   return hookins;
 }
+
+export function useLightningPaymentOfInvoice(invoiceHash: string): Docs.LightningInvoicePayment | undefined {
+  const [payment, setPayment] = useState<Docs.LightningInvoicePayment | undefined>();
+
+  async function get() {
+    wallet.db.get('lightningInvoicePayments', invoiceHash).then(setPayment);
+  }
+
+  useEffect(() => {
+    const cleanup = wallet.on(`table:lightningInvoicePayments`, get);
+
+    get();
+
+    return cleanup;
+  }, [invoiceHash]);
+
+  return payment;
+}
+
 
 type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.ClaimResponse;
 

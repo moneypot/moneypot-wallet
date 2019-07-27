@@ -63,6 +63,23 @@ const schema = `{
       { name: 'by-index', keyPath: 'index', value: number },
       { name: 'by-created', keyPath: 'created', value: Date }
     ]
+  },
+  lightningInvoices: {
+    key: string,
+    keyPath: 'hash',
+    value: Docs.LightningInvoice,
+    indexes: [
+      { name: 'by-created', keyPath: 'created', value: Date },
+      { name: 'by-claimant', keyPath: 'claimant', value: string }
+    ]
+  },
+  lightningInvoicePayments: {
+    key: string,
+    keyPath: 'lightningInvoiceHash',
+    value: Docs.LightningInvoicePayment,
+    indexes: [
+      { name: 'by-created', keyPath: 'created', value: Date },
+    ]
   }
 }`;
 

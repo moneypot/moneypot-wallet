@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { RouteComponentProps } from 'react-router';
 import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import { wallet, useBalance } from '../../state/wallet';
 
 export default withRouter(TopBar);
 
-function TopBar(props: any) {
+function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() =>
     props.history.listen(() => {
