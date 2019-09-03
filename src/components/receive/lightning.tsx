@@ -3,8 +3,6 @@ import { RouteComponentProps } from 'react-router';
 
 import { wallet } from '../../state/wallet';
 
-import addInvoice from '../../wallet/requests/add-invoice';
-
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState('0');
@@ -18,7 +16,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
     const res = await wallet.requestLightningInvoice(memo, amountInt);
 
-    props.history.push(`/lightning-invoice/${res.hash}`, res);
+    props.history.push(`/lightning-invoices/${res.hash}`, res);
   }
 
   return (

@@ -16,7 +16,7 @@ export default function Addresses(props: any) {
           return (
             <div key={address.address}>
               <div>
-                <Link to={`/addresses/bitcoin/${address.address}`}>{address.address}</Link>
+                <Link to={`/addresses/${address.address}`}>{address.address}</Link>
               </div>
               <div>{address.created.toISOString()}</div>
             </div>

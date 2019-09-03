@@ -25,6 +25,9 @@ import HookoutInfo from './hookout-info';
 
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
+import LightningInvoices from './lightning-invoices';
+import LightningReceiveds from './lightning-receiveds';
+import SendLightning from './send/lightning';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -53,17 +56,19 @@ export default function LoadedApp() {
             <Route path="/" exact component={Dashboard} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/receive/lightning" exact component={ReceiveLightning} />
-            <Route path="/addresses/bitcoin/:address" component={BitcoinAddressInfo} />
-
+            <Route path="/addresses/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses" component={Addresses} />
-            <Route path="/send" component={Send} />
+            <Route path="/send" exact component={Send} />
+            <Route path="/send/lightning" exact component={SendLightning} />
             <Route path="/hookins/:hash" component={HookinInfo} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts/:hash" component={HookoutInfo} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={TransferInfo} />
             <Route path="/transfers" component={Transfers} />
-            <Route path="/lightning-invoice/:hash" component={LightningInvoiceInfo} />
+            <Route path="/lightning-invoices" exact component={LightningInvoices} />
+            <Route path="/lightning-invoices/:hash" component={LightningInvoiceInfo} />
+            <Route path="/lightning-receiveds" exact component={LightningReceiveds} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />

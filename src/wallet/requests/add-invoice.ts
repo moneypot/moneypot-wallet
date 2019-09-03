@@ -2,10 +2,10 @@ import * as hi from 'hookedin-lib';
 import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
-export default async function addInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number) {
+export default async function addInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number): Promise<hi.Acknowledged.Claimable> {
   const url = config.custodianUrl + '/add-invoice';
 
-  const invoicePOD = await makeRequest<hi.POD.Acknowledged & hi.POD.LightningInvoice>(url, {
+  const invoicePOD = await makeRequest<hi.POD.Claimable & hi.POD.Acknowledged>(url, {
     amount,
     claimant: claimant.toPOD(),
     memo,
@@ -15,7 +15,11 @@ export default async function addInvoice(config: Config, claimant: hi.PublicKey,
     throw invoicePOD;
   }
 
-  const invoice: hi.AcknowledgedLightningInvoice | Error = hi.Acknowledged.fromPOD(hi.LightningInvoice.fromPOD, invoicePOD);
+  if (invoicePOD.kind !== 'LightningInvoice') {
+    throw new Error('expected lightninginvoice, got: ' + invoicePOD.kind);
+  }
+
+  const invoice = hi.Acknowledged.claimableFromPOD(invoicePOD);
   if (invoice instanceof Error) {
     throw invoice;
   }

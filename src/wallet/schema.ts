@@ -11,12 +11,20 @@ export default interface Schema extends idb.DBSchema {
     autoIncrement: true;
     indexes: {};
   };
+  counters: {
+    key: string;
+    keyPath: 'value';
+    value: Docs.Counter;
+    indexes: {
+      'by-purpose-index': [string, number];
+      'by-created': Date;
+    };
+  };
   bitcoinAddresses: {
     key: string;
     keyPath: 'address';
     value: Docs.BitcoinAddress;
     indexes: {
-      'by-index': number;
       'by-created': Date;
     };
   };
@@ -26,14 +34,6 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Config;
     indexes: {};
   };
-  claimResponses: {
-    key: string;
-    keyPath: 'hash';
-    value: Docs.ClaimResponse;
-    indexes: {
-      'by-claimable-hash': string;
-    };
-  };
   coins: {
     key: string;
     keyPath: 'hash';
@@ -42,63 +42,27 @@ export default interface Schema extends idb.DBSchema {
       'by-claim-hash': string;
     };
   };
-  hookins: {
+  claimables: {
     key: string;
     keyPath: 'hash';
-    value: Docs.Hookin;
+    value: Docs.Claimable;
     indexes: {
       'by-bitcoin-address': string;
       'by-created': Date;
     };
   };
-  hookouts: {
+  statuses: {
     key: string;
     keyPath: 'hash';
-    value: Docs.Hookout;
+    value: Docs.Status;
     indexes: {
-      'by-created': Date;
-    };
-  };
-  transfers: {
-    key: string;
-    keyPath: 'hash';
-    value: Docs.Transfer;
-    indexes: {
-      'by-input-hashes': Array<string>;
-      'by-index': number;
-      'by-created': Date;
-    };
-  };
-  lightningInvoices: {
-    key: string;
-    keyPath: 'hash';
-    value: Docs.LightningInvoice;
-    indexes: {
-      'by-created': Date;
-      'by-claimant': string;
-    };
-  };
-  lightningInvoicePayments: {
-    key: string;
-    keyPath: 'lightningInvoiceHash';
-    value: Docs.LightningInvoicePayment;
-    indexes: {
+      'by-claimable-hash': string;
       'by-created': Date;
     };
   };
 }
 
-export type StoreName =
-  | 'events'
-  | 'bitcoinAddresses'
-  | 'config'
-  | 'claimResponses'
-  | 'coins'
-  | 'hookins'
-  | 'hookouts'
-  | 'transfers'
-  | 'lightningInvoices'
-  | 'lightningInvoicePayments';
+export type StoreName = 'events' | 'counters' | 'bitcoinAddresses' | 'config' | 'coins' | 'claimables' | 'statuses';
 
 interface StoreInfo {
   store: StoreName;
@@ -115,14 +79,25 @@ export const schemaPOD: StoreInfo[] = [
     indexes: [],
   },
   {
+    store: 'counters',
+    keyPath: 'value',
+    autoIncrement: false,
+    indexes: [
+      {
+        name: 'by-purpose-index',
+        keyPath: ['purpose', 'index'],
+      },
+      {
+        name: 'by-created',
+        keyPath: 'created',
+      },
+    ],
+  },
+  {
     store: 'bitcoinAddresses',
     keyPath: 'address',
     autoIncrement: false,
     indexes: [
-      {
-        name: 'by-index',
-        keyPath: 'index',
-      },
       {
         name: 'by-created',
         keyPath: 'created',
@@ -136,17 +111,6 @@ export const schemaPOD: StoreInfo[] = [
     indexes: [],
   },
   {
-    store: 'claimResponses',
-    keyPath: 'hash',
-    autoIncrement: false,
-    indexes: [
-      {
-        name: 'by-claimable-hash',
-        keyPath: 'claimRequest.claimHash',
-      },
-    ],
-  },
-  {
     store: 'coins',
     keyPath: 'hash',
     autoIncrement: false,
@@ -158,7 +122,7 @@ export const schemaPOD: StoreInfo[] = [
     ],
   },
   {
-    store: 'hookins',
+    store: 'claimables',
     keyPath: 'hash',
     autoIncrement: false,
     indexes: [
@@ -173,58 +137,14 @@ export const schemaPOD: StoreInfo[] = [
     ],
   },
   {
-    store: 'hookouts',
+    store: 'statuses',
     keyPath: 'hash',
     autoIncrement: false,
     indexes: [
       {
-        name: 'by-created',
-        keyPath: 'created',
+        name: 'by-claimable-hash',
+        keyPath: 'claimableHash',
       },
-    ],
-  },
-  {
-    store: 'transfers',
-    keyPath: 'hash',
-    autoIncrement: false,
-    indexes: [
-      {
-        name: 'by-input-hashes',
-        keyPath: 'inputHashes',
-        params: {
-          multiEntry: true,
-        },
-      },
-      {
-        name: 'by-index',
-        keyPath: 'index',
-      },
-      {
-        name: 'by-created',
-        keyPath: 'created',
-      },
-    ],
-  },
-  {
-    store: 'lightningInvoices',
-    keyPath: 'hash',
-    autoIncrement: false,
-    indexes: [
-      {
-        name: 'by-created',
-        keyPath: 'created',
-      },
-      {
-        name: 'by-claimant',
-        keyPath: 'claimant',
-      },
-    ],
-  },
-  {
-    store: 'lightningInvoicePayments',
-    keyPath: 'lightningInvoiceHash',
-    autoIncrement: false,
-    indexes: [
       {
         name: 'by-created',
         keyPath: 'created',

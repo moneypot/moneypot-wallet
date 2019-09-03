@@ -7,12 +7,20 @@ const schema = `{
     indexes: [
     ]
   },
+  counters: {
+    key: string,
+    keyPath: 'value',
+    value: Docs.Counter,
+    indexes: [
+      { name: 'by-purpose-index', keyPath: ['purpose', 'index'], value: [string, number] },
+      { name: 'by-created', keyPath: 'created', value: Date }
+    ]
+  },
   bitcoinAddresses: {
     key: string,
     keyPath: 'address',
     value: Docs.BitcoinAddress,
     indexes: [
-      { name: 'by-index', keyPath: 'index', value: number },
       { name: 'by-created', keyPath: 'created', value: Date }
     ]
   },
@@ -20,14 +28,6 @@ const schema = `{
     key: number,
     keyPath: 'one',
     value: Docs.Config
-  },
-  claimResponses: {
-    key: string,
-    keyPath: 'hash',
-    value: Docs.ClaimResponse,
-    indexes: [
-      { name: 'by-claimable-hash', keyPath: 'claimRequest.claimHash', value: string }
-    ]
   },
   coins: {
     key: string,
@@ -37,48 +37,22 @@ const schema = `{
       { name: 'by-claim-hash', keyPath: 'claimHash', value: string }
     ]
   },
-  hookins: {
+  claimables: {
     key: string,
     keyPath: 'hash',
-    value: Docs.Hookin,
+    value: Docs.Claimable,
     indexes: [
       { name: 'by-bitcoin-address', keyPath: 'bitcoinAddress', value: string },
       { name: 'by-created', keyPath: 'created', value: Date }
     ] 
   },
-  hookouts: {
+  statuses: {
     key: string,
     keyPath: 'hash',
-    value: Docs.Hookout,
+    value: Docs.Status,
     indexes: [
+      { name: 'by-claimable-hash', keyPath: 'claimableHash', value: string },
       { name: 'by-created', keyPath: 'created', value: Date }
-    ] 
-  },
-  transfers: {
-    key: string,
-    keyPath: 'hash',
-    value: Docs.Transfer,
-    indexes: [
-      { name: 'by-input-hashes', keyPath: 'inputHashes', value: Array<string>, params: { multiEntry: true } },
-      { name: 'by-index', keyPath: 'index', value: number },
-      { name: 'by-created', keyPath: 'created', value: Date }
-    ]
-  },
-  lightningInvoices: {
-    key: string,
-    keyPath: 'hash',
-    value: Docs.LightningInvoice,
-    indexes: [
-      { name: 'by-created', keyPath: 'created', value: Date },
-      { name: 'by-claimant', keyPath: 'claimant', value: string }
-    ]
-  },
-  lightningInvoicePayments: {
-    key: string,
-    keyPath: 'lightningInvoiceHash',
-    value: Docs.LightningInvoicePayment,
-    indexes: [
-      { name: 'by-created', keyPath: 'created', value: Date },
     ]
   }
 }`;

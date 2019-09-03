@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import * as Docs from '../wallet/docs';
-import { wallet, useAddressesHookins, useBitcoinAddress } from '../state/wallet';
-import * as Util from '../util';
+import { wallet, useBitcoinAddress } from '../state/wallet';
 
 // @ts-ignore
-import { TheQr } from 'the-qr';
+import { TheQr } from '@the-/ui-qr';
 import HookinsTable from './hookins-table';
 
 export default function BitcoinAddressInfo(props: RouteComponentProps<{ address: string }>) {
@@ -25,7 +24,7 @@ export default function BitcoinAddressInfo(props: RouteComponentProps<{ address:
 }
 
 function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }) {
-  const hookins = useAddressesHookins(addressDoc.address);
+  const hookins: any[] = []; //useAddressesHookins(addressDoc.address);
 
   return (
     <div>

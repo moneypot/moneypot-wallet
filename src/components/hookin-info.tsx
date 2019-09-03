@@ -1,18 +1,21 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
-import { wallet, useHookin } from '../state/wallet';
+import { wallet, useClaimable } from '../state/wallet';
 
 export default function HookinInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;
 
-  const hookinDoc = useHookin(hash);
+  const hookinDoc = useClaimable(hash);
 
   if (hookinDoc === 'LOADING') {
     return <div>{hookinDoc}</div>;
   }
   if (hookinDoc === undefined) {
     return <div>not found</div>;
+  }
+  if (hookinDoc.kind !== 'Hookin') {
+    return <div>expected hookin, found {hookinDoc.kind}</div>;
   }
 
   return (
@@ -28,7 +31,7 @@ export default function HookinInfo(props: RouteComponentProps<{ hash: string }>)
           <tr>
             <th>bitcoin address</th>
             <td>
-              <Link to={`/addresses/bitcoin/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress}</Link>
+              <Link to={`/addresses/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress}</Link>
             </td>
           </tr>
           <tr>

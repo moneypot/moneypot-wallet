@@ -12,51 +12,28 @@ export function setWallet(wdb: WalletDatabase) {
   (window as any)._wallet = wdb;
 }
 
-export function useTransfers(): Docs.Transfer[] {
-  const [transfers, setTransfers] = useState<Docs.Transfer[]>([]);
-  async function getTransfers() {
-    const transfers = await wallet.db.getAllFromIndex('transfers', 'by-created');
+export function useClaimables(): Docs.Claimable[] {
+  const [claimables, setClaimables] = useState<Docs.Claimable[]>([]);
 
-    setTransfers(transfers);
+  async function getAndSet() {
+    const transfers = await wallet.db.getAllFromIndex('claimables', 'by-created');
+
+    setClaimables(transfers);
   }
 
   useEffect(() => {
-    const cleanup = wallet.on('table:transfers', getTransfers);
-    getTransfers();
+    const cleanup = wallet.on('table:claimables', getAndSet);
+    getAndSet();
     return cleanup;
   }, []);
 
-  return transfers;
-}
-
-type UseTransferResult = Docs.Transfer | 'LOADING' | 'NOT_FOUND';
-export function useTransfer(transferHash: string): UseTransferResult {
-  const [transfer, setTransfer] = useState<UseTransferResult>('LOADING');
-
-  async function getTransfer() {
-    const t = await wallet.db.get('transfers', transferHash);
-    if (t === undefined) {
-      setTransfer('NOT_FOUND');
-    } else {
-      setTransfer(t);
-    }
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on(`table:transfers`, getTransfer);
-
-    getTransfer();
-
-    return cleanup;
-  }, [transferHash]);
-
-  return transfer;
+  return claimables;
 }
 
 export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   const [addresses, setAddresses] = useState<Docs.BitcoinAddress[]>([]);
   async function getAndSetAddresses() {
-    const addresses = await wallet.db.getAllFromIndex('bitcoinAddresses', 'by-index');
+    const addresses = await wallet.db.getAllFromIndex('bitcoinAddresses', 'by-created');
     setAddresses(addresses);
   }
   useEffect(() => {
@@ -66,57 +43,6 @@ export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   }, []);
 
   return addresses;
-}
-
-export function useAddressesHookins(bitcoinAddress: string): Docs.Hookin[] {
-  const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
-
-  async function getAndSet() {
-    const hs = await wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress);
-    setHookins(hs);
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on(`table:hookins`, getAndSet);
-    getAndSet();
-    return cleanup;
-  }, []);
-
-  return hookins;
-}
-
-export function useHookins(): Docs.Hookin[] {
-  const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
-
-  async function getAndSet() {
-    const hs = await wallet.db.getAllFromIndex('hookins', 'by-created');
-    setHookins(hs);
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on('table:hookins', getAndSet);
-    getAndSet();
-    return cleanup;
-  }, []);
-
-  return hookins;
-}
-
-export function useHookouts(): Docs.Hookout[] {
-  const [hookouts, setHookouts] = useState<Docs.Hookout[]>([]);
-
-  async function getAndSet() {
-    const hs = await wallet.db.getAllFromIndex('hookouts', 'by-created');
-    setHookouts(hs);
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on('table:hookouts', getAndSet);
-    getAndSet();
-    return cleanup;
-  }, []);
-
-  return hookouts;
 }
 
 function depromise<T>(p: Promise<T>) {
@@ -133,115 +59,26 @@ export function useBitcoinAddress(address: string) {
   return depromise(wallet.db.get('bitcoinAddresses', address));
 }
 
-export function useHookin(hookinHash: string) {
-  return depromise(wallet.db.get('hookins', hookinHash));
+export function useClaimable(claimableHash: string) {
+  return depromise(wallet.db.get('claimables', claimableHash));
 }
 
-export function useLightningInvoice(hash: string) {
-  return depromise(wallet.db.get('lightningInvoices', hash));
-}
+export function useHookinsOfAddress(bitcoinAddress: string): Docs.Claimable[] {
+  const [claimables, setClaimables] = useState<Docs.Claimable[]>([]);
 
-export function useHookout(hookoutHash: string) {
-  return depromise(wallet.db.get('hookouts', hookoutHash));
-}
-
-export function useHookinsOfAddress(bitcoinAddress: string): Docs.Hookin[] {
-  const [hookins, setHookins] = useState<Docs.Hookin[]>([]);
-
-  async function get() {
-    wallet.db.getAllFromIndex('hookins', 'by-bitcoin-address', bitcoinAddress).then(setHookins);
+  function getAndSet() {
+    wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress).then(setClaimables);
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`table:hookins`, get);
+    const cleanup = wallet.on(`table:hookins`, getAndSet);
 
-    get();
+    getAndSet();
 
     return cleanup;
   }, [bitcoinAddress]);
 
-  return hookins;
-}
-
-export function useLightningPaymentOfInvoice(invoiceHash: string): Docs.LightningInvoicePayment | undefined {
-  const [payment, setPayment] = useState<Docs.LightningInvoicePayment | undefined>();
-
-  async function get() {
-    wallet.db.get('lightningInvoicePayments', invoiceHash).then(setPayment);
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on(`table:lightningInvoicePayments`, get);
-
-    get();
-
-    return cleanup;
-  }, [invoiceHash]);
-
-  return payment;
-}
-
-
-type ClaimStatusResult = 'LOADING' | 'UNCOLLECTED' | Docs.ClaimResponse;
-
-export function useClaimStatus(claimableHash: string) {
-  const [spentStatus, setSpentStatus] = useState<ClaimStatusResult>('LOADING');
-  async function getClaim() {
-    const claim = await wallet.db.getFromIndex('claimResponses', 'by-claimable-hash', claimableHash);
-    console.log('claim status: ', claim, claimableHash.length);
-    if (claim === undefined) {
-      setSpentStatus('UNCOLLECTED');
-    } else {
-      setSpentStatus(claim);
-    }
-  }
-
-  useEffect(() => {
-    const cleanup = wallet.on(`table:claims`, getClaim); // get the claim
-    getClaim();
-    return cleanup;
-  }, [claimableHash]);
-
-  return spentStatus;
-}
-
-function bestTransfer(transfers: Docs.Transfer[]): Docs.Transfer {
-  util.mustEqual(transfers.length > 0, true);
-
-  for (const transfer of transfers) {
-    if (transfer.status.kind === 'ACKNOWLEDGED') {
-      return transfer;
-    }
-  }
-  for (const transfer of transfers) {
-    if (transfer.status.kind === 'PENDING') {
-      return transfer;
-    }
-  }
-
-  return transfers[0];
-}
-
-export function useTransferByInputHash(inputHash: string): Docs.Transfer | 'LOADING' | 'NONE' {
-  const [transfer, setTransfer] = useState<Docs.Transfer | 'LOADING' | 'NONE'>('LOADING');
-  async function getAndSet() {
-    const kr = IDBKeyRange.only(inputHash);
-    const transfers = await wallet.db.getAllFromIndex('transfers', 'by-input-hashes', kr);
-
-    if (transfers.length === 0) {
-      setTransfer('NONE');
-      return;
-    }
-
-    setTransfer(bestTransfer(transfers));
-  }
-  useEffect(() => {
-    const cleanup = wallet.on(`table:transfers`, getAndSet);
-    getAndSet();
-    return cleanup;
-  }, [inputHash]);
-
-  return transfer;
+  return claimables;
 }
 
 export function useCoins(): Docs.Coin[] {
@@ -268,7 +105,7 @@ export function useBalance(): number {
   }
 
   useEffect(() => {
-    const cleanup1 = wallet.on('table:transfers', getBalance);
+    const cleanup1 = wallet.on('table:claimables', getBalance);
     const cleanup2 = wallet.on('table:coins', getBalance);
 
     getBalance();
@@ -288,8 +125,7 @@ export function useUnusedBitcoinAddress(): Docs.BitcoinAddress | undefined {
     setAddress(await wallet.getUnusedBitcoinAddress());
   }
   useEffect(() => {
-    const listenTo = address ? 'table:hookins' : 'table:hookins';
-    return wallet.on(listenTo, getAddress);
+    return wallet.on('table:claimbles', getAddress);
   }, [address ? address.address : undefined]);
 
   useEffect(() => {

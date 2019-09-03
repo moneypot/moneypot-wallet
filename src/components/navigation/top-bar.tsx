@@ -51,6 +51,11 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
                 Transfers
               </Link>
             </NavItem>
+            <NavItem className="new-section">
+              <Link className="nav-link" to="/addresses">
+                Addresses
+              </Link>
+            </NavItem>
             <NavItem>
               <Link className="nav-link" to="/bounties">
                 Bounties

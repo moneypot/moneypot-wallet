@@ -20,7 +20,7 @@ export default function Send({ history }: Props) {
   const send = async () => {
     const address = toText;
     // TODO: proper validation...
-    if (address.length < 5 || address.length > 100) {
+    if (address.length < 5) {
       toast.error('Oops! invalid address');
       return;
     }
@@ -28,8 +28,8 @@ export default function Send({ history }: Props) {
     const isBitcoinSend =
       address.startsWith('tb1') || address.startsWith('bc1') || address.startsWith('1') || address.startsWith('2') || address.startsWith('3');
 
-    if (!isBitcoinSend) {
-      toast.error('Oops! not a bitcoin address');
+    if (!isBitcoinSend && !address.startsWith('ln')) {
+      toast.error('Oops! not a bitcoin address, nor a lightning payment request');
       return;
     }
 
@@ -39,8 +39,7 @@ export default function Send({ history }: Props) {
       return;
     }
 
-    const transferHash = await wallet.sendToBitcoinAddress(address, amount, prioritySelection, calcFee());
-
+    const transferHash = await wallet.send(address, amount, calcFee()); // TODO: add prioritySelection
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
       toast.error('Oops! not enough funds');
       return;

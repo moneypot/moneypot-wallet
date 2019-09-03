@@ -5,16 +5,12 @@ import * as idb from 'idb';
 
 import * as bip39 from '../bip39';
 
-import submitTransfer from './requests/submit-transfer';
-import { RequestError } from './requests/make-request';
 import makeClaim from './requests/make-claim';
 import addInvoice from './requests/add-invoice';
 
 import fetchBitcoinReceives, { BitcoinReceiveInfo } from './requests/bitcoin-receives';
 import EventEmitter from './event-emitter';
 import * as coinselection from './coin-selection';
-import lookupCoin from './requests/lookup-coin';
-import lookupTransfer from './requests/lookup-transfer';
 
 import getCustodianInfo from './requests/get-custodian-info';
 
@@ -22,9 +18,8 @@ import Config from './config';
 import Schema, { schemaPOD, StoreName } from './schema';
 import * as dbInfo from './database-info';
 
-import { inputWeight, templateTransactionWeight } from '../config';
-import getInvoiceByClaimant from './requests/get-invoice-payment';
-import getInvoicePayment from './requests/get-invoice-payment';
+import getStatusesByClaimable from './requests/get-statuses-by-claimable';
+import addClaimable from './requests/add-claimable';
 
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
@@ -91,10 +86,37 @@ export default class Database extends EventEmitter {
   }
 
   emit(name: string) {
-    this.db.put('events', { name });
+    return this.db.put('events', { name });
   }
   emitInTransaction<S extends StoreName>(name: string, transaction: idb.IDBPTransaction<Schema, (S | 'events')[]>) {
-    transaction.objectStore('events').put({ name });
+    return transaction.objectStore('events').put({ name });
+  }
+
+  async nextCounter<S extends StoreName, Stringable extends { toPOD(): string }>(
+    purpose: string,
+    transform: (i: number) => Stringable,
+    transaction: idb.IDBPTransaction<Schema, (S | 'counters')[]>
+  ) {
+    const cursor = await transaction
+      .objectStore('counters')
+      .index('by-purpose-index')
+      .openCursor(IDBKeyRange.bound([purpose, 0], [purpose, Number.MAX_SAFE_INTEGER], false), 'prev');
+
+    let index = 0;
+    if (cursor) {
+      index = cursor.key[1] + 1;
+    }
+
+    const value = transform(index);
+
+    await transaction.objectStore('counters').put({
+      purpose,
+      index,
+      value: value.toPOD(),
+      created: new Date(),
+    });
+
+    return value;
   }
 
   public static async open(name: string, password: string) {
@@ -156,24 +178,27 @@ export default class Database extends EventEmitter {
     return new Database(res, config);
   }
 
-  private async processClaimResponse(which: 'Hookin' | 'TransferChange', claimResponse: hi.ClaimResponse) {
-    const { claimRequest, blindedReceipts } = claimResponse;
-    const { coinRequests } = claimRequest;
+  private async processClaimResponse(which: 'Hookin' | 'TransferChange' | 'LightningInvoice', status: hi.Acknowledged.Status) {
+    const claimedStatus = status.contents.s;
+    if (!(claimedStatus instanceof hi.StatusClaimed)) {
+      throw new Error('assertion failure: processClaimReponse expected a StatusClaimed');
+    }
 
-    const claimHash = claimRequest.claimHash;
+    const { claimableHash, claimRequest, blindedReceipts } = claimedStatus;
+    const { coinRequests } = claimRequest;
 
     util.mustEqual(coinRequests.length, blindedReceipts.length);
 
     // basically just adds the appropriate coins, and adds the claim
-    const transaction = this.db.transaction(['coins', 'claimResponses', 'events'], 'readwrite');
+    const transaction = this.db.transaction(['coins', 'events', 'statuses'], 'readwrite');
     const coinStore = transaction.objectStore('coins');
 
     for (let i = 0; i < coinRequests.length; i++) {
       const coinClaim = coinRequests[i];
       const blindedExistenceProof = blindedReceipts[i];
 
-      const blindingSecret = this.config.deriveBlindingSecret(claimHash, coinClaim.blindingNonce);
-      const newOwner = this.config.deriveOwner(claimHash, coinClaim.blindingNonce).toPublicKey();
+      const blindingSecret = this.config.deriveBlindingSecret(claimableHash, coinClaim.blindingNonce);
+      const newOwner = this.config.deriveOwner(claimableHash, coinClaim.blindingNonce).toPublicKey();
 
       const signer = this.config.custodian.blindCoinKeys[coinClaim.magnitude.n];
 
@@ -189,108 +214,87 @@ export default class Database extends EventEmitter {
 
       coinStore.put({
         hash: coin.hash().toPOD(),
-        claimHash: claimHash.toPOD(),
+        claimableHash: claimableHash.toPOD(),
         blindingNonce: coinClaim.blindingNonce.toPOD(),
         ...coin.toPOD(),
       });
     }
     this.emitInTransaction('table:coins', transaction);
 
-    transaction.objectStore('claimResponses').put({
-      hash: claimResponse.hash().toPOD(),
-      ...claimResponse.toPOD(),
-      which,
-      acknowledgement: 'TODO:...',
+    transaction.objectStore('statuses').put({
+      hash: status.hash().toPOD(),
+      created: new Date(),
+      ...status.toPOD(),
     });
-    this.emitInTransaction('table:claims', transaction);
+    this.emitInTransaction('table:statuses', transaction);
 
     await transaction.done;
 
     // TODO: validate ...
   }
 
-  // TODO: put in a transaction?
-  public async claimChange(transfer: hi.Transfer) {
-    const transferHash = transfer.hash().toPOD();
+  public async claimClaimable(claimable: hi.Claimable) {
+    const transaction = this.db.transaction(['claimables', 'events', 'statuses'], 'readwrite');
 
-    const claim = await this.db.getFromIndex('claimResponses', 'by-claimable-hash', transferHash);
-    if (claim) {
-      console.log('transfer: ', transferHash, ' already claimed, no need to reclaim', claim);
-      return;
-    }
+    const statusDocs = await transaction
+      .objectStore('statuses')
+      .index('by-claimable-hash')
+      .getAll(claimable.hash().toPOD());
 
-    const claimant = this.deriveChangeClaimant(transfer.inputs);
+    const statuses = statusDocs.map(s => util.notError(hi.Status.fromPOD(s)));
 
-    const magnitudes = hi.amountToMagnitudes(transfer.change.amount);
+    const claimant = this.deriveClaimableClaimant(claimable.hash());
 
-    const claimResponse = await makeClaim(this.config, claimant, transfer, magnitudes);
+    const amountToClaim = hi.computeClaimableRemaining(claimable, statuses);
+    const magnitudes = hi.amountToMagnitudes(amountToClaim);
+
+    const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes);
 
     await this.processClaimResponse('TransferChange', claimResponse);
+
+    await transaction.done;
+  }
+
+  public async getStatuses(claimable: Docs.Claimable) {
+    const statuses = await getStatusesByClaimable(this.config, claimable.hash);
+    if (statuses.length == 0) {
+      return; // shortcut
+    }
+
+    const transaction = this.db.transaction(['statuses', 'events'], 'readwrite');
+
+    for (const status of statuses) {
+      const statusDoc: Docs.Status = {
+        hash: status.hash().toPOD(),
+        created: new Date(),
+        ...status.toPOD(),
+      };
+
+      await transaction.objectStore('statuses').put(statusDoc);
+    }
+    await this.emitInTransaction('table:statuses', transaction);
+
+    await transaction.done;
   }
 
   public async requestLightningInvoice(memo: string, amount: number) {
-    const privKey = hi.PrivateKey.fromRand(); // TODO: store the priv...
-    const pubKey = privKey.toPublicKey();
+    const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
 
-    const invoice = await addInvoice(this.config, pubKey, memo, amount);
+    let claimant = await this.nextCounter('lightningInvoiceClaimant', index => this.deriveLightningInvoiceClaimant(index).toPublicKey(), transaction);
 
-    const transaction = this.db.transaction(['lightningInvoices', 'events'], 'readwrite');
-
+    const invoice = await addInvoice(this.config, claimant, memo, amount);
     const invoiceDoc = {
-      ...invoice.toPOD(),
       hash: invoice.hash().toPOD(),
       created: new Date(),
+      ...invoice.toPOD(),
     };
 
-    await transaction.objectStore('lightningInvoices').add(invoiceDoc);
-    await this.emitInTransaction('table:lightningInvoices', transaction);
+    await transaction.objectStore('claimables').add(invoiceDoc);
+    await this.emitInTransaction('table:claimables', transaction);
 
     await transaction.done;
 
     return invoiceDoc;
-  }
-
-  public async checkLightningInvoiceForPayment(invoiceDoc: Docs.LightningInvoice) {
-
-
-    const payment = await getInvoicePayment(this.config, invoiceDoc.hash);
-    if (!payment) {
-      return;
-    }
-
-    const paymentDoc: Docs.LightningInvoicePayment = {
-      ...payment,
-      lightningInvoiceHash: invoiceDoc.hash,
-      created: new Date(),
-    };
-
-    const transaction = this.db.transaction(['lightningInvoicePayments', 'events'], 'readwrite');
-    await this.emitInTransaction('table:lightningInvoicePayments', transaction);
-    await this.db.put('lightningInvoicePayments', paymentDoc)
-    // TODO: emit the payment.invoiceHash to listen to
-    await transaction.done;
-  }
-
-  public async claimHookin(hookinDoc: Docs.Hookin) {
-    const claim = await this.db.getFromIndex('claimResponses', 'by-claimable-hash', hookinDoc.hash);
-    if (claim) {
-      console.log('hookin: ', hookinDoc.hash.length, ' already claimed, no need to reclaim', claim);
-      return;
-    }
-
-    const bitcoinAddressDoc = util.mustExist(await this.db.get('bitcoinAddresses', hookinDoc.bitcoinAddress));
-
-    const { claimant } = this.deriveBitcoinAddress(bitcoinAddressDoc.index);
-
-    const hookin = util.notError(hi.Hookin.fromPOD(hookinDoc));
-
-    const transactionConsolidationFee = Math.floor((inputWeight + 32) / 4); // TODO: ..
-
-    const magnitudes = hi.amountToMagnitudes(hookin.amount - transactionConsolidationFee);
-
-    const claimResponse = await makeClaim(this.config, claimant, hookin, magnitudes);
-
-    await this.processClaimResponse('Hookin', claimResponse);
   }
 
   public async reset() {
@@ -305,22 +309,21 @@ export default class Database extends EventEmitter {
   }
 
   public async listUnspent(): Promise<Docs.Coin[]> {
-    const transaction = this.db.transaction(['coins', 'transfers'], 'readonly');
+    const transaction = this.db.transaction(['coins', 'claimables'], 'readonly');
     return this.listUnspentT(transaction);
   }
 
   // transaction must have read access to transfers and coins
-  private async listUnspentT<S extends StoreName>(transaction: idb.IDBPTransaction<Schema, (S | 'coins' | 'transfers')[]>): Promise<Docs.Coin[]> {
+  private async listUnspentT<S extends StoreName>(transaction: idb.IDBPTransaction<Schema, (S | 'coins' | 'claimables')[]>): Promise<Docs.Coin[]> {
     const spentCoinHashes: Set<string> = new Set();
 
-    let transfersCursor = await transaction.objectStore('transfers').openCursor();
+    let transfersCursor = await transaction.objectStore('claimables').openCursor();
     while (transfersCursor) {
       const transfer = transfersCursor.value;
 
-      if (transfer.status.kind !== 'CONFLICTED') {
-        for (const hash of transfer.inputHashes) {
-          // We only really want to add coinHashes, but adding a few extra output hashes doesn't really matter...
-          spentCoinHashes.add(hash);
+      if (transfer.kind === 'FeeBump' || transfer.kind === 'Hookout' || transfer.kind === 'LightningPayment') {
+        for (const input of transfer.inputs) {
+          spentCoinHashes.add(input.hash);
         }
       }
 
@@ -355,132 +358,123 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-    let gapCount = 0;
-
-    const addresses = await this.db.getAllFromIndex('bitcoinAddresses', 'by-index');
-
-    for (const address of addresses) {
-      const used = await this.checkBitcoinAddress(address);
-
-      gapCount = used ? 0 : gapCount + 1;
-    }
-
-    let lastAddressIndex = addresses.length > 0 ? addresses[addresses.length - 1].index : -1;
-
-    for (let checkIndex = lastAddressIndex + 1; gapCount < this.config.gapLimit; checkIndex++) {
-      const { bitcoinAddress } = this.deriveBitcoinAddress(checkIndex);
-      console.log('prechecking: ', bitcoinAddress);
-      const receives = await fetchBitcoinReceives(bitcoinAddress);
-
-      if (receives.length > 0) {
-        console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
-
-        // Add all missing addresses...
-        const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
-        for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
-          console.log('adding skipped bitcoin address: ', addIndex);
-          await this.addBitcoinAddress(transaction, addIndex);
-        }
-
-        const bitcoinAddressDoc = await this.addBitcoinAddress(transaction, checkIndex);
-        await this.addHookins(bitcoinAddressDoc, receives);
-        lastAddressIndex = checkIndex;
-        gapCount = 0;
-      } else {
-        gapCount++;
-      }
-    }
+    // let gapCount = 0;
+    // const addresses = await this.db.getAllFromIndex('bitcoinAddresses', 'by-index');
+    // for (const address of addresses) {
+    //   const used = await this.checkBitcoinAddress(address);
+    //   gapCount = used ? 0 : gapCount + 1;
+    // }
+    // let lastAddressIndex = addresses.length > 0 ? addresses[addresses.length - 1].index : -1;
+    // for (let checkIndex = lastAddressIndex + 1; gapCount < this.config.gapLimit; checkIndex++) {
+    //   const { bitcoinAddress } = this.deriveBitcoinAddress(checkIndex);
+    //   console.log('prechecking: ', bitcoinAddress);
+    //   const receives = await fetchBitcoinReceives(bitcoinAddress);
+    //   if (receives.length > 0) {
+    //     console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
+    //     // Add all missing addresses...
+    //     const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
+    //     for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
+    //       console.log('adding skipped bitcoin address: ', addIndex);
+    //       await this.addBitcoinAddress(transaction, addIndex);
+    //     }
+    //     const bitcoinAddressDoc = await this.addBitcoinAddress(transaction, checkIndex);
+    //     await this.addHookins(bitcoinAddressDoc, receives);
+    //     lastAddressIndex = checkIndex;
+    //     gapCount = 0;
+    //   } else {
+    //     gapCount++;
+    //   }
+    // }
   }
 
   public async sync() {
     await this.syncBitcoinAddresses();
-    await this.syncHookins();
+    // await this.syncHookins();
 
     // TODO: find coins that are funded...
   }
 
-  async syncHookins() {
-    const transaction = this.db.transaction(['claimResponses', 'hookins'], 'readonly');
+  // async syncHookins() {
+  //   const transaction = this.db.transaction(['claimResponses', 'hookins'], 'readonly');
 
-    const allClaimed = new Set<string>();
+  //   const allClaimed = new Set<string>();
 
-    for (const claim of await transaction.objectStore('claimResponses').getAll()) {
-      allClaimed.add(claim.claimRequest.claimHash);
-    }
+  //   for (const claim of await transaction.objectStore('claimResponses').getAll()) {
+  //     allClaimed.add(claim.claimRequest.claimHash);
+  //   }
 
-    const unclaimedHookins: Docs.Hookin[] = [];
-    for (const hookin of await transaction.objectStore('hookins').getAll()) {
-      if (!allClaimed.has(hookin.hash)) {
-        unclaimedHookins.push(hookin);
-      }
-    }
+  //   const unclaimedHookins: Docs.Hookin[] = [];
+  //   for (const hookin of await transaction.objectStore('hookins').getAll()) {
+  //     if (!allClaimed.has(hookin.hash)) {
+  //       unclaimedHookins.push(hookin);
+  //     }
+  //   }
 
-    console.log('Claiming: ', unclaimedHookins.length, ' hookins');
+  //   console.log('Claiming: ', unclaimedHookins.length, ' hookins');
 
-    for (const hookin of unclaimedHookins) {
-      await this.claimHookin(hookin);
-    }
-  }
+  //   for (const hookin of unclaimedHookins) {
+  //     await this.claimHookin(hookin);
+  //   }
+  // }
 
   async getUnusedBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    const transaction = this.db.transaction(['events', 'bitcoinAddresses', 'hookins'], 'readwrite');
+    const transaction = this.db.transaction(['counters', 'events', 'bitcoinAddresses', 'claimables'], 'readwrite');
 
     const cursor = await transaction
       .objectStore('bitcoinAddresses')
-      .index('by-index')
+      .index('by-created')
       .openCursor(undefined, 'prev');
 
     if (!cursor) {
-      return await this.addBitcoinAddress(transaction, 0);
+      console.log('no cursor found: ', cursor);
+      const address = await this.addBitcoinAddress(transaction);
+      await transaction.done;
+      return address;
     }
 
     const bitcoinAddress = cursor.value;
 
     const hookinCursor = await transaction
-      .objectStore('hookins')
+      .objectStore('claimables')
       .index('by-bitcoin-address')
       .openKeyCursor(bitcoinAddress.address);
+
     if (!hookinCursor) {
       // hasn't been used...
       return bitcoinAddress;
     } else {
-      return await this.addBitcoinAddress(transaction, bitcoinAddress.index + 1);
+      const address = await this.addBitcoinAddress(transaction);
+      await transaction.done;
+      return address;
     }
   }
 
-  public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-    const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
+  // public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
+  //   const transaction = this.db.transaction(['counters', 'bitcoinAddresses', 'events'], 'readwrite');
 
-    let maxIndex = -1;
-    const cursor = await transaction
-      .objectStore('bitcoinAddresses')
-      .index('by-index')
-      .openKeyCursor(undefined, 'prev');
-    if (cursor) {
-      maxIndex = cursor.key;
-    }
+  //   const r = this.addBitcoinAddress(transaction);
 
-    return this.addBitcoinAddress(transaction, maxIndex + 1);
-  }
+  //   await transaction.done;
+
+  //   return r;
+  // }
 
   // transaction must support write to 'bitcoinAddresses'
   private async addBitcoinAddress<S extends StoreName>(
-    transaction: idb.IDBPTransaction<Schema, (S | 'events' | 'bitcoinAddresses')[]>,
-    index: number
+    transaction: idb.IDBPTransaction<Schema, (S | 'counters' | 'events' | 'bitcoinAddresses')[]>
   ): Promise<Docs.BitcoinAddress> {
-    const hookinInfo = this.deriveBitcoinAddress(index);
+    const claimant = await this.nextCounter('bitcoinAddressClaimant', (i: number) => this.deriveBitcoinAddressClaimant(i).toPublicKey(), transaction);
 
-    const claimant = hookinInfo.claimant.toPublicKey().toPOD();
-    const bitcoinAddress = hookinInfo.bitcoinAddress;
+    const bitcoinAddress = this.deriveBitcoinAddressFromClaimant(claimant);
 
     const bitcoinAddressDoc: Docs.BitcoinAddress = {
       address: bitcoinAddress,
-      claimant,
-      index,
+      claimant: claimant.toPOD(),
       created: new Date(),
     };
 
-    transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
+    const t = await transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
+
     this.emitInTransaction('table:bitcoinAddresses', transaction);
 
     return bitcoinAddressDoc;
@@ -497,107 +491,57 @@ export default class Database extends EventEmitter {
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
     for (const receive of receives) {
-      const creditToPub = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
-
-      const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, creditToPub);
-
-      let hookinDoc: Docs.Hookin = {
-        hash: hookin.hash().toPOD(),
-        bitcoinAddress: bitcoinAddressDoc.address,
-        created: new Date(),
-        ...hookin.toPOD(),
-      };
-
-      await this.db.put('hookins', hookinDoc);
-      this.emit('table:hookins');
-
-      await this.claimHookin(hookinDoc);
-    }
-  }
-
-  async discardTransfer(transferDoc: Docs.Transfer) {
-    if (transferDoc.status.kind !== 'PENDING') {
-      throw new Error('transfer must be pending');
-    }
-
-    console.warn('discarding transfer: ', transferDoc.hash);
-    transferDoc.status = { kind: 'CONFLICTED' };
-    await this.db.put('transfers', transferDoc);
-    this.emit('table:transfers');
-  }
-
-  async finalizeTransfer(transferDoc: Docs.Transfer): Promise<void> {
-    if (transferDoc.status.kind !== 'PENDING') {
-      throw new Error('transfer must be pending');
-    }
-
-    const transfer = util.notError(hi.Transfer.fromPOD(transferDoc));
-
-    util.isTrue(transfer.isAuthorized());
-
-    const hookoutDoc = util.mustExist(await this.db.get('hookouts', transferDoc.outputHash));
-    const hookout = util.notError(hi.Hookout.fromPOD(hookoutDoc));
-
-    const acknowledgement = await submitTransfer(this.config, transfer, hookout);
-
-    if (acknowledgement instanceof RequestError) {
-      if (acknowledgement.message === 'INPUT_SPENT') {
-        // Let's loop over all the inputs to try find the one...
-        for (const coin of transferDoc.inputs) {
-          const transferHash = await lookupCoin(this.config, coin.owner);
-          if (transferHash === undefined) {
-            continue; // hasn't been spent..
-          }
-
-          // TODO(optimize) we can check if we already have the (ack'd) transfer
-
-          const conflictTransfer = await lookupTransfer(this.config, transferHash);
-          if (conflictTransfer === undefined) {
-            console.warn('could not find transfer', transferHash, ' even though the server told us about it');
-            continue;
-          }
-
-          const conflictTransferDoc: Docs.Transfer = {
-            hash: conflictTransfer.hash().toPOD(),
-            created: new Date(),
-            status: { kind: 'ACKNOWLEDGED', acknowledgement: conflictTransfer.acknowledgement.toPOD() },
-            inputHashes: Docs.getInputHashes(conflictTransfer.contents),
-            ...conflictTransfer.toPOD(),
-          };
-          await this.db.put('transfers', conflictTransferDoc);
-          this.emit('table:transfers');
-        }
-
-        transferDoc.status = { kind: 'CONFLICTED' };
-        await this.db.put('transfers', transferDoc);
-        this.emit('table:transfers');
+      const claimant = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
+      if (this.deriveBitcoinAddressFromClaimant(claimant) !== bitcoinAddressDoc.address) {
+        throw new Error('assertion failed: derived wrong bitcoin address');
       }
 
-      console.error('Got other server error: ', acknowledgement);
-      throw acknowledgement;
+      const fee = 100; // TODO: ...
+      const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, fee, claimant, bitcoinAddressDoc.address);
+
+      const claimable = new hi.Claimable(hookin);
+
+      let hookinDoc: Docs.Claimable = {
+        ...claimable.toPOD(),
+        created: new Date(),
+      };
+
+      await this.db.put('claimables', hookinDoc);
+      this.emit('table:hookins');
+
+      // TODO: claim...
+
+      await this.claimClaimable(claimable);
     }
-
-    // succeeded. So in the background, we should be trying to claim the change..
-    (async () => {
-      await this.claimChange(transfer);
-    })().catch(err => {
-      console.error('could not claim bounties, got error: ', err);
-    });
-
-    transferDoc.status = { kind: 'ACKNOWLEDGED', acknowledgement: acknowledgement.toPOD() };
-    await this.db.put('transfers', transferDoc);
-    this.emit('table:transfers');
   }
 
-  public async sendToBitcoinAddress(
-    address: string,
-    amount: number,
-    priority: 'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE',
-    fee: number
-  ): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+  // makes network req
+  async acknowledgeClaimable(claimableDoc: Docs.Claimable): Promise<void> {
+    if (claimableDoc.acknowledgement) {
+      throw new Error('already ackd');
+    }
+
+    const claimable = util.notError(hi.Claimable.fromPOD(claimableDoc));
+
+    const ackd = await addClaimable(this.config, claimable);
+    if (ackd instanceof Error) {
+      throw ackd;
+    }
+
+    this.db.put('claimables', {
+      ...ackd.toPOD(),
+      created: new Date(),
+    });
+    this.emit('table:claimables');
+
+    // TODO: now claim
+    this.claimClaimable(ackd.contents);
+  }
+
+  public async send(bitcoinAddress: string, amount: number, fee: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
     const totalToSend = amount + fee;
 
-    const transaction = this.db.transaction(['events', 'coins', 'hookouts', 'transfers'], 'readwrite');
+    const transaction = this.db.transaction(['events', 'coins', 'claimables'], 'readwrite');
 
     const unspent = await this.listUnspentT(transaction);
 
@@ -606,50 +550,43 @@ export default class Database extends EventEmitter {
       return 'NOT_ENOUGH_FUNDS';
     }
 
-    const hookout = new hi.Hookout(amount, address, priority, hi.random(32));
-    const hookoutDoc: Docs.Hookout = {
-      hash: hookout.hash().toPOD(),
-      created: new Date(),
-      ...hookout.toPOD(),
-    };
-
-    await this.db.add('hookouts', hookoutDoc);
-    this.emit('table:hookouts');
-
     const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
-    hi.Transfer.sort(inputs);
+    hi.AbstractTransfer.sort(inputs);
 
-    const change = new hi.Change(coinsToUse.excess, this.deriveChangeClaimant(inputs).toPublicKey());
+    const inputHash = hi.Hash.fromMessage('inputHash', ...inputs.map(i => i.buffer));
 
-    const transferHash = hi.Transfer.hashOf(inputs.map(i => i.hash()), hookout.hash(), change);
+    const change = this.deriveClaimableClaimant(inputHash).toPublicKey();
+
+    const hookout = new hi.Hookout({ amount, fee, inputs }, bitcoinAddress, 'IMMEDIATE');
 
     const owners: hi.PrivateKey[] = [];
 
     for (const coin of inputs) {
-      const coinDoc = util.mustExist(await this.db.get('coins', coin.hash().toPOD()));
-      const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimHash));
+      const coinDoc = util.mustExist(await transaction.objectStore('coins').get(coin.hash().toPOD()));
+      const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimableHash));
       const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
       owners.push(this.config.deriveOwner(claimHash, blindingNonce));
     }
 
-    const auth = hi.Signature.computeMu(transferHash.buffer, owners);
+    hookout.authorize(owners);
 
-    const transfer = new hi.Transfer(inputs, hookout.hash(), change, auth);
+    const claimable = new hi.Claimable(hookout);
 
-    util.isTrue(transfer.isAuthorized());
-
-    const transferDoc: Docs.Transfer = {
-      hash: transferHash.toPOD(),
-      ...transfer.toPOD(),
+    const claimableDoc: Docs.Claimable = {
+      ...claimable.toPOD(),
       created: new Date(),
-      inputHashes: Docs.getInputHashes(transfer),
-      status: { kind: 'PENDING' },
     };
-    await this.db.put('transfers', transferDoc);
-    this.emit('table:transfers');
 
-    await this.finalizeTransfer(transferDoc);
-    return transferHash;
+    await transaction.objectStore('claimables').put(claimableDoc);
+    await this.emitInTransaction('table:claimables', transaction);
+    await transaction.done;
+
+    await this.claimClaimable(claimable);
+    return claimable.hash();
+  }
+
+  public deriveBitcoinAddressClaimant(n: number) {
+    return this.config.bitcoinAddressGenerator().derive(n);
   }
 
   public deriveBitcoinAddress(n: number) {
@@ -666,8 +603,28 @@ export default class Database extends EventEmitter {
     return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
   }
 
-  public deriveChangeClaimant(transferInputs: readonly hi.Coin[]): hi.PrivateKey {
-    const ti = hi.Buffutils.concat(...transferInputs.map(coin => coin.buffer));
-    return this.config.changeGenerator().derive(ti);
+  public deriveBitcoinAddressFromClaimant(claimantPub: hi.PublicKey) {
+    const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
+    const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
+
+    const tweakPubkey = tweak.toPublicKey();
+
+    const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
+
+    return pubkey.toBitcoinAddress();
   }
+
+  public deriveClaimableClaimant(hash: hi.Hash): hi.PrivateKey {
+    return this.config.claimantGenerator().derive(hash.buffer);
+  }
+
+  public deriveLightningInvoiceClaimant(n: number): hi.PrivateKey {
+    return this.config.invoiceGenerator().derive(n);
+  }
+}
+
+async function retAwait<T>(t: Promise<T>, p: Promise<void>) {
+  const tmp = await t;
+  await p;
+  return tmp;
 }

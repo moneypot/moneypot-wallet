@@ -1,7 +1,7 @@
 import React from 'react';
 
 import * as Docs from '../wallet/docs';
-import { useCoins, useTransferByInputHash } from '../state/wallet';
+import { useCoins } from '../state/wallet';
 import { Link } from 'react-router-dom';
 
 export default function Coins() {
@@ -30,19 +30,16 @@ export default function Coins() {
 }
 
 function ClaimedCoin({ coin }: { coin: Docs.Coin }) {
-  const transfer = useTransferByInputHash(coin.hash);
-  const status = typeof transfer === 'string' ? transfer : transfer.status.kind;
-
   return (
     <tr>
-      <td>{status}</td>
+      <td>???</td>
       <td>
         <code>{coin.owner}</code>
       </td>
       <td>{coin.magnitude}</td>
       <td>
         <code>
-          <Link to={`/claims/${coin.claimHash}`}>{coin.claimHash}</Link>
+          <Link to={`/claims/${coin.claimableHash}`}>{coin.claimableHash}</Link>
         </code>
       </td>
     </tr>

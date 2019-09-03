@@ -1,6 +1,6 @@
 import React from 'react';
 // @ts-ignore
-import { TheQr } from 'the-qr';
+import { TheQr } from '@the-/ui-qr';
 import { Button, Row, Col } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';

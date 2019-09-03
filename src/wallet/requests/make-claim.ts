@@ -4,11 +4,11 @@ import genNonces from './gen-nonces';
 import Config from '../config';
 import { notError } from '../../util';
 
-export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claim: hi.Transfer | hi.Hookin, coinsMagnitudes: hi.Magnitude[]) {
+export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claimable: hi.Claimable, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
 
-  const claimHash = claim.hash();
+  const claimHash = claimable.hash();
 
   const seenNonces = new Set<string>();
 
@@ -19,21 +19,9 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
     const coinsRequest = config.deriveCoinsRequest(claimHash, nonces, coinsMagnitudes);
 
-    const claimReq = hi.ClaimRequest.newAuthorized(claim.hash(), coinsRequest, claimant);
+    const claimReq = hi.ClaimRequest.newAuthorized(claimHash, coinsRequest, claimant);
 
-    let claimResp;
-
-    if (claim instanceof hi.Transfer) {
-      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-transfer-change', claimReq.toPOD());
-    } else if (claim instanceof hi.Hookin) {
-      claimResp = await makeRequest<any>(config.custodianUrl + '/claim-hookin', {
-        claimRequest: claimReq.toPOD(),
-        hookin: claim.toPOD(),
-      });
-    } else {
-      const _: never = claim;
-      throw new Error('unreachable!');
-    }
+    let claimResp = await makeRequest<any>(config.custodianUrl + '/claim', claimReq.toPOD());
 
     if (claimResp instanceof RequestError) {
       if (claimResp.message === 'RETRY_NONCE') {
@@ -45,9 +33,17 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
     console.log('Claim response is: ', claimResp);
 
-    // TODO: verify ack..
+    const status = notError(hi.Acknowledged.statusFromPOD(claimResp));
 
-    return notError(hi.ClaimResponse.fromPOD(claimResp));
+    if (!(status.contents instanceof hi.StatusClaimed)) {
+      throw new Error('expected a claimed status, got a ' + status.contents);
+    }
+
+    if (status.contents.claimableHash().toPOD() !== claimHash.toPOD()) {
+      throw new Error('status hash doesnt match what it should');
+    }
+
+    return status;
   }
 
   throw new Error('After ' + maxRetries + ' could not claim!');

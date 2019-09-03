@@ -106,12 +106,21 @@ export default class Config {
     return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
   }
 
-  changeGenerator() {
-    return Config.seedToChangeGenerator(this.seed);
+  claimantGenerator() {
+    return Config.seedToClaimantGenerator(this.seed);
   }
 
-  static seedToChangeGenerator(seed: Uint8Array): hi.PrivateKey {
-    const hash = hi.Hash.fromMessage('changeGenerator', seed);
+  invoiceGenerator() {
+    return Config.seedToInvoiceGenerator(this.seed);
+  }
+
+  static seedToClaimantGenerator(seed: Uint8Array): hi.PrivateKey {
+    const hash = hi.Hash.fromMessage('claimantGenerator', seed);
+    return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
+  }
+
+  static seedToInvoiceGenerator(seed: Uint8Array): hi.PrivateKey {
+    const hash = hi.Hash.fromMessage('invoiceGenerator', seed);
     return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
   }
 
@@ -120,8 +129,8 @@ export default class Config {
     return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
   }
 
-  deriveBlindingSecret(claimHash: hi.Hash, blindingNonce: hi.PublicKey): Uint8Array {
-    const hash = hi.Hash.fromMessage('deriveBlindingSecret', this.seed, claimHash.buffer, blindingNonce.buffer);
+  deriveBlindingSecret(claimableHash: hi.Hash, blindingNonce: hi.PublicKey): Uint8Array {
+    const hash = hi.Hash.fromMessage('deriveBlindingSecret', this.seed, claimableHash.buffer, blindingNonce.buffer);
     return hash.buffer;
   }
 
