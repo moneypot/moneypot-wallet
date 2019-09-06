@@ -47,7 +47,7 @@
     "react-dom": "^16.9.0",
     "react-router-dom": "^5.0.1",
     "react-toastify": "^5.3.2",
-    "react-transition-group": "^4.2.2"
+    "react-transition-group": "^4.3.0"
   },
   "browser": {
     "./dist/bip39/pbkdf2-node.js": "./dist/bip39/pbkdf2-browser.js"
