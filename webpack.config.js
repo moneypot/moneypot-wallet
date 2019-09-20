@@ -54,7 +54,7 @@ module.exports = {
     crossOriginLoading: 'anonymous',
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: process.env.USE_CDN ? "https://wallet.hookedin.com/" : "/"
+    publicPath: process.env.USE_CDN ? "https://wallet.moneypot.com/" : "/"
   },
   devServer: {
     contentBase: path.join(__dirname, 'dist'),

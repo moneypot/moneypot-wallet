@@ -20,7 +20,7 @@ interface AddressInfoTx {
 }
 
 export default async function(address: string): Promise<BitcoinReceiveInfo[]> {
-  const txs = await makeRequest<AddressInfoTx[]>(`https://www.hookedin.com/api/testnet/address/${address}/txs`);
+  const txs = await makeRequest<AddressInfoTx[]>(`https://www.moneypot.com/api/testnet/address/${address}/txs`);
 
   if (txs instanceof RequestError) {
     throw txs;

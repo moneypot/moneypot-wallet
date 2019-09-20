@@ -17,6 +17,7 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Counter;
     indexes: {
       'by-purpose-index': [string, number];
+      'by-value': string;
       'by-created': Date;
     };
   };
@@ -86,6 +87,13 @@ export const schemaPOD: StoreInfo[] = [
       {
         name: 'by-purpose-index',
         keyPath: ['purpose', 'index'],
+      },
+      {
+        name: 'by-value',
+        keyPath: 'value',
+        params: {
+          unique: true,
+        },
       },
       {
         name: 'by-created',

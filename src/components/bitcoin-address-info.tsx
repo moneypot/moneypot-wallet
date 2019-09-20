@@ -2,7 +2,7 @@ import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import * as Docs from '../wallet/docs';
-import { wallet, useBitcoinAddress } from '../state/wallet';
+import { wallet, useBitcoinAddress, useHookinsOfAddress } from '../state/wallet';
 
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
@@ -24,7 +24,7 @@ export default function BitcoinAddressInfo(props: RouteComponentProps<{ address:
 }
 
 function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }) {
-  const hookins: any[] = []; //useAddressesHookins(addressDoc.address);
+  const hookins = useHookinsOfAddress(addressDoc.address) || [];
 
   return (
     <div>

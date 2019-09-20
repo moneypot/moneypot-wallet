@@ -5,7 +5,7 @@ import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 
-const defaultCustodian = 'https://www.hookedin.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
+const defaultCustodian = 'https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
 
 export default function CreateWallet(props: any) {
   const [walletName, setWalletName] = useState('main');
@@ -44,7 +44,7 @@ export default function CreateWallet(props: any) {
           <Col sm={{ size: 8, offset: 0 }}>
             <Input value={custodianUrl} name="custodianUrl" onChange={e => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
             <datalist id="default=custodian-urls">
-              <option value="https://www.hookedin.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
+              <option value="https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
               <option value="http://localhost:3030" />
             </datalist>
           </Col>

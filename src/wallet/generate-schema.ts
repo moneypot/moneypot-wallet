@@ -13,6 +13,7 @@ const schema = `{
     value: Docs.Counter,
     indexes: [
       { name: 'by-purpose-index', keyPath: ['purpose', 'index'], value: [string, number] },
+      { name: 'by-value', keyPath: 'value', value: string, params: { unique: true } },
       { name: 'by-created', keyPath: 'created', value: Date }
     ]
   },

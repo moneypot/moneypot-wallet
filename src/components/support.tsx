@@ -7,13 +7,13 @@ export default function Support() {
       <div className="inner-container">
         <p>
           You might find the support you need in our website's{' '}
-          <a href="https://www.hookedin.com/faq/" target="_blank">
+          <a href="https://www.moneypot.com/faq/" target="_blank">
             Frequently Asked Questions
           </a>
           .
         </p>
         <p>
-          If you still need support, please e-mail us at <a href="mailto:contact@hookedin.com?Subject=Support%20Request">contact@hookedin.com</a> or join our{' '}
+          If you still need support, please e-mail us at <a href="mailto:contact@moneypot.com?Subject=Support%20Request">contact@moneypot.com</a> or join our{' '}
           <a href="https://t.me/hookedin" target="_blank">
             Telegram Channel <i className="fab fa-telegram" />
           </a>

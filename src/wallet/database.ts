@@ -21,6 +21,8 @@ import * as dbInfo from './database-info';
 import getStatusesByClaimable from './requests/get-statuses-by-claimable';
 import addClaimable from './requests/add-claimable';
 
+import Claimed from 'hookedin-lib/dist/status/claimed'
+
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
   config: Config; // if not set, wallet is locked.
@@ -178,9 +180,9 @@ export default class Database extends EventEmitter {
     return new Database(res, config);
   }
 
-  private async processClaimResponse(which: 'Hookin' | 'TransferChange' | 'LightningInvoice', status: hi.Acknowledged.Status) {
-    const claimedStatus = status.contents.s;
-    if (!(claimedStatus instanceof hi.StatusClaimed)) {
+  private async processClaimResponse(status: hi.Acknowledged.Status) {
+    const claimedStatus = status.contents;
+    if (!(claimedStatus instanceof Claimed)) {
       throw new Error('assertion failure: processClaimReponse expected a StatusClaimed');
     }
 
@@ -221,12 +223,15 @@ export default class Database extends EventEmitter {
     }
     this.emitInTransaction('table:coins', transaction);
 
+    const x = status.toPOD();
+
     transaction.objectStore('statuses').put({
       hash: status.hash().toPOD(),
       created: new Date(),
       ...status.toPOD(),
     });
     this.emitInTransaction('table:statuses', transaction);
+    console.log('processing claim response');
 
     await transaction.done;
 
@@ -234,34 +239,56 @@ export default class Database extends EventEmitter {
   }
 
   public async claimClaimable(claimable: hi.Claimable) {
-    const transaction = this.db.transaction(['claimables', 'events', 'statuses'], 'readwrite');
+    console.trace('claiming claimable: ', claimable.toPOD());
+    const transaction = this.db.transaction(['counters', 'claimables', 'events', 'statuses'], 'readwrite');
 
     const statusDocs = await transaction
       .objectStore('statuses')
       .index('by-claimable-hash')
       .getAll(claimable.hash().toPOD());
 
-    const statuses = statusDocs.map(s => util.notError(hi.Status.fromPOD(s)));
+    const statuses = statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
 
-    const claimant = this.deriveClaimableClaimant(claimable.hash());
+    let claimant;
+    if (claimable instanceof hi.Hookin) {
+      const bitcoinAddressCounter = util.mustExist(
+        await transaction
+          .objectStore('counters')
+          .index('by-value')
+          .get(claimable.claimant.toPOD())
+      );
+      claimant = this.deriveBitcoinAddressClaimant(bitcoinAddressCounter.index);
+    } else {
+      claimant = this.deriveClaimableClaimant(claimable.hash());
+    }
+
+    if (claimant.toPublicKey().toPOD() !== claimable.claimant.toPOD()) {
+      throw new Error(`Expected derived claimant is ${claimable.claimant.toPOD()} but got ${claimant.toPublicKey().toPOD()}`);
+    }
 
     const amountToClaim = hi.computeClaimableRemaining(claimable, statuses);
-    const magnitudes = hi.amountToMagnitudes(amountToClaim);
+    if (amountToClaim > 0) {
+      const magnitudes = hi.amountToMagnitudes(amountToClaim);
 
-    const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes);
+      const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes);
+  
+      await this.processClaimResponse(claimResponse);
+    }
 
-    await this.processClaimResponse('TransferChange', claimResponse);
 
     await transaction.done;
   }
 
-  public async getStatuses(claimable: Docs.Claimable) {
-    const statuses = await getStatusesByClaimable(this.config, claimable.hash);
+  public async requestStatuses(claimableHash: string) {
+    const statuses = await getStatusesByClaimable(this.config, claimableHash);
+    console.log('got statuses: ', statuses);
     if (statuses.length == 0) {
       return; // shortcut
     }
 
     const transaction = this.db.transaction(['statuses', 'events'], 'readwrite');
+
+    let newStatus = false;
 
     for (const status of statuses) {
       const statusDoc: Docs.Status = {
@@ -270,9 +297,20 @@ export default class Database extends EventEmitter {
         ...status.toPOD(),
       };
 
-      await transaction.objectStore('statuses').put(statusDoc);
+      try {
+        await transaction.objectStore('statuses').add(statusDoc);
+        newStatus = true;
+        console.log('new status was added: ', statusDoc);
+      } catch (err) {
+        console.error('TODO: check if this is a dupe: ', err);
+        throw err;
+      }
+
     }
-    await this.emitInTransaction('table:statuses', transaction);
+
+    if (newStatus) {
+      await this.emitInTransaction('table:statuses', transaction);
+    }
 
     await transaction.done;
   }
@@ -426,7 +464,6 @@ export default class Database extends EventEmitter {
       .openCursor(undefined, 'prev');
 
     if (!cursor) {
-      console.log('no cursor found: ', cursor);
       const address = await this.addBitcoinAddress(transaction);
       await transaction.done;
       return address;
@@ -492,6 +529,7 @@ export default class Database extends EventEmitter {
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
     for (const receive of receives) {
       const claimant = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
+
       if (this.deriveBitcoinAddressFromClaimant(claimant) !== bitcoinAddressDoc.address) {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
@@ -499,43 +537,38 @@ export default class Database extends EventEmitter {
       const fee = 100; // TODO: ...
       const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, fee, claimant, bitcoinAddressDoc.address);
 
-      const claimable = new hi.Claimable(hookin);
-
       let hookinDoc: Docs.Claimable = {
-        ...claimable.toPOD(),
+        ...hi.claimableToPOD(hookin),
         created: new Date(),
       };
 
-      await this.db.put('claimables', hookinDoc);
-      this.emit('table:hookins');
+      try {
+        await this.db.add('claimables', hookinDoc);
+      } catch (err) {
+        console.warn('hookin already existed: ', err, hookinDoc.hash);
+        return;
+      }
+      await this.emit('table:hookins');
 
-      // TODO: claim...
-
-      await this.claimClaimable(claimable);
+      await this.claimClaimable(hookin);
     }
   }
 
   // makes network req
-  async acknowledgeClaimable(claimableDoc: Docs.Claimable): Promise<void> {
-    if (claimableDoc.acknowledgement) {
-      throw new Error('already ackd');
-    }
-
-    const claimable = util.notError(hi.Claimable.fromPOD(claimableDoc));
-
+  async acknowledgeClaimable(claimable: hi.Claimable): Promise<void> {
     const ackd = await addClaimable(this.config, claimable);
     if (ackd instanceof Error) {
       throw ackd;
     }
 
-    this.db.put('claimables', {
+    await this.db.put('claimables', {
       ...ackd.toPOD(),
       created: new Date(),
     });
-    this.emit('table:claimables');
+    await this.emit('table:claimables');
 
     // TODO: now claim
-    this.claimClaimable(ackd.contents);
+    await this.claimClaimable(ackd.contents);
   }
 
   public async send(bitcoinAddress: string, amount: number, fee: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
@@ -553,9 +586,8 @@ export default class Database extends EventEmitter {
     const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
     hi.AbstractTransfer.sort(inputs);
 
-    const inputHash = hi.Hash.fromMessage('inputHash', ...inputs.map(i => i.buffer));
-
-    const change = this.deriveClaimableClaimant(inputHash).toPublicKey();
+    // const inputHash = hi.Hash.fromMessage('inputHash', ...inputs.map(i => i.buffer));
+    // const change = this.deriveClaimableClaimant(inputHash).toPublicKey();
 
     const hookout = new hi.Hookout({ amount, fee, inputs }, bitcoinAddress, 'IMMEDIATE');
 
@@ -570,10 +602,8 @@ export default class Database extends EventEmitter {
 
     hookout.authorize(owners);
 
-    const claimable = new hi.Claimable(hookout);
-
     const claimableDoc: Docs.Claimable = {
-      ...claimable.toPOD(),
+      ...hi.claimableToPOD(hookout),
       created: new Date(),
     };
 
@@ -581,8 +611,8 @@ export default class Database extends EventEmitter {
     await this.emitInTransaction('table:claimables', transaction);
     await transaction.done;
 
-    await this.claimClaimable(claimable);
-    return claimable.hash();
+    await this.claimClaimable(hookout);
+    return hookout.hash();
   }
 
   public deriveBitcoinAddressClaimant(n: number) {

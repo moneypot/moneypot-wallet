@@ -20,6 +20,7 @@ import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history/history';
+import ClaimableInfo from './claimable-info';
 import HookinInfo from './hookin-info';
 import HookoutInfo from './hookout-info';
 
@@ -60,7 +61,7 @@ export default function LoadedApp() {
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" exact component={Send} />
             <Route path="/send/lightning" exact component={SendLightning} />
-            <Route path="/hookins/:hash" component={HookinInfo} />
+            <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts/:hash" component={HookoutInfo} />
             <Route path="/hookouts" component={Hookouts} />

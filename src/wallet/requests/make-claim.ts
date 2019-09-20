@@ -1,8 +1,12 @@
 import * as hi from 'hookedin-lib';
+import Claimed from 'hookedin-lib/dist/status/claimed';
+
 import makeRequest, { RequestError } from './make-request';
 import genNonces from './gen-nonces';
 import Config from '../config';
 import { notError } from '../../util';
+
+
 
 export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claimable: hi.Claimable, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
@@ -35,11 +39,11 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
     const status = notError(hi.Acknowledged.statusFromPOD(claimResp));
 
-    if (!(status.contents instanceof hi.StatusClaimed)) {
+    if (!(status.contents instanceof Claimed)) {
       throw new Error('expected a claimed status, got a ' + status.contents);
     }
 
-    if (status.contents.claimableHash().toPOD() !== claimHash.toPOD()) {
+    if (status.contents.claimableHash.toPOD() !== claimHash.toPOD()) {
       throw new Error('status hash doesnt match what it should');
     }
 

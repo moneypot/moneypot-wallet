@@ -30,7 +30,6 @@ export interface BitcoinAddress {
 
 export type Claimable = hi.POD.Claimable &
   Partial<hi.POD.Acknowledged> & {
-    hash: string;
     created: Date;
   };
 

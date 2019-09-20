@@ -14,8 +14,8 @@ export default async function makeRequest<T>(url: string, body?: any): Promise<T
 
   try {
     fetchResult = await fetch(url, {
-      method: body ? 'POST' : 'GET',
-      body: body ? JSON.stringify(body) : undefined,
+      method: body === undefined ? 'GET' : 'POST',
+      body: body  === undefined ? undefined : JSON.stringify(body),
     });
   } catch (err) {
     return new RequestError(err, 0);

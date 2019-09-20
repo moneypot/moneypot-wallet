@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import * as hi from 'hookedin-lib';
+
 import WalletDatabase from '../wallet/database';
 import * as Docs from '../wallet/docs';
 import * as util from '../util';
@@ -34,6 +36,7 @@ export function useBitcoinAddresses(): Docs.BitcoinAddress[] {
   const [addresses, setAddresses] = useState<Docs.BitcoinAddress[]>([]);
   async function getAndSetAddresses() {
     const addresses = await wallet.db.getAllFromIndex('bitcoinAddresses', 'by-created');
+    addresses.reverse();
     setAddresses(addresses);
   }
   useEffect(() => {
@@ -63,22 +66,32 @@ export function useClaimable(claimableHash: string) {
   return depromise(wallet.db.get('claimables', claimableHash));
 }
 
-export function useHookinsOfAddress(bitcoinAddress: string): Docs.Claimable[] {
-  const [claimables, setClaimables] = useState<Docs.Claimable[]>([]);
+export function useHookinsOfAddress(bitcoinAddress: string) {
+  return useQueryResult(() => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress), 'table:hookins') as
+    | undefined
+    | ((Docs.Claimable & hi.POD.Hookin)[]);
+}
+
+export function useClaimableStatuses(claimableHash: string) {
+  return useQueryResult(() => wallet.db.getAllFromIndex('statuses', 'by-claimable-hash', claimableHash).then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)) )), 'table:statuses');
+}
+
+export function useQueryResult<T>(f: () => Promise<T>, watch: string) {
+  const [res, setRes] = useState<T>();
 
   function getAndSet() {
-    wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress).then(setClaimables);
+    f().then(setRes);
   }
 
   useEffect(() => {
-    const cleanup = wallet.on(`table:hookins`, getAndSet);
+    const cleanup = wallet.on(watch, getAndSet);
 
     getAndSet();
 
     return cleanup;
-  }, [bitcoinAddress]);
+  }, []);
 
-  return claimables;
+  return res;
 }
 
 export function useCoins(): Docs.Coin[] {
