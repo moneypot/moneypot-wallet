@@ -73,7 +73,10 @@ export function useHookinsOfAddress(bitcoinAddress: string) {
 }
 
 export function useClaimableStatuses(claimableHash: string) {
-  return useQueryResult(() => wallet.db.getAllFromIndex('statuses', 'by-claimable-hash', claimableHash).then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)) )), 'table:statuses');
+  return useQueryResult(
+    () => wallet.db.getAllFromIndex('statuses', 'by-claimable-hash', claimableHash).then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)))),
+    'table:statuses'
+  );
 }
 
 export function useQueryResult<T>(f: () => Promise<T>, watch: string) {

@@ -6,8 +6,6 @@ import genNonces from './gen-nonces';
 import Config from '../config';
 import { notError } from '../../util';
 
-
-
 export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claimable: hi.Claimable, coinsMagnitudes: hi.Magnitude[]) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key

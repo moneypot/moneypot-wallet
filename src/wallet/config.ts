@@ -1,4 +1,3 @@
-
 import * as hi from 'hookedin-lib';
 import * as bip39 from '../bip39';
 import * as util from '../util';

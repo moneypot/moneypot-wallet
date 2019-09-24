@@ -21,7 +21,7 @@ import * as dbInfo from './database-info';
 import getStatusesByClaimable from './requests/get-statuses-by-claimable';
 import addClaimable from './requests/add-claimable';
 
-import Claimed from 'hookedin-lib/dist/status/claimed'
+import Claimed from 'hookedin-lib/dist/status/claimed';
 
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
@@ -179,8 +179,15 @@ export default class Database extends EventEmitter {
 
     return new Database(res, config);
   }
+  // <S extends StoreName>(name: string, transaction: idb.IDBPTransaction<Schema, (S | 'events')[]>) {
 
-  private async processClaimResponse(status: hi.Acknowledged.Status) {
+  //private async processClaimResponse
+
+  private async processClaimResponseT<S extends StoreName>(
+    status: hi.Acknowledged.Status,
+    transaction: idb.IDBPTransaction<Schema, (S | 'coins' | 'events')[]>
+  ) {
+    console.log('pcr called', status);
     const claimedStatus = status.contents;
     if (!(claimedStatus instanceof Claimed)) {
       throw new Error('assertion failure: processClaimReponse expected a StatusClaimed');
@@ -192,7 +199,6 @@ export default class Database extends EventEmitter {
     util.mustEqual(coinRequests.length, blindedReceipts.length);
 
     // basically just adds the appropriate coins, and adds the claim
-    const transaction = this.db.transaction(['coins', 'events', 'statuses'], 'readwrite');
     const coinStore = transaction.objectStore('coins');
 
     for (let i = 0; i < coinRequests.length; i++) {
@@ -222,20 +228,6 @@ export default class Database extends EventEmitter {
       });
     }
     this.emitInTransaction('table:coins', transaction);
-
-    const x = status.toPOD();
-
-    transaction.objectStore('statuses').put({
-      hash: status.hash().toPOD(),
-      created: new Date(),
-      ...status.toPOD(),
-    });
-    this.emitInTransaction('table:statuses', transaction);
-    console.log('processing claim response');
-
-    await transaction.done;
-
-    // TODO: validate ...
   }
 
   public async claimClaimable(claimable: hi.Claimable) {
@@ -271,22 +263,21 @@ export default class Database extends EventEmitter {
       const magnitudes = hi.amountToMagnitudes(amountToClaim);
 
       const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes);
-  
-      await this.processClaimResponse(claimResponse);
+
+      await this.processStatuses([claimResponse]);
     }
-
-
-    await transaction.done;
   }
 
   public async requestStatuses(claimableHash: string) {
     const statuses = await getStatusesByClaimable(this.config, claimableHash);
     console.log('got statuses: ', statuses);
-    if (statuses.length == 0) {
-      return; // shortcut
+    if (statuses.length > 0) {
+      await this.processStatuses(statuses);
     }
+  }
 
-    const transaction = this.db.transaction(['statuses', 'events'], 'readwrite');
+  private async processStatuses(statuses: hi.Acknowledged.Status[]) {
+    const transaction = this.db.transaction(['coins', 'statuses', 'events'], 'readwrite');
 
     let newStatus = false;
 
@@ -297,15 +288,18 @@ export default class Database extends EventEmitter {
         ...status.toPOD(),
       };
 
-      try {
-        await transaction.objectStore('statuses').add(statusDoc);
+      const exists = await transaction.objectStore('statuses').getKey(statusDoc.hash);
+      if (exists) {
+        console.log('Status: ', statusDoc, ' already exists');
+      } else {
         newStatus = true;
-        console.log('new status was added: ', statusDoc);
-      } catch (err) {
-        console.error('TODO: check if this is a dupe: ', err);
-        throw err;
+        await transaction.objectStore('statuses').add(statusDoc);
+        if (status.contents instanceof Claimed) {
+          await this.processClaimResponseT(status, transaction); // TODO: same transaction...
+        } else {
+          console.log('status not claimed', status);
+        }
       }
-
     }
 
     if (newStatus) {
