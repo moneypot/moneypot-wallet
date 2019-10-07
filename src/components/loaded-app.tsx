@@ -63,7 +63,6 @@ export default function LoadedApp() {
             <Route path="/send/lightning" exact component={SendLightning} />
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/hookins" component={Hookins} />
-            <Route path="/hookouts/:hash" component={HookoutInfo} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/transfers/:hash" component={TransferInfo} />
             <Route path="/transfers" component={Transfers} />
