@@ -57,11 +57,6 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
               </Link>
             </NavItem>
             <NavItem>
-              <Link className="nav-link" to="/bounties">
-                Bounties
-              </Link>
-            </NavItem>
-            <NavItem>
               <Link className="nav-link" to="/coins">
                 Coins
               </Link>

@@ -37,30 +37,6 @@ export default class Database extends EventEmitter {
     this.pollForEvents(); // fire off immediately
     this.pollId = setInterval(() => this.pollForEvents(), 5000);
 
-    // this.db.on('changes', changes => {
-    //   for (const change of changes) {
-    //     console.log('Got db change: ', change);
-
-    //     this.emit(`table:${change.table}`);
-    //     this.emit(`key:${change.key}`);
-
-    //     const obj = change.type === DatabaseChangeType.Delete ? (change as any).oldObj : (change as any).obj;
-
-    //     if (change.table === 'bounties') {
-    //       this.emit(`bounties.claimant:${obj.claimant}`);
-    //     }
-
-    //     if (change.table === 'hookins') {
-    //       this.emit(`hookins.bitcoinAddress:${obj.bitcoinAddress}`);
-    //     }
-
-    //     if (change.table === 'transfers') {
-    //       for (const hash of obj.inputOutputHashes) {
-    //         this.emit(`transfers.inputOutputHashes:${hash}`);
-    //       }
-    //     }
-    //   }
-    // });
   }
 
   private async pollForEvents() {

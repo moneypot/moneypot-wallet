@@ -25,7 +25,7 @@ export default function HookinInfo(props: RouteComponentProps<{ hash: string }>)
           <tr>
             <th>hash</th>
             <td>
-              <Link to={`/hookins/${hookinDoc.hash}`}>{hookinDoc.hash}</Link>
+              <Link to={`/claimables/${hookinDoc.hash}`}>{hookinDoc.hash}</Link>
             </td>
           </tr>
           <tr>
