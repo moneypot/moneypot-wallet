@@ -43,7 +43,7 @@
     "deep-equal": "^1.1.0",
     "hookedin-lib": "git+https://github.com/hookedin/hookedin-lib.git",
     "idb": "^4.0.4",
-    "react": "^16.9.0",
+    "react": "^16.10.2",
     "react-dom": "^16.9.0",
     "react-router-dom": "^5.0.1",
     "react-toastify": "^5.4.0",
