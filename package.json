@@ -35,7 +35,7 @@
     "webpack": "^4.40.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.1",
-    "webpack-subresource-integrity": "^1.3.3"
+    "webpack-subresource-integrity": "^1.3.4"
   },
   "dependencies": {
     "@the-/ui-qr": "^15.4.11",
