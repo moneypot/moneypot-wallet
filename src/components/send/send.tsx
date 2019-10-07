@@ -39,7 +39,7 @@ export default function Send({ history }: Props) {
       return;
     }
 
-    const transferHash = await wallet.send(address, amount, calcFee()); // TODO: add prioritySelection
+    const transferHash = await wallet.sendHookout(address, amount, calcFee()); // TODO: add prioritySelection
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
       toast.error('Oops! not enough funds');
       return;

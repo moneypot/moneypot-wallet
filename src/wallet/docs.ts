@@ -2,7 +2,7 @@ import * as hi from 'hookedin-lib';
 
 export interface Config {
   one: 1; // for indexing
-  bitcoinAddressGenerator: string;
+  claimantGenerator: string;
   custodianUrl: string;
   custodian: hi.POD.CustodianInfo;
   mnemonic: string;

@@ -67,7 +67,7 @@ export function useClaimable(claimableHash: string) {
 }
 
 export function useHookinsOfAddress(bitcoinAddress: string) {
-  return useQueryResult(() => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress), 'table:hookins') as
+  return useQueryResult(() => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress), 'table:claimables') as
     | undefined
     | ((Docs.Claimable & hi.POD.Hookin)[]);
 }

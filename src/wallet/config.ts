@@ -23,15 +23,18 @@ export default class Config {
 
     const seed = await bip39.mnemonicToSeed(mnemonic, password);
 
+
     // we'll only validate the password if this exists
-    if (d.bitcoinAddressGenerator) {
-      const bitcoinAddressGenerator = Config.seedToBitcoinAddressGenerator(seed);
+    if (d.claimantGenerator) {
+      const claimantGenerator =  Config.seedToClaimantGenerator(seed);
 
-      const expectedBitcoinAddressGenerator = util.notError(hi.PublicKey.fromPOD(d.bitcoinAddressGenerator));
+      const expectedClaimantAddressGenerator = util.notError(hi.PublicKey.fromPOD(d.claimantGenerator));
 
-      if (bitcoinAddressGenerator.toPublicKey().toPOD() !== expectedBitcoinAddressGenerator.toPOD()) {
+      if (claimantGenerator.toPublicKey().toPOD() !== expectedClaimantAddressGenerator.toPOD()) {
         return 'INVALID_PASSWORD';
       }
+    } else {
+      console.error('no claimantGenerator to validate? why');
     }
 
     const custodianUrl = expectString(d.custodianUrl);
@@ -78,31 +81,13 @@ export default class Config {
       one: 1,
       mnemonic: this.mnemonic,
       gapLimit: this.gapLimit,
-      bitcoinAddressGenerator: this.bitcoinAddressGenerator()
-        .toPublicKey()
-        .toPOD(),
+      claimantGenerator: this.claimantGenerator().toPublicKey().toPOD(),
       custodianUrl: this.custodianUrl,
       custodian: this.custodian.toPOD(),
     };
   }
 
-  bitcoinAddressGenerator() {
-    return Config.seedToBitcoinAddressGenerator(this.seed);
-  }
 
-  static seedToBitcoinAddressGenerator(seed: Uint8Array): hi.PrivateKey {
-    const hash = hi.Hash.fromMessage('bitcoinAddressGenerator', seed);
-    return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
-  }
-
-  directAddressGenerator() {
-    return Config.seedToDirectAddressGenerator(this.seed);
-  }
-
-  static seedToDirectAddressGenerator(seed: Uint8Array): hi.PrivateKey {
-    const hash = hi.Hash.fromMessage('directAddressGenerator', seed);
-    return util.notError(hi.PrivateKey.fromBytes(hash.buffer));
-  }
 
   claimantGenerator() {
     return Config.seedToClaimantGenerator(this.seed);

@@ -230,9 +230,11 @@ export default class Database extends EventEmitter {
     this.emitInTransaction('table:coins', transaction);
   }
 
-  public async claimClaimable(claimable: hi.Claimable) {
-    console.trace('claiming claimable: ', claimable.toPOD());
-    const transaction = this.db.transaction(['counters', 'claimables', 'events', 'statuses'], 'readwrite');
+  public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable) {
+
+    const claimable = ackdClaimable.contents;
+
+    const transaction = this.db.transaction(['coins', 'counters', 'claimables', 'events', 'statuses'], 'readwrite');
 
     const statusDocs = await transaction
       .objectStore('statuses')
@@ -242,17 +244,35 @@ export default class Database extends EventEmitter {
     const statuses = statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
 
     let claimant;
-    if (claimable instanceof hi.Hookin) {
-      const bitcoinAddressCounter = util.mustExist(
-        await transaction
+    
+
+    if (claimable instanceof hi.AbstractTransfer) {
+
+        const owners: hi.PrivateKey[] = [];
+
+        for (const coin of claimable.inputs) {
+          const coinDoc = util.mustExist(await transaction.objectStore('coins').get(coin.hash().toPOD()));
+          const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimableHash));
+          const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
+          owners.push(this.config.deriveOwner(claimHash, blindingNonce));
+        }
+
+        claimant = hi.PrivateKey.combine(owners);
+
+    } else {
+
+      const counter = await transaction
           .objectStore('counters')
           .index('by-value')
-          .get(claimable.claimant.toPOD())
-      );
-      claimant = this.deriveBitcoinAddressClaimant(bitcoinAddressCounter.index);
-    } else {
-      claimant = this.deriveClaimableClaimant(claimable.hash());
+          .get(claimable.claimant.toPOD());
+
+      if (!counter) {
+        throw new Error('coult not find counter for ' + claimable.toPOD());
+      }
+
+      claimant = this.deriveClaimableClaimant(counter.index, counter.purpose);
     }
+
 
     if (claimant.toPublicKey().toPOD() !== claimable.claimant.toPOD()) {
       throw new Error(`Expected derived claimant is ${claimable.claimant.toPOD()} but got ${claimant.toPublicKey().toPOD()}`);
@@ -494,7 +514,8 @@ export default class Database extends EventEmitter {
   private async addBitcoinAddress<S extends StoreName>(
     transaction: idb.IDBPTransaction<Schema, (S | 'counters' | 'events' | 'bitcoinAddresses')[]>
   ): Promise<Docs.BitcoinAddress> {
-    const claimant = await this.nextCounter('bitcoinAddressClaimant', (i: number) => this.deriveBitcoinAddressClaimant(i).toPublicKey(), transaction);
+    const purpose = 'bitcoinAddress';
+    const claimant = await this.nextCounter(purpose, (i: number) => this.deriveClaimableClaimant(i, purpose).toPublicKey(), transaction);
 
     const bitcoinAddress = this.deriveBitcoinAddressFromClaimant(claimant);
 
@@ -521,6 +542,13 @@ export default class Database extends EventEmitter {
   }
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
+
+
+    const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
+
+    const toAck: hi.Hookin[] = [];
+    let toEmit = false;
+
     for (const receive of receives) {
       const claimant = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
 
@@ -528,25 +556,39 @@ export default class Database extends EventEmitter {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
 
-      const fee = 100; // TODO: ...
-      const hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, fee, claimant, bitcoinAddressDoc.address);
+      let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address)
 
-      let hookinDoc: Docs.Claimable = {
-        ...hi.claimableToPOD(hookin),
-        created: new Date(),
-      };
+      let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
 
-      try {
-        await this.db.add('claimables', hookinDoc);
-      } catch (err) {
-        console.warn('hookin already existed: ', err, hookinDoc.hash);
-        return;
+      if (!hookinDoc) {
+        hookinDoc = {
+          ...hi.claimableToPOD(hookin),
+          created: new Date(),
+        }
+        await transaction.objectStore('claimables').add(hookinDoc);
+        toEmit = true;
       }
-      await this.emit('table:hookins');
 
-      await this.claimClaimable(hookin);
+      if (!hookinDoc.acknowledgement) {
+        toAck.push(hookin);
+        toEmit = true;
+      }
     }
+
+    if (toEmit) {
+      await this.emitInTransaction('table:claimables', transaction);
+    }
+
+    await transaction.done;
+
+    for (const hookin of toAck) {
+      await this.acknowledgeClaimable(hookin);
+    }
+
   }
+
+  
+
 
   // makes network req
   async acknowledgeClaimable(claimable: hi.Claimable): Promise<void> {
@@ -562,11 +604,30 @@ export default class Database extends EventEmitter {
     await this.emit('table:claimables');
 
     // TODO: now claim
-    await this.claimClaimable(ackd.contents);
+    await this.claimClaimable(ackd);
   }
 
-  public async send(bitcoinAddress: string, amount: number, fee: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
-    const totalToSend = amount + fee;
+  public async sendLightningPayment(paymentRequest: string, amount: number, fee: number) {
+
+    return this.sendAbstractTransfer(
+      (inputs: hi.Coin[]) => new hi.LightningPayment({ inputs, amount, fee }, paymentRequest),
+      amount + fee
+    )
+
+  }
+
+  public async sendHookout(bitcoinAddress: string, amount: number, fee: number) {
+
+    const priority = 'IMMEDIATE'; // TODO: ..
+
+    return this.sendAbstractTransfer(
+      (inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority),
+      amount + fee
+    )
+
+  }
+  
+  private async sendAbstractTransfer(cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout, totalToSend: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
 
     const transaction = this.db.transaction(['events', 'coins', 'claimables'], 'readwrite');
 
@@ -583,7 +644,7 @@ export default class Database extends EventEmitter {
     // const inputHash = hi.Hash.fromMessage('inputHash', ...inputs.map(i => i.buffer));
     // const change = this.deriveClaimableClaimant(inputHash).toPublicKey();
 
-    const hookout = new hi.Hookout({ amount, fee, inputs }, bitcoinAddress, 'IMMEDIATE');
+    const abtransfer = cstr(inputs);
 
     const owners: hi.PrivateKey[] = [];
 
@@ -594,10 +655,10 @@ export default class Database extends EventEmitter {
       owners.push(this.config.deriveOwner(claimHash, blindingNonce));
     }
 
-    hookout.authorize(owners);
+    abtransfer.authorize(hi.PrivateKey.combine(owners));
 
     const claimableDoc: Docs.Claimable = {
-      ...hi.claimableToPOD(hookout),
+      ...hi.claimableToPOD(abtransfer),
       created: new Date(),
     };
 
@@ -605,27 +666,25 @@ export default class Database extends EventEmitter {
     await this.emitInTransaction('table:claimables', transaction);
     await transaction.done;
 
-    await this.claimClaimable(hookout);
-    return hookout.hash();
+    await this.acknowledgeClaimable(abtransfer);
+
+    return abtransfer.hash();
   }
 
-  public deriveBitcoinAddressClaimant(n: number) {
-    return this.config.bitcoinAddressGenerator().derive(n);
-  }
 
-  public deriveBitcoinAddress(n: number) {
-    const claimant = this.config.bitcoinAddressGenerator().derive(n);
-    const claimantPub = claimant.toPublicKey();
+  // public deriveBitcoinAddress(n: number) {
+  //   const claimant = this.config.bitcoinAddressGenerator().derive(n);
+  //   const claimantPub = claimant.toPublicKey();
 
-    const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
-    const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
+  //   const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
+  //   const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
 
-    const tweakPubkey = tweak.toPublicKey();
+  //   const tweakPubkey = tweak.toPublicKey();
 
-    const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
+  //   const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
 
-    return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
-  }
+  //   return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
+  // }
 
   public deriveBitcoinAddressFromClaimant(claimantPub: hi.PublicKey) {
     const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
@@ -638,8 +697,8 @@ export default class Database extends EventEmitter {
     return pubkey.toBitcoinAddress();
   }
 
-  public deriveClaimableClaimant(hash: hi.Hash): hi.PrivateKey {
-    return this.config.claimantGenerator().derive(hash.buffer);
+  public deriveClaimableClaimant(index: number, purpose: string): hi.PrivateKey {
+    return this.config.claimantGenerator().derive(hi.Buffutils.fromString(purpose)).derive(index);
   }
 
   public deriveLightningInvoiceClaimant(n: number): hi.PrivateKey {
