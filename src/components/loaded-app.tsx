@@ -19,8 +19,6 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history/history';
 import ClaimableInfo from './claimable-info';
-import HookinInfo from './hookin-info';
-import HookoutInfo from './hookout-info';
 
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
