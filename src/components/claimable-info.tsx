@@ -54,6 +54,10 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
       <h1>Kind: {claimableDoc.kind}</h1>
       <hr />
       {ackStatus()}
+      <button onClick={ () => {
+        wallet.discardClaimable(claimableDoc.hash);
+        props.history.push('/claimables');
+      }}>Discard!</button>
       <hr />
   { claimable instanceof hi.Acknowledged.default && <ShowStatuses claimable={claimable} claimableHash={claimableDoc.hash} /> }
       <hr />
@@ -79,15 +83,20 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
     <div>
       <h2>Statuses ({statuses.length})</h2>
       <ul>
-        {statuses.map(s => (
-          <li key={s.hash().toPOD()}>
+        {statuses.map(s => {
+
+          const obj = hi.statusToPOD(s);
+
+          return <li key={s.hash().toPOD()}>
             <div>
+              { obj.kind }:
               <code>
-                <pre>{JSON.stringify(s.toPOD())}</pre>
+                <pre style={ { height: '100px', overflow: 'auto' } }>{JSON.stringify(obj, null, 2) }</pre>
               </code>
             </div>
           </li>
-        ))}
+
+        })}
       </ul>
       <button onClick={() => wallet.requestStatuses(claimableHash)}>Check for status updates</button>
       <button onClick={() => wallet.claimClaimable(claimable)}>Claim {claimableAmount} sats</button>

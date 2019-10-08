@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
-import { wallet, useClaimable } from '../state/wallet';
+import { useClaimable } from '../state/wallet';
 
 export default function HookinInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;

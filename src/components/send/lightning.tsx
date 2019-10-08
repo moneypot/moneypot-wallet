@@ -31,12 +31,14 @@ export default function SendLightning({ history }: Props) {
     const feeLimit = 100; // todo...
     // const payment = new hi.LightningPayment(toText, amount, feeLimit);
 
-    const res = await wallet.sendLightningPayment(address, amount, feeLimit);
+    const transferHash = await wallet.sendLightningPayment(address, amount, feeLimit);
+    if (transferHash === 'NOT_ENOUGH_FUNDS') {
+      toast.error('Oops! not enough funds');
+      return;
+    }
 
+    history.push(`/claimables/${transferHash.toPOD()}`);
 
-    console.log('got lightning send res: ', res);
-
-    //   history.push(`/transfers/${transferHash.toPOD()}`);
   };
 
   const setMaxAmount = async () => {

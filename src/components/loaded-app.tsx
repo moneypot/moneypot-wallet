@@ -8,9 +8,7 @@ import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect
 import Send from './send/send';
 import Hookins from './hookins';
 import Addresses from './addresses';
-import Transfers from './transfers';
 import Coins from './coins';
-import TransferInfo from './transfer-info';
 import LightningInvoiceInfo from './lightning-invoice-info';
 import Config from './config';
 import Hookouts from './hookouts';
@@ -64,8 +62,6 @@ export default function LoadedApp() {
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts" component={Hookouts} />
-            <Route path="/transfers/:hash" component={TransferInfo} />
-            <Route path="/transfers" component={Transfers} />
             <Route path="/lightning-invoices" exact component={LightningInvoices} />
             <Route path="/lightning-invoices/:hash" component={LightningInvoiceInfo} />
             <Route path="/lightning-receiveds" exact component={LightningReceiveds} />

@@ -45,7 +45,7 @@ export default function Send({ history }: Props) {
       return;
     }
 
-    history.push(`/transfers/${transferHash.toPOD()}`);
+    history.push(`/claimables/${transferHash.toPOD()}`);
   };
 
   const setMaxAmount = async () => {
@@ -59,10 +59,10 @@ export default function Send({ history }: Props) {
     }
 
     if (prioritySelection === 'IMMEDIATE') {
-      return Math.round(feeSchedule.immediateFeeRate * 46);
+      return feeSchedule.immediate;
     }
     if (prioritySelection === 'BATCH') {
-      return Math.round(feeSchedule.immediateFeeRate * 32);
+      return feeSchedule.batch;
     }
     if (prioritySelection === 'CUSTOM') {
       return -1; // TODO:  what ever they Math.round(picked  * hi.Params.templateTransactionWeight)
@@ -82,11 +82,11 @@ export default function Send({ history }: Props) {
             <p>Fee:</p>
           </Col>
           <Col sm={{ size: 9, offset: 0 }}>
-            <p style={{ fontWeight: 'bold' }}>{calcFee()} sat</p>
+            <p style={{ fontWeight: 'bold' }}>{ (calcFee()/1e8).toFixed(8)  } btc</p>
           </Col>
         </Row>
         <Row style={{ justifyContent: 'center' }}>
-          <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+    { feeSchedule && <small className="text-muted">This transaction will be sent with { feeSchedule.immediateFeeRate } sat/vbyte</small> }
         </Row>
       </div>
     );
@@ -148,7 +148,7 @@ export default function Send({ history }: Props) {
               <i className="fa fa-check-circle fa-2x checked-icon" />
               <h5>Immediate </h5>
               <i className="fal fa-dragon fa-2x" />
-              <p>we will increase the fee as needed</p>
+              <p>time waits for no one</p>
             </label>
             <input type="radio" id="radioBatched" name="speedSelection" value="BATCH" onChange={handleSpeedSelectionChange} />
             <label htmlFor="radioBatched">

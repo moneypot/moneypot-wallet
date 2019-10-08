@@ -206,6 +206,11 @@ export default class Database extends EventEmitter {
     this.emitInTransaction('table:coins', transaction);
   }
 
+  public async discardClaimable(hash: string) {
+    await this.db.delete('claimables', hash);
+    this.emit('table:claimables');
+  }
+
   public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable) {
 
     const claimable = ackdClaimable.contents;

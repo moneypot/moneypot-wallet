@@ -2,6 +2,8 @@ import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
 export type FeeScheduleResult = {
+  immediate: number;
+  batch: number;
   consolidationFeeRate: number;
   immediateFeeRate: number;
 };
