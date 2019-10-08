@@ -42,7 +42,7 @@
     "@types/react-transition-group": "^2.9.2",
     "deep-equal": "^1.1.0",
     "hookedin-lib": "git+https://github.com/hookedin/hookedin-lib.git",
-    "idb": "^4.0.4",
+    "idb": "^4.0.5",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
     "react-router-dom": "^5.1.2",
