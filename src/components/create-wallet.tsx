@@ -59,7 +59,7 @@ export default function CreateWallet(props: any) {
         </FormGroup>
         <FormGroup row>
           <Col className="submit-button-container">
-            <Button color="success" className="btn-hookedin" onClick={createWallet}>
+            <Button color="success" className="btn-moneypot" onClick={createWallet}>
               Create Wallet
             </Button>
           </Col>

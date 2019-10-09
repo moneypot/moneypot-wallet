@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, withRouter } from 'react-router-dom';
+import Logo from '../../img/logo.svg';
 
 export default withRouter(NavBar);
 
@@ -18,7 +19,8 @@ function NavBar(props: any) {
       ) : (
         <div>
           <Link className="navbar-brand" to="/">
-            hookedin
+            <img src={Logo} alt="moneypot logo" className="logo"/>
+            moneypot
           </Link>
           <p>v 0.1</p>
         </div>

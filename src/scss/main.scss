@@ -1,7 +1,6 @@
 // Utils
 @import 'utils/variables';
 @import 'utils/colors';
-@import 'utils/fonts';
 
 // Vendors
 @import 'vendors/custom-bootstrap';
@@ -27,5 +26,8 @@
 //Layout
 @import 'layout/buttons';
 @import 'layout/containers';
+@import 'layout/headings';
 
 
+//Fonts
+@import 'fonts/fonts';

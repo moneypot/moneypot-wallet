@@ -82,7 +82,7 @@ export default function Send({ history }: Props) {
             <p>Fee:</p>
           </Col>
           <Col sm={{ size: 9, offset: 0 }}>
-            <p style={{ fontWeight: 'bold' }}>{ (calcFee()/1e8).toFixed(8)  } btc</p>
+            <p style={{ fontWeight: 500 }}>{ (calcFee()/1e8).toFixed(8)  } btc</p>
           </Col>
         </Row>
         <Row style={{ justifyContent: 'center' }}>
@@ -179,7 +179,7 @@ export default function Send({ history }: Props) {
           <OptionalNote />
           <FormGroup row>
             <Col className="submit-button-container">
-              <Button color="success" className="btn-hookedin" onClick={send}>
+              <Button color="success" className="btn-moneypot" onClick={send}>
                 Send
               </Button>
             </Col>

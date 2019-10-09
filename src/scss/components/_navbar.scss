@@ -18,6 +18,15 @@
         justify-content: center;
         align-items: center;
     }
+    .navbar .navbar-brand {
+        text-transform: lowercase;
+        letter-spacing: 0.03rem;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: $theme-blue;
+        flex-direction: row;
+
+    }
     .navbar-link-text {
         display: none;
     }
@@ -55,9 +64,12 @@
     }
     .custom-navbar .navbar-brand {
         text-transform: lowercase;
-        letter-spacing: 0;
-        font-size: 1.8rem;
+        letter-spacing: 0.03rem;
+        font-size: 1.5rem;
+        font-weight: 500;
         color: #fff;
+        flex-direction: row;
+
     }
     #active-nav {
         border-left: $neon-blue 3px solid;
@@ -80,4 +92,10 @@
 #active-nav:hover {
     color: #fff;
     background: darken($theme-blue, 25%);
+}
+
+// Logo
+.logo {
+    width: 40px;
+    margin: 0 0.5rem 0 0;
 }

@@ -17,7 +17,7 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-       title: 'hookedin wallet',
+       title: 'moneypot wallet',
        template: './src/index.html'
     }),
     new CopyPlugin([

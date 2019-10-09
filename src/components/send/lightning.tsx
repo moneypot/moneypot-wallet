@@ -93,7 +93,7 @@ export default function SendLightning({ history }: Props) {
           <OptionalNote />
           <FormGroup row>
             <Col className="submit-button-container">
-              <Button color="success" className="btn-hookedin" onClick={send}>
+              <Button color="success" className="btn-moneypot" onClick={send}>
                 Send
               </Button>
             </Col>

@@ -16,10 +16,10 @@ export default function Dashboard() {
 
       <h5>Actions</h5>
       <div className="flex-container-columns">
-        <Link to="/receive" className="btn btn-success btn-hookedin same-width-btn-dashboard">
+        <Link to="/receive" className="btn btn-success btn-moneypot same-width-btn-dashboard">
           Receive <i className="far fa-arrow-from-top fa" />
         </Link>
-        <Link to="/send" className="btn btn-danger btn-hookedin same-width-btn-dashboard">
+        <Link to="/send" className="btn btn-danger btn-moneypot same-width-btn-dashboard">
           Send <i className="far fa-arrow-to-top fa" />
         </Link>
       </div>

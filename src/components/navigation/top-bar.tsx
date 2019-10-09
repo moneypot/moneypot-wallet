@@ -21,7 +21,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
       <Navbar light>
         {props.isMobile ? (
           <Link className="navbar-brand" to="/">
-            hookedin
+            moneypot
           </Link>
         ) : (
           ''

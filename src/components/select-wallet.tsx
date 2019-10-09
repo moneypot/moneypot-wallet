@@ -42,7 +42,7 @@ export default function SelectWallet(props: any) {
       </div>
       <FormGroup row>
         <Col className="submit-button-container">
-          <Link className="btn-hookedin btn btn-success" to="/create-wallet">
+          <Link className="btn-moneypot btn btn-success" to="/create-wallet">
             <i className="fa fa-plus-circle" /> Create New
           </Link>
         </Col>
@@ -61,7 +61,7 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
         <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="text" name="walletName" required />
       </div>
       <div>
-        <Button onClick={() => load(walletName, password)} className="btn-hookedin-sm btn btn-primary">
+        <Button onClick={() => load(walletName, password)} className="btn-moneypot-sm btn btn-primary">
           Load <i className="fa fa-arrow-right" />
         </Button>
       </div>
