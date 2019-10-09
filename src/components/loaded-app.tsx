@@ -43,25 +43,6 @@ export default function LoadedApp() {
   let mobileView = windowSize.innerWidth < 576;
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
-  // Check if Tor
-  (async () => {
-
-    const response = await fetch('https://test.moneypot-test.workers.dev',
-      {
-        method: "GET",
-        headers: {
-          "cache-control": "no-cache",
-          "content-type": "text/javascript",
-        }
-      }
-    );
-    const isTor = await response.json();
-    console.log('Running in Tor: ',isTor);
-
-
-  })();
-
-
 
   return (
     <Router>

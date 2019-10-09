@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import { Link } from 'react-router-dom';
-import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { Button, FormGroup, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css';
 
 import * as dbInfo from '../wallet/database-info';
 
