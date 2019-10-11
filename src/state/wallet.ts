@@ -68,7 +68,7 @@ export function useClaimable(claimableHash: string) {
 
 export function useClaimableKinds(kind: string) {
   // TODO: index on kind?
-  return depromise(wallet.db.getAll('claimables').then(cs => cs.filter(c => c.kind === kind)));
+  return depromise(wallet.db.getAllFromIndex('claimables', 'by-created').then(cs => cs.filter(c => c.kind === kind).reverse()));
 }
 
 export function useHookinsOfAddress(bitcoinAddress: string) {

@@ -1,13 +1,17 @@
 import React from 'react';
 import HistoryTransaction from './history-transaction';
+import { useClaimables } from '../../state/wallet';
 
 export default function History() {
+
+  const claimables = useClaimables();
+
   return (
     <div>
       <h5>Transaction History</h5>
-      <HistoryTransaction amount="0.000146" type="sent" time="2018-10-19 17:25:56" confirmed />
-      <HistoryTransaction amount="0.00005" type="received" time="2018-09-17 11:09:34" confirmed />
-      <HistoryTransaction amount="0.00005" type="received" time="2018-09-17 11:09:34" />
+      {
+        claimables.map(c => <HistoryTransaction key={ c.hash } claimable={c} />)
+      }
     </div>
   );
 }
