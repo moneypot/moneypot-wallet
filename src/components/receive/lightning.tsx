@@ -16,7 +16,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
     const res = await wallet.requestLightningInvoice(memo, amountInt);
 
-    props.history.push(`/lightning-invoices/${res.hash}`, res);
+    props.history.push(`/claimables/${res.hash}`, res);
   }
 
   return (

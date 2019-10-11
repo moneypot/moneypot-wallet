@@ -1,5 +1,7 @@
 import React from 'react';
 import { Badge } from 'reactstrap';
+import { Link } from 'react-router-dom';
+
 
 import * as Docs from '../../wallet/docs';
 
@@ -9,6 +11,7 @@ export default function HistoryTransaction({ claimable }: { claimable: Docs.Clai
   return (
     <div className="transaction-card">
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Link to={ `claimables/${ claimable.hash }` }>#</Link>
         { claimable.kind }
         <span className="text-muted">{ claimable.created.toISOString() }</span>
       </div>

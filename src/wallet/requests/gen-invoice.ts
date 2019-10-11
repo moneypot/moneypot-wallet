@@ -2,8 +2,8 @@ import * as hi from 'hookedin-lib';
 import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
-export default async function addInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number): Promise<hi.Acknowledged.Claimable> {
-  const url = config.custodianUrl + '/add-invoice';
+export default async function genInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number): Promise<hi.Acknowledged.Claimable> {
+  const url = config.custodianUrl + '/gen-invoice';
 
   const invoicePOD = await makeRequest<hi.POD.Claimable & hi.POD.Acknowledged>(url, {
     amount,

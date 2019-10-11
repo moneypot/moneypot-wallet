@@ -9,7 +9,6 @@ import Send from './send/send';
 import Hookins from './hookins';
 import Addresses from './addresses';
 import Coins from './coins';
-import LightningInvoiceInfo from './lightning-invoice-info';
 import Config from './config';
 import Hookouts from './hookouts';
 import TopBar from './navigation/top-bar';
@@ -22,8 +21,6 @@ import ClaimableInfo from './claimable-info';
 
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
-import LightningInvoices from './lightning-invoices';
-import LightningReceiveds from './lightning-receiveds';
 import SendLightning from './send/lightning';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -62,9 +59,6 @@ export default function LoadedApp() {
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts" component={Hookouts} />
-            <Route path="/lightning-invoices" exact component={LightningInvoices} />
-            <Route path="/lightning-invoices/:hash" component={LightningInvoiceInfo} />
-            <Route path="/lightning-receiveds" exact component={LightningReceiveds} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />

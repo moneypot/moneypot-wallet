@@ -6,7 +6,7 @@ import * as idb from 'idb';
 import * as bip39 from '../bip39';
 
 import makeClaim from './requests/make-claim';
-import addInvoice from './requests/add-invoice';
+import genInvoice from './requests/gen-invoice';
 
 import fetchBitcoinReceives, { BitcoinReceiveInfo } from './requests/bitcoin-receives';
 import EventEmitter from './event-emitter';
@@ -311,16 +311,21 @@ export default class Database extends EventEmitter {
   }
 
   public async requestLightningInvoice(memo: string, amount: number) {
-    const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
 
-    let claimant = await this.nextCounter('lightningInvoiceClaimant', index => this.deriveLightningInvoiceClaimant(index).toPublicKey(), transaction);
+    const counterTransaction = this.db.transaction(['counters'], 'readwrite');
 
-    const invoice = await addInvoice(this.config, claimant, memo, amount);
+    let claimant = await this.nextCounter('lightningInvoiceClaimant', index => this.deriveLightningInvoiceClaimant(index).toPublicKey(), counterTransaction);
+
+    const invoice = await genInvoice(this.config, claimant, memo, amount);
     const invoiceDoc = {
       hash: invoice.hash().toPOD(),
       created: new Date(),
       ...invoice.toPOD(),
     };
+
+
+    const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
+
 
     await transaction.objectStore('claimables').add(invoiceDoc);
     await this.emitInTransaction('table:claimables', transaction);
