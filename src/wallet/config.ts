@@ -23,10 +23,9 @@ export default class Config {
 
     const seed = await bip39.mnemonicToSeed(mnemonic, password);
 
-
     // we'll only validate the password if this exists
     if (d.claimantGenerator) {
-      const claimantGenerator =  Config.seedToClaimantGenerator(seed);
+      const claimantGenerator = Config.seedToClaimantGenerator(seed);
 
       const expectedClaimantAddressGenerator = util.notError(hi.PublicKey.fromPOD(d.claimantGenerator));
 
@@ -81,13 +80,13 @@ export default class Config {
       one: 1,
       mnemonic: this.mnemonic,
       gapLimit: this.gapLimit,
-      claimantGenerator: this.claimantGenerator().toPublicKey().toPOD(),
+      claimantGenerator: this.claimantGenerator()
+        .toPublicKey()
+        .toPOD(),
       custodianUrl: this.custodianUrl,
       custodian: this.custodian.toPOD(),
     };
   }
-
-
 
   claimantGenerator() {
     return Config.seedToClaimantGenerator(this.seed);

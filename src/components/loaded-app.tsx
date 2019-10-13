@@ -40,7 +40,6 @@ export default function LoadedApp() {
   let mobileView = windowSize.innerWidth < 576;
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 
-
   return (
     <Router>
       <div className="App-wrapper">

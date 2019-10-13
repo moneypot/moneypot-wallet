@@ -10,7 +10,7 @@ export default function Hookins() {
   const hookouts = useClaimableKinds('Hookout');
 
   if (hookouts === 'LOADING') {
-    return <p>Loading..</p>
+    return <p>Loading..</p>;
   }
 
   return (

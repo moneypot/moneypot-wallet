@@ -38,7 +38,6 @@ export default function SendLightning({ history }: Props) {
     }
 
     history.push(`/claimables/${transferHash.toPOD()}`);
-
   };
 
   const setMaxAmount = async () => {

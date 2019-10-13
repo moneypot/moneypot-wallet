@@ -19,7 +19,7 @@ function NavBar(props: any) {
       ) : (
         <div>
           <Link className="navbar-brand" to="/">
-            <img src={Logo} alt="moneypot logo" className="logo"/>
+            <img src={Logo} alt="moneypot logo" className="logo" />
             moneypot
           </Link>
           <p>v 0.1</p>

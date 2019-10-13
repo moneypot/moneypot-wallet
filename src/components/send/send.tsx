@@ -82,11 +82,11 @@ export default function Send({ history }: Props) {
             <p>Fee:</p>
           </Col>
           <Col sm={{ size: 9, offset: 0 }}>
-            <p style={{ fontWeight: 500 }}>{ (calcFee()/1e8).toFixed(8)  } btc</p>
+            <p style={{ fontWeight: 500 }}>{(calcFee() / 1e8).toFixed(8)} btc</p>
           </Col>
         </Row>
         <Row style={{ justifyContent: 'center' }}>
-    { feeSchedule && <small className="text-muted">This transaction will be sent with { feeSchedule.immediateFeeRate } sat/vbyte</small> }
+          {feeSchedule && <small className="text-muted">This transaction will be sent with {feeSchedule.immediateFeeRate} sat/vbyte</small>}
         </Row>
       </div>
     );

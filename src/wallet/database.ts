@@ -36,7 +36,6 @@ export default class Database extends EventEmitter {
 
     this.pollForEvents(); // fire off immediately
     this.pollId = setInterval(() => this.pollForEvents(), 5000);
-
   }
 
   private async pollForEvents() {
@@ -212,7 +211,6 @@ export default class Database extends EventEmitter {
   }
 
   public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable) {
-
     const claimable = ackdClaimable.contents;
 
     const transaction = this.db.transaction(['coins', 'counters', 'claimables', 'events', 'statuses'], 'readwrite');
@@ -225,27 +223,23 @@ export default class Database extends EventEmitter {
     const statuses = statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
 
     let claimant;
-    
 
     if (claimable instanceof hi.AbstractTransfer) {
+      const owners: hi.PrivateKey[] = [];
 
-        const owners: hi.PrivateKey[] = [];
+      for (const coin of claimable.inputs) {
+        const coinDoc = util.mustExist(await transaction.objectStore('coins').get(coin.hash().toPOD()));
+        const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimableHash));
+        const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
+        owners.push(this.config.deriveOwner(claimHash, blindingNonce));
+      }
 
-        for (const coin of claimable.inputs) {
-          const coinDoc = util.mustExist(await transaction.objectStore('coins').get(coin.hash().toPOD()));
-          const claimHash = util.notError(hi.Hash.fromPOD(coinDoc.claimableHash));
-          const blindingNonce = util.notError(hi.PublicKey.fromPOD(coinDoc.blindingNonce));
-          owners.push(this.config.deriveOwner(claimHash, blindingNonce));
-        }
-
-        claimant = hi.PrivateKey.combine(owners);
-
+      claimant = hi.PrivateKey.combine(owners);
     } else {
-
       const counter = await transaction
-          .objectStore('counters')
-          .index('by-value')
-          .get(claimable.claimant.toPOD());
+        .objectStore('counters')
+        .index('by-value')
+        .get(claimable.claimant.toPOD());
 
       if (!counter) {
         throw new Error('coult not find counter for ' + claimable.toPOD());
@@ -253,7 +247,6 @@ export default class Database extends EventEmitter {
 
       claimant = this.deriveClaimableClaimant(counter.index, counter.purpose);
     }
-
 
     if (claimant.toPublicKey().toPOD() !== claimable.claimant.toPOD()) {
       throw new Error(`Expected derived claimant is ${claimable.claimant.toPOD()} but got ${claimant.toPublicKey().toPOD()}`);
@@ -311,10 +304,11 @@ export default class Database extends EventEmitter {
   }
 
   public async requestLightningInvoice(memo: string, amount: number) {
-
     const counterTransaction = this.db.transaction(['counters'], 'readwrite');
 
-    let claimant = await this.nextCounter('lightningInvoiceClaimant', index => this.deriveLightningInvoiceClaimant(index).toPublicKey(), counterTransaction);
+    const purpose = 'lightningInvoice';
+
+    let claimant = await this.nextCounter(purpose, index => this.deriveClaimableClaimant(index, purpose).toPublicKey(), counterTransaction);
 
     const invoice = await genInvoice(this.config, claimant, memo, amount);
     const invoiceDoc = {
@@ -323,9 +317,7 @@ export default class Database extends EventEmitter {
       ...invoice.toPOD(),
     };
 
-
     const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
-
 
     await transaction.objectStore('claimables').add(invoiceDoc);
     await this.emitInTransaction('table:claimables', transaction);
@@ -528,8 +520,6 @@ export default class Database extends EventEmitter {
   }
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
-
-
     const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
 
     const toAck: hi.Hookin[] = [];
@@ -542,7 +532,7 @@ export default class Database extends EventEmitter {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
 
-      let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address)
+      let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
 
       let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
 
@@ -550,7 +540,7 @@ export default class Database extends EventEmitter {
         hookinDoc = {
           ...hi.claimableToPOD(hookin),
           created: new Date(),
-        }
+        };
         await transaction.objectStore('claimables').add(hookinDoc);
         toEmit = true;
       }
@@ -570,11 +560,7 @@ export default class Database extends EventEmitter {
     for (const hookin of toAck) {
       await this.acknowledgeClaimable(hookin);
     }
-
   }
-
-  
-
 
   // makes network req
   async acknowledgeClaimable(claimable: hi.Claimable): Promise<void> {
@@ -594,27 +580,19 @@ export default class Database extends EventEmitter {
   }
 
   public async sendLightningPayment(paymentRequest: string, amount: number, fee: number) {
-
-    return this.sendAbstractTransfer(
-      (inputs: hi.Coin[]) => new hi.LightningPayment({ inputs, amount, fee }, paymentRequest),
-      amount + fee
-    )
-
+    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.LightningPayment({ inputs, amount, fee }, paymentRequest), amount + fee);
   }
 
   public async sendHookout(bitcoinAddress: string, amount: number, fee: number) {
-
     const priority = 'IMMEDIATE'; // TODO: ..
 
-    return this.sendAbstractTransfer(
-      (inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority),
-      amount + fee
-    )
-
+    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority), amount + fee);
   }
-  
-  private async sendAbstractTransfer(cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout, totalToSend: number): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
 
+  private async sendAbstractTransfer(
+    cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout,
+    totalToSend: number
+  ): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
     const transaction = this.db.transaction(['events', 'coins', 'claimables'], 'readwrite');
 
     const unspent = await this.listUnspentT(transaction);
@@ -657,7 +635,6 @@ export default class Database extends EventEmitter {
     return abtransfer.hash();
   }
 
-
   // public deriveBitcoinAddress(n: number) {
   //   const claimant = this.config.bitcoinAddressGenerator().derive(n);
   //   const claimantPub = claimant.toPublicKey();
@@ -684,11 +661,10 @@ export default class Database extends EventEmitter {
   }
 
   public deriveClaimableClaimant(index: number, purpose: string): hi.PrivateKey {
-    return this.config.claimantGenerator().derive(hi.Buffutils.fromString(purpose)).derive(index);
-  }
-
-  public deriveLightningInvoiceClaimant(n: number): hi.PrivateKey {
-    return this.config.invoiceGenerator().derive(n);
+    return this.config
+      .claimantGenerator()
+      .derive(hi.Buffutils.fromString(purpose))
+      .derive(index);
   }
 }
 
