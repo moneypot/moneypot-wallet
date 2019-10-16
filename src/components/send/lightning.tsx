@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import * as hi from 'hookedin-lib';
 
 import { wallet } from '../../state/wallet';
@@ -7,6 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import OptionalNote from '../optional-note';
+import SubNavbar from './sub-navbar';
 
 type Props = { history: { push: (path: string) => void } };
 
@@ -53,6 +54,7 @@ export default function SendLightning({ history }: Props) {
     <div>
       <ToastContainer />
       <h5>Send</h5>
+      <SubNavbar/>
       <div className="inner-container">
         <Form>
           <FormGroup row>

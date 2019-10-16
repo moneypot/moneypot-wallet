@@ -6,11 +6,13 @@ import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 import OptionalNote from '../optional-note';
 import CopyToClipboard from '../../util/copy-to-clipboard';
+import SubNavbar from './sub-navbar';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
       <h5>Receive</h5>
+      <SubNavbar/>
       <div className="inner-container">
         <div className="qr-code-wrapper">
           <div className="qr-code-container">

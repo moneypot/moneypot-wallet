@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
+import SubNavbar from './sub-navbar';
 
 import { wallet } from '../../state/wallet';
 
@@ -21,6 +22,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
   return (
     <div>
+      <SubNavbar/>
       <h1>Gen Lightning Invoice:</h1>
       Memo: <input type="text" value={memo} onChange={e => setMemo(e.target.value)} />
       <br />
