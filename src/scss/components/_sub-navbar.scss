@@ -1,0 +1,17 @@
+
+#active-sub-nav {
+  background: #fff;
+  color: darken($theme-blue, 25%);
+}
+#active-sub-nav:hover {
+  background: #fff;
+  color: darken($theme-blue, 25%);
+}
+
+.custom-sub-navbar {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  text-align: center;
+}
