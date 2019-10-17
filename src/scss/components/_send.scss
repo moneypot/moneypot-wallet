@@ -1,12 +1,11 @@
 
 .fee-wrapper {
-  //background: #f4f6f8;
   margin: .5rem -1rem;
   padding: 0.5rem 1rem;
   border-radius: 0.3rem;
   display: flex;
   flex-direction: column;
-  //align-items: center;
+  width: 100%;
 }
 
 .send-radio-buttons-container {
@@ -38,12 +37,13 @@
   margin: 1rem 0.4rem;
   background-color: $white;
   border: 1px solid #ced4da;
-  //box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
   border-radius: 0.5rem;
   flex-basis: 200px;
   flex-grow: 0;
 
 }
+
+
 
 .send-radio-buttons-container label:hover {
   background-color: lighten($light-blue-nav-link, 20%);
@@ -78,3 +78,4 @@
   border-bottom-right-radius: $form-input-border-radius;
   border-bottom-left-radius: $form-input-border-radius;
 }
+

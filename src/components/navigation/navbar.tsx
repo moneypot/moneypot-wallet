@@ -37,6 +37,10 @@ function NavBar(props: any) {
         <i className="fal fa-arrow-to-top" />
         <span className="navbar-link-text">Send</span>
       </NavLink>
+      <NavLink path={props.location.pathname} to="/super-send">
+        <i className="fal fa-arrow-to-top" />
+        <span className="navbar-link-text">Super Send</span>
+      </NavLink>
       <NavLink path={props.location.pathname} to="/history">
         <i className="fal fa-history" />
         <span className="navbar-link-text">History</span>
