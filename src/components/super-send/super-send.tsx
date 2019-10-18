@@ -14,11 +14,13 @@ type Props = { history: { push: (path: string) => void } };
 export default function SuperSend({ history }: Props) {
   const feeSchedule = useFeeSchedule();
   const [toText, setToText] = useState('');
-  const [type, seType] = useState<'bitcoin' | 'lightning' | 'unknown'>('unknown');
   const [amountText, setAmountText] = useState('');
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState('100');
+
+
+
 
   const send = async () => {
     const address = toText;
@@ -54,11 +56,33 @@ export default function SuperSend({ history }: Props) {
     history.push(`/claimables/${transferHash.toPOD()}`);
   };
 
+
+  function whatType(code: string): 'bitcoin' | 'lightning' | 'unknown' {
+    if (isLightning(code)) {
+      return 'lightning'
+    }
+    if (code) {
+      return 'bitcoin'
+    }
+    return 'unknown'
+  }
+
+  function toTextHeader(type: 'bitcoin' | 'lightning' | 'unknown') {
+    if (type === 'bitcoin') {
+      return 'Bitcoin Address detected'
+    }
+
+    if (type === 'lightning') {
+      return 'Lightning payment request detected'
+    }
+    if (type === 'unknown') {
+      return 'Type or scan a bitcoin address or payment request.'
+    }
+  }
+
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
       setToText(event.target.value);
-      if (isLightning(toText)) {
-        seType('lightning')
-      }
+      whatType(toText);
 
   }
 
@@ -119,6 +143,9 @@ export default function SuperSend({ history }: Props) {
       <div className="inner-container">
         <Form>
           <FormGroup row className="bordered-form-group">
+            <Label sm={12}>
+              {toTextHeader(whatType(toText))}
+            </Label>
             <Label for="toText" sm={3}>
               To:
             </Label>
@@ -134,9 +161,7 @@ export default function SuperSend({ history }: Props) {
                 <QrScanner onCodeRead={ setToText } />
               </InputGroup>
             </Col>
-            <span className="to-caption">
-                Type or scan a bitcoin address or payment request.
-            </span>
+
           </FormGroup>
           <FormGroup row className="bordered-form-group">
             <Label for="amountText" sm={3}>
@@ -153,46 +178,7 @@ export default function SuperSend({ history }: Props) {
             </Col>
           </FormGroup>
 
-          { (type === 'bitcoin') ? (
-          <FormGroup row className="bordered-form-group">
-            <Label for="amountText" sm={3}>
-              Type of Fee:
-            </Label>
-
-          <div className="send-radio-buttons-container">
-            <FeeOptionIcon selection='IMMEDIATE' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='BATCH' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='FREE' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='CUSTOM' onSelectionChanged={handleSpeedSelectionChange}/>
-          </div>
-
-          <div className="fee-wrapper">
-
-            { (prioritySelection === 'CUSTOM') ? (
-
-              <div>
-              <FormGroup row>
-              <Col sm={{ size: 1, offset: 1 }}>
-              <p>Fee:</p>
-              </Col>
-              <Col sm={{ size: 9, offset: 0 }}>
-              <InputGroup>
-              <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
-              <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
-              </InputGroup>
-              </Col>
-              </FormGroup>
-              <Row style={{ justifyContent: 'center' }}>
-              <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
-              </Row>
-              </div>
-              ) : <ShowFeeText />
-            }
-
-            </div>
-          </FormGroup>
-
-            ) :
+          { (whatType(toText) === 'lightning') ?
             (
               <FormGroup row className="bordered-form-group">
                   <Label for="feeLimit" sm={3}>
@@ -211,6 +197,46 @@ export default function SuperSend({ history }: Props) {
                   </small>
                 </Row>
               </FormGroup>
+            ) :
+            (
+              <FormGroup row className="bordered-form-group">
+                <Label for="amountText" sm={3}>
+                  Type of Fee:
+                </Label>
+
+                <div className="send-radio-buttons-container">
+                  <FeeOptionIcon selection='IMMEDIATE' onSelectionChanged={handleSpeedSelectionChange}/>
+                  <FeeOptionIcon selection='BATCH' onSelectionChanged={handleSpeedSelectionChange}/>
+                  <FeeOptionIcon selection='FREE' onSelectionChanged={handleSpeedSelectionChange}/>
+                  <FeeOptionIcon selection='CUSTOM' onSelectionChanged={handleSpeedSelectionChange}/>
+                </div>
+
+                <div className="fee-wrapper">
+
+                  { (prioritySelection === 'CUSTOM') ? (
+
+                    <div>
+                      <FormGroup row>
+                        <Col sm={{ size: 1, offset: 1 }}>
+                          <p>Fee:</p>
+                        </Col>
+                        <Col sm={{ size: 9, offset: 0 }}>
+                          <InputGroup>
+                            <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+                            <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
+                          </InputGroup>
+                        </Col>
+                      </FormGroup>
+                      <Row style={{ justifyContent: 'center' }}>
+                        <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+                      </Row>
+                    </div>
+                  ) : <ShowFeeText />
+                  }
+
+                </div>
+              </FormGroup>
+
             )
           }
           <OptionalNote />

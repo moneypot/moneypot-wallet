@@ -1,8 +1,7 @@
 import React from 'react';
 
 export function isLightning(code: string) {
-  const str = code.toLowerCase();
-  return str[0]==='l'
+  return code.toLowerCase().startsWith('ln');
 
 }
 

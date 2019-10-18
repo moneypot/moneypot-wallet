@@ -11,9 +11,7 @@ export default function FeeOptionIcon({ selection, onSelectionChanged }: Props) 
 
 
   function capitalizeFLetter() {
-    const str = selection.toLowerCase();
-    return str[0].toUpperCase() +
-      str.slice(1);
+    return selection[0].toUpperCase() + selection.slice(1).toLowerCase();
   }
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
