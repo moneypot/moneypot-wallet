@@ -6,7 +6,7 @@ export default withRouter(NavBar);
 
 function NavBar(props: any) {
   function NavLink(props: any) {
-    let isActive = props.path === props.to || props.path === props.to+'/lightning';
+    let isActive = props.path === props.to || props.path === props.to + '/lightning';
     let activeId = isActive ? 'active-nav' : '';
 
     return <Link id={activeId} {...props} />;

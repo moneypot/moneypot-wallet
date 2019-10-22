@@ -9,7 +9,7 @@ import ShowCustomFeeInput from './custom-fee';
 import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import OptionalNote from '../optional-note';
-import QrScanner from './qr-scanner'
+import QrScanner from './qr-scanner';
 import SubNavbar from './sub-navbar';
 
 type Props = { history: { push: (path: string) => void } };
@@ -103,7 +103,7 @@ export default function Send({ history }: Props) {
     <div>
       <ToastContainer />
       <h5>Send</h5>
-      <SubNavbar/>
+      <SubNavbar />
       <div className="inner-container">
         <Form>
           <FormGroup row>
@@ -120,7 +120,7 @@ export default function Send({ history }: Props) {
                   className="to-text-input"
                   required
                 />
-                <QrScanner onCodeRead={ setToText } />
+                <QrScanner onCodeRead={setToText} />
               </InputGroup>
             </Col>
           </FormGroup>

@@ -54,7 +54,7 @@ export default function SendLightning({ history }: Props) {
     <div>
       <ToastContainer />
       <h5>Send</h5>
-      <SubNavbar/>
+      <SubNavbar />
       <div className="inner-container">
         <Form>
           <FormGroup row>

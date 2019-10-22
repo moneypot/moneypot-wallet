@@ -6,9 +6,9 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import OptionalNote from '../optional-note';
-import QrScanner from './qr-scanner'
-import FeeOptionIcon from './fee-option-icon'
-import { isLightning } from "./code-checker";
+import QrScanner from './qr-scanner';
+import FeeOptionIcon from './fee-option-icon';
+import { isLightning } from './code-checker';
 
 type Props = { history: { push: (path: string) => void } };
 export default function SuperSend({ history }: Props) {
@@ -18,9 +18,6 @@ export default function SuperSend({ history }: Props) {
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState('100');
-
-
-
 
   const send = async () => {
     const address = toText;
@@ -56,40 +53,37 @@ export default function SuperSend({ history }: Props) {
     history.push(`/claimables/${transferHash.toPOD()}`);
   };
 
-
   function whatType(code: string): 'bitcoin' | 'lightning' | 'unknown' {
     if (isLightning(code)) {
-      return 'lightning'
+      return 'lightning';
     }
     if (code) {
-      return 'bitcoin'
+      return 'bitcoin';
     }
-    return 'unknown'
+    return 'unknown';
   }
 
   function toTextHeader(type: 'bitcoin' | 'lightning' | 'unknown') {
     if (type === 'bitcoin') {
-      return 'Bitcoin Address detected'
+      return 'Bitcoin Address detected';
     }
 
     if (type === 'lightning') {
-      return 'Lightning payment request detected'
+      return 'Lightning payment request detected';
     }
     if (type === 'unknown') {
-      return 'Type or scan a bitcoin address or payment request.'
+      return 'Type or scan a bitcoin address or payment request.';
     }
   }
 
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
-      setToText(event.target.value);
-
+    setToText(event.target.value);
   }
 
   const setMaxAmount = async () => {
     toast('Max amount selected');
     // TODO
   };
-
 
   function calcFee(): number {
     if (!feeSchedule) {
@@ -134,9 +128,8 @@ export default function SuperSend({ history }: Props) {
     setPrioritySelection(v);
   }
 
-  function showCustom(){
-    return(
-
+  function showCustom() {
+    return (
       <div>
         <FormGroup row>
           <Col sm={{ size: 1, offset: 1 }}>
@@ -153,11 +146,11 @@ export default function SuperSend({ history }: Props) {
           <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
         </Row>
       </div>
-    )
+    );
   }
 
   function showLightningFeeSelection() {
-    return(
+    return (
       <FormGroup row className="bordered-form-group">
         <Label for="feeLimit" sm={3}>
           Fee Limit:
@@ -170,40 +163,30 @@ export default function SuperSend({ history }: Props) {
         </Col>
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
           <small className="text-muted">
-            This is the maximum fee that will be paid.
-            If the fee results less than this, we will refund the remainder to your account.
+            This is the maximum fee that will be paid. If the fee results less than this, we will refund the remainder to your account.
           </small>
         </Row>
       </FormGroup>
-    )
+    );
   }
   function showBitcoinFeeSelection() {
-    return(
-      (
-        <FormGroup row className="bordered-form-group">
-          <Label for="amountText" sm={3}>
-            Type of Fee:
-          </Label>
+    return (
+      <FormGroup row className="bordered-form-group">
+        <Label for="amountText" sm={3}>
+          Type of Fee:
+        </Label>
 
-          <div className="send-radio-buttons-container">
-            <FeeOptionIcon selection='IMMEDIATE' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='BATCH' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='FREE' onSelectionChanged={handleSpeedSelectionChange}/>
-            <FeeOptionIcon selection='CUSTOM' onSelectionChanged={handleSpeedSelectionChange}/>
-          </div>
+        <div className="send-radio-buttons-container">
+          <FeeOptionIcon selection="IMMEDIATE" onSelectionChanged={handleSpeedSelectionChange} />
+          <FeeOptionIcon selection="BATCH" onSelectionChanged={handleSpeedSelectionChange} />
+          <FeeOptionIcon selection="FREE" onSelectionChanged={handleSpeedSelectionChange} />
+          <FeeOptionIcon selection="CUSTOM" onSelectionChanged={handleSpeedSelectionChange} />
+        </div>
 
-          <div className="fee-wrapper">
-
-            { (prioritySelection === 'CUSTOM') ? showCustom() : <ShowFeeText />
-            }
-
-          </div>
-        </FormGroup>
-
-      )
-    )
+        <div className="fee-wrapper">{prioritySelection === 'CUSTOM' ? showCustom() : <ShowFeeText />}</div>
+      </FormGroup>
+    );
   }
-
 
   return (
     <div>
@@ -212,25 +195,16 @@ export default function SuperSend({ history }: Props) {
       <div className="inner-container">
         <Form>
           <FormGroup row className="bordered-form-group">
-            <Label sm={12}>
-              {toTextHeader(whatType(toText))}
-            </Label>
+            <Label sm={12}>{toTextHeader(whatType(toText))}</Label>
             <Label for="toText" sm={3}>
               To:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input
-                  value={toText}
-                  onChange={handleToTextChange}
-                  type="text"
-                  className="to-text-input"
-                  required
-                />
-                <QrScanner onCodeRead={ setToText } />
+                <Input value={toText} onChange={handleToTextChange} type="text" className="to-text-input" required />
+                <QrScanner onCodeRead={setToText} />
               </InputGroup>
             </Col>
-
           </FormGroup>
           <FormGroup row className="bordered-form-group">
             <Label for="amountText" sm={3}>
@@ -247,9 +221,7 @@ export default function SuperSend({ history }: Props) {
             </Col>
           </FormGroup>
 
-          { (whatType(toText) === 'lightning') ? showLightningFeeSelection() : showBitcoinFeeSelection()
-
-          }
+          {whatType(toText) === 'lightning' ? showLightningFeeSelection() : showBitcoinFeeSelection()}
           <OptionalNote />
 
           <FormGroup row>

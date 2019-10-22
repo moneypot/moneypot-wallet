@@ -12,7 +12,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
       <h5>Receive</h5>
-      <SubNavbar/>
+      <SubNavbar />
       <div className="inner-container">
         <div className="qr-code-wrapper">
           <div className="qr-code-container">

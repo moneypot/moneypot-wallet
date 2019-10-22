@@ -22,7 +22,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
   return (
     <div>
-      <SubNavbar/>
+      <SubNavbar />
       <h1>Gen Lightning Invoice:</h1>
       Memo: <input type="text" value={memo} onChange={e => setMemo(e.target.value)} />
       <br />
