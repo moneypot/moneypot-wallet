@@ -82,7 +82,6 @@ export default function SuperSend({ history }: Props) {
 
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
       setToText(event.target.value);
-      whatType(toText);
 
   }
 
@@ -135,6 +134,76 @@ export default function SuperSend({ history }: Props) {
     setPrioritySelection(v);
   }
 
+  function showCustom(){
+    return(
+
+      <div>
+        <FormGroup row>
+          <Col sm={{ size: 1, offset: 1 }}>
+            <p>Fee:</p>
+          </Col>
+          <Col sm={{ size: 9, offset: 0 }}>
+            <InputGroup>
+              <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+              <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
+            </InputGroup>
+          </Col>
+        </FormGroup>
+        <Row style={{ justifyContent: 'center' }}>
+          <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+        </Row>
+      </div>
+    )
+  }
+
+  function showLightningFeeSelection() {
+    return(
+      <FormGroup row className="bordered-form-group">
+        <Label for="feeLimit" sm={3}>
+          Fee Limit:
+        </Label>
+        <Col sm={{ size: 8, offset: 0 }}>
+          <InputGroup>
+            <Input value={feeLimit} onChange={event => setFeeLimit(event.target.value)} />
+            <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
+          </InputGroup>
+        </Col>
+        <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
+          <small className="text-muted">
+            This is the maximum fee that will be paid.
+            If the fee results less than this, we will refund the remainder to your account.
+          </small>
+        </Row>
+      </FormGroup>
+    )
+  }
+  function showBitcoinFeeSelection() {
+    return(
+      (
+        <FormGroup row className="bordered-form-group">
+          <Label for="amountText" sm={3}>
+            Type of Fee:
+          </Label>
+
+          <div className="send-radio-buttons-container">
+            <FeeOptionIcon selection='IMMEDIATE' onSelectionChanged={handleSpeedSelectionChange}/>
+            <FeeOptionIcon selection='BATCH' onSelectionChanged={handleSpeedSelectionChange}/>
+            <FeeOptionIcon selection='FREE' onSelectionChanged={handleSpeedSelectionChange}/>
+            <FeeOptionIcon selection='CUSTOM' onSelectionChanged={handleSpeedSelectionChange}/>
+          </div>
+
+          <div className="fee-wrapper">
+
+            { (prioritySelection === 'CUSTOM') ? showCustom() : <ShowFeeText />
+            }
+
+          </div>
+        </FormGroup>
+
+      )
+    )
+  }
+
 
   return (
     <div>
@@ -178,66 +247,8 @@ export default function SuperSend({ history }: Props) {
             </Col>
           </FormGroup>
 
-          { (whatType(toText) === 'lightning') ?
-            (
-              <FormGroup row className="bordered-form-group">
-                  <Label for="feeLimit" sm={3}>
-                    Fee Limit:
-                  </Label>
-                  <Col sm={{ size: 8, offset: 0 }}>
-                    <InputGroup>
-                      <Input value={feeLimit} onChange={event => setFeeLimit(event.target.value)} />
-                      <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
-                    </InputGroup>
-                  </Col>
-                <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
-                  <small className="text-muted">
-                    This is the maximum fee that will be paid.
-                    If the fee results less than this, we will refund the remainder to your account.
-                  </small>
-                </Row>
-              </FormGroup>
-            ) :
-            (
-              <FormGroup row className="bordered-form-group">
-                <Label for="amountText" sm={3}>
-                  Type of Fee:
-                </Label>
+          { (whatType(toText) === 'lightning') ? showLightningFeeSelection() : showBitcoinFeeSelection()
 
-                <div className="send-radio-buttons-container">
-                  <FeeOptionIcon selection='IMMEDIATE' onSelectionChanged={handleSpeedSelectionChange}/>
-                  <FeeOptionIcon selection='BATCH' onSelectionChanged={handleSpeedSelectionChange}/>
-                  <FeeOptionIcon selection='FREE' onSelectionChanged={handleSpeedSelectionChange}/>
-                  <FeeOptionIcon selection='CUSTOM' onSelectionChanged={handleSpeedSelectionChange}/>
-                </div>
-
-                <div className="fee-wrapper">
-
-                  { (prioritySelection === 'CUSTOM') ? (
-
-                    <div>
-                      <FormGroup row>
-                        <Col sm={{ size: 1, offset: 1 }}>
-                          <p>Fee:</p>
-                        </Col>
-                        <Col sm={{ size: 9, offset: 0 }}>
-                          <InputGroup>
-                            <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
-                            <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
-                          </InputGroup>
-                        </Col>
-                      </FormGroup>
-                      <Row style={{ justifyContent: 'center' }}>
-                        <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
-                      </Row>
-                    </div>
-                  ) : <ShowFeeText />
-                  }
-
-                </div>
-              </FormGroup>
-
-            )
           }
           <OptionalNote />
 

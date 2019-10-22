@@ -46,7 +46,7 @@ function NavBar(props: any) {
         <span className="navbar-link-text">History</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/support">
-        <i className="fab fa-telegram" />
+        <i className="fal fa-question-square" />
         <span className="navbar-link-text">Support</span>
       </NavLink>
     </div>
