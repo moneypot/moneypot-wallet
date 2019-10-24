@@ -19,7 +19,7 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history/history';
 import ClaimableInfo from './claimable-info';
-
+import LightningInvoice from './lightning-invoice'
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
 import SendLightning from './send/lightning';
@@ -59,6 +59,7 @@ export default function LoadedApp() {
             <Route path="/send/lightning" exact component={SendLightning} />
             <Route path="/super-send" exact component={SuperSend} />
             <Route path="/claimables/:hash" component={ClaimableInfo} />
+            <Route path="/lightning-invoice/:hash" component={LightningInvoice} />
             <Route path="/hookins" component={Hookins} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/coins" component={Coins} />

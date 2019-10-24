@@ -17,7 +17,7 @@ function SubNavbar(props: any) {
         <span className="navbar-link-text">Bitcoin</span>
       </NavLink>
       <NavLink path={props.location.pathname} to="/send/lightning">
-        <span className="navbar-link-text">Lightning</span>
+        <span className="navbar-link-text">< i className = "far fa-bolt" />{' '}Lightning</span>
       </NavLink>
     </div>
   );

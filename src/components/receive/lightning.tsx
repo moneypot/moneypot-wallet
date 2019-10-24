@@ -3,7 +3,8 @@ import { RouteComponentProps } from 'react-router';
 import SubNavbar from './sub-navbar';
 
 import { wallet } from '../../state/wallet';
-
+import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from "reactstrap";
+import BitcoinUnitSwitch from "../send/bitcoin-unit-switch";
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState('0');
@@ -22,12 +23,45 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
   return (
     <div>
+      <h5>Receive</h5>
       <SubNavbar />
-      <h1>Gen Lightning Invoice:</h1>
-      Memo: <input type="text" value={memo} onChange={e => setMemo(e.target.value)} />
-      <br />
-      Amount: <input type="number" value={amount} onChange={e => setAmount(e.target.value)} />
-      <button onClick={() => genInvoice()}>Gen!</button>
+      <div className="inner-container">
+        <Form>
+          <h6 style={{ marginBottom: "2rem"}}>Generate Lightning Invoice</h6>
+          <FormGroup row>
+            <Label for="memo" sm={3}>
+              Memo:
+            </Label>
+            <Col sm={{ size: 9, offset: 0 }}>
+              <InputGroup>
+                <Input
+                  value={memo} onChange={e => setMemo(e.target.value)}
+                  type="text"
+                  className="to-text-input"
+                />
+              </InputGroup>
+            </Col>
+          </FormGroup>
+          <FormGroup row>
+            <Label for="amount" sm={3}>
+              Amount:
+            </Label>
+            <Col sm={{ size: 9, offset: 0 }}>
+              <InputGroup>
+                <Input type="number" value={amount} onChange={e => setAmount(e.target.value)}/>
+                <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat" />
+              </InputGroup>
+            </Col>
+          </FormGroup>
+          <FormGroup row>
+            <Col className="submit-button-container">
+              <Button color="success" className="btn-moneypot" onClick={() => genInvoice()}>
+                Generate
+              </Button>
+            </Col>
+          </FormGroup>
+        </Form>
+      </div>
     </div>
   );
 }

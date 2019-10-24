@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 
 type Props = {
   className: string;
-  style: object;
+  style: object | undefined;
   text: string;
   children: any;
 };

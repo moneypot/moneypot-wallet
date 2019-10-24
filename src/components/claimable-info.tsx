@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-import { Link } from 'react-router-dom';
+import LightningInvoice from './lightning-invoice'
+import DevDataDisplay from './dev-data-display'
 
 import * as hi from 'hookedin-lib';
 
@@ -48,28 +49,42 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
     );
   };
 
+  let kindOfClaimable = () => {
+    if (claimableDoc.kind === 'LightningInvoice') {
+      return <LightningInvoice
+        paymentRequest={claimableDoc.paymentRequest}
+        created={claimableDoc.created}
+        memo="deposit"
+
+      />
+    }
+
+    return (
+      <div>
+        <h1>Kind: {claimableDoc.kind}</h1>
+        <hr />
+        {ackStatus()}
+        <button
+          onClick={() => {
+            wallet.discardClaimable(claimableDoc.hash);
+            props.history.push('/claimables');
+          }}
+        >
+          Discard!
+        </button>
+      </div>
+    )
+  };
+
+
+
   return (
     <div>
-      <h1>Kind: {claimableDoc.kind}</h1>
-      <hr />
-      {ackStatus()}
-      <button
-        onClick={() => {
-          wallet.discardClaimable(claimableDoc.hash);
-          props.history.push('/claimables');
-        }}
-      >
-        Discard!
-      </button>
-      <hr />
+      {kindOfClaimable()}
       {claimable instanceof hi.Acknowledged.default && <ShowStatuses claimable={claimable} claimableHash={claimableDoc.hash} />}
-      <hr />
-      <h3>Raw Claimable</h3>
-      <div>
-        <pre>
-          <code>{JSON.stringify(claimableDoc, null, 2)}</code>
-        </pre>
-      </div>
+      <DevDataDisplay title="Raw Claimable">
+        {claimableDoc}
+      </DevDataDisplay>
     </div>
   );
 }
@@ -79,30 +94,28 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
   if (!statuses) {
     return <span>Loading statuses...</span>;
   }
-
   const claimableAmount = hi.computeClaimableRemaining(claimable.contents, statuses);
-
   return (
-    <div>
-      <h2>Statuses ({statuses.length})</h2>
+    <div id="status">
+      <h5>Statuses ({statuses.length})</h5>
       <ul>
         {statuses.map(s => {
           const obj = hi.statusToPOD(s);
 
           return (
-            <li key={s.hash().toPOD()}>
-              <div>
-                {obj.kind}:
-                <code>
-                  <pre style={{ height: '100px', overflow: 'auto' }}>{JSON.stringify(obj, null, 2)}</pre>
-                </code>
-              </div>
-            </li>
+            <DevDataDisplay title={'Status - '+obj.kind} key={s.hash().toPOD()}>
+              {obj}
+            </DevDataDisplay>
+
           );
         })}
       </ul>
-      <button onClick={() => wallet.requestStatuses(claimableHash)}>Check for status updates</button>
-      <button onClick={() => wallet.claimClaimable(claimable)}>Claim {claimableAmount} sats</button>
+      <button className="btn btn-light" onClick={() => wallet.requestStatuses(claimableHash)}>
+        Check for status updates
+      </button>
+      <button className="btn btn-light" onClick={() => wallet.claimClaimable(claimable)}>
+        Claim {claimableAmount} sats
+      </button>
     </div>
   );
 }

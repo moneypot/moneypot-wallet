@@ -69,7 +69,7 @@ export default function SuperSend({ history }: Props) {
     }
 
     if (type === 'lightning') {
-      return 'Lightning payment request detected';
+      return (<span>< i className = "far fa-bolt" />{' '}Lightning payment request detected </span> );
     }
     if (type === 'unknown') {
       return 'Type or scan a bitcoin address or payment request.';
