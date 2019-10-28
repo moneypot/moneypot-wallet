@@ -14,7 +14,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/react": "^16.9.9",
-    "@types/react-dom": "^16.9.2",
+    "@types/react-dom": "^16.9.3",
     "@types/react-router-dom": "^4.3.5",
     "@types/reactstrap": "^8.0.6",
     "bootstrap": "^4.3.1",
