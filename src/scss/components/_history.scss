@@ -1,7 +1,7 @@
 
 .transaction-card {
   background-color: #fff;
-  padding: 1.5rem;
+
   box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
   border-radius: 0.2rem;
   margin: 1rem 0;
@@ -38,4 +38,34 @@
 }
 .transaction-card .badge.pending{
   background-color: $light-gray;
+}
+
+.transaction-history-header {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.transaction-card a {
+  padding: 1.5rem;
+}
+
+// Icons
+
+.transaction-card .fa-arrow-circle-up, .transaction-card .lightning-payment {
+  color: $bright-red;
+}
+
+.transaction-card .fa-arrow-circle-down, .transaction-card .lightning-invoice {
+  color: $wintergreen;
+}
+
+.transaction-card {
+  /*
+   --fa-primary-color: $wintergreen;
+   --fa-secondary-color: $wintergreen;
+   */
+  --fa-primary-opacity: 1.0;
+  --fa-secondary-opacity: 0.3;
+
 }

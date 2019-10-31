@@ -1,9 +1,9 @@
 import React from 'react';
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
-import * as hi from 'hookedin-lib';
 import { Col, Row } from "reactstrap";
 import CopyToClipboard from "../util/copy-to-clipboard";
+import GetLightningPaymentRequestAmount from '../util/get-lightning-payment-request-amount';
 
 type LightningInvoiceProps = {
   paymentRequest: string,
@@ -11,26 +11,13 @@ type LightningInvoiceProps = {
   created: object,
 };
 
-export default function LightningInvoice(props: LightningInvoiceProps) {
 
-  const pro = hi.decodeBolt11(props.paymentRequest);
-  let amount;
-    if (pro instanceof Error) {
-    amount = 'error';
-    throw pro;
-  }
-  if (pro.satoshis) {
-    // this invoice has a specific amount...
-    amount = pro.satoshis.toString()
-  } else {
-    // this invoice is for any amount
-    amount = 'Not determined'
-  }
+export default function LightningInvoice(props: LightningInvoiceProps) {
+  const amount = GetLightningPaymentRequestAmount(props.paymentRequest)
   return (
     <div>
       <h5>< i className = "far fa-bolt" />{' '}Lightning Invoice</h5>
       <div className="inner-container">
-
         <a href="#status"
           className="btn btn-outline-warning status-badge">
           Pending
@@ -61,8 +48,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         </Col>
         <Col sm={{ size: 8, offset: 0 }}>
           <div className="claimable-text-container">
-            {amount}{pro.satoshis? ' sat': ''}
-            <CopyToClipboard className="btn btn-light" style={{}} text={amount}>
+            {amount}{typeof amount === 'number' ? '': ' sat'}
+            <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
               <i className="fa fa-copy" />
             </CopyToClipboard>
           </div>
