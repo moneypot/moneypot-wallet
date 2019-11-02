@@ -3,7 +3,6 @@ import * as hi from 'hookedin-lib';
 
 // Only useful for Lightning Invoices
 export default function GetLightningPaymentRequestAmount(paymentRequest: string): number | string {
-
   const pro = hi.decodeBolt11(paymentRequest);
   let amount;
   if (pro instanceof Error) {
@@ -12,13 +11,10 @@ export default function GetLightningPaymentRequestAmount(paymentRequest: string)
   }
   if (pro.satoshis) {
     // this invoice has a specific amount...
-    amount = pro.satoshis.toString()
+    amount = pro.satoshis.toString();
   } else {
     // this invoice is for any amount
-    amount = 'Not determined'
+    amount = 'Not determined';
   }
-  return amount
+  return amount;
 }
-
-
-

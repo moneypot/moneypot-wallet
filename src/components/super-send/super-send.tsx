@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as hi from 'hookedin-lib';
+
 import { wallet } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
@@ -8,7 +10,6 @@ import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee
 import OptionalNote from '../optional-note';
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
-import { isLightning } from './code-checker';
 
 type Props = { history: { push: (path: string) => void } };
 export default function SuperSend({ history }: Props) {
@@ -19,62 +20,23 @@ export default function SuperSend({ history }: Props) {
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState('100');
 
-  const send = async () => {
-    const address = toText;
-    // TODO: proper validation...
-    if (address.length < 5) {
-      toast.error('Oops! invalid address');
-      return;
+  let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'lightning'; amount: number } | { kind: 'bitcoin' } => {
+    if (toText === '') {
+      return { kind: 'empty' };
     }
 
-    const isBitcoinSend =
-      address.startsWith('tb1') || address.startsWith('bc1') || address.startsWith('1') || address.startsWith('2') || address.startsWith('3');
-
-    if (!isBitcoinSend && !address.startsWith('ln')) {
-      toast.error('Oops! not a bitcoin address, nor a lightning payment request');
-      return;
+    let decodedBolt11 = hi.decodeBolt11(toText);
+    if (!(decodedBolt11 instanceof Error)) {
+      return { kind: 'lightning', amount: decodedBolt11.satoshis || 0 };
     }
 
-    const amount = Number.parseInt(amountText);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      toast.error('Oops! invalid amount');
-      return;
+    let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
+    if (!(decodedBitcoinAddress instanceof Error)) {
+      return { kind: 'bitcoin' };
     }
 
-    const feeLimit = 100; // todo...
-    // const payment = new hi.LightningPayment(toText, amount, feeLimit);
-
-    const transferHash = await wallet.sendHookout(address, amount, calcFee());
-    if (transferHash === 'NOT_ENOUGH_FUNDS') {
-      toast.error('Oops! not enough funds');
-      return;
-    }
-
-    history.push(`/claimables/${transferHash.toPOD()}`);
-  };
-
-  function whatType(code: string): 'bitcoin' | 'lightning' | 'unknown' {
-    if (isLightning(code)) {
-      return 'lightning';
-    }
-    if (code) {
-      return 'bitcoin';
-    }
-    return 'unknown';
-  }
-
-  function toTextHeader(type: 'bitcoin' | 'lightning' | 'unknown') {
-    if (type === 'bitcoin') {
-      return 'Bitcoin Address detected';
-    }
-
-    if (type === 'lightning') {
-      return (<span>< i className = "far fa-bolt" />{' '}Lightning payment request detected </span> );
-    }
-    if (type === 'unknown') {
-      return 'Type or scan a bitcoin address or payment request.';
-    }
-  }
+    return { kind: 'error', message: 'not a valid invoice or bitcoin address' };
+  })();
 
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
     setToText(event.target.value);
@@ -104,6 +66,15 @@ export default function SuperSend({ history }: Props) {
     }
 
     throw new Error('unknown priority selection: ' + prioritySelection);
+  }
+
+  async function send() {
+    const s = await doSend(toText, amountText, calcFee());
+    if (s instanceof Error) {
+      toast.error(s.message);
+    } else {
+      history.push(s);
+    }
   }
 
   function ShowFeeText() {
@@ -158,8 +129,8 @@ export default function SuperSend({ history }: Props) {
         <Col sm={{ size: 8, offset: 0 }}>
           <InputGroup>
             <Input value={feeLimit} onChange={event => setFeeLimit(event.target.value)} />
-            <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
           </InputGroup>
+          satoshis
         </Col>
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
           <small className="text-muted">
@@ -188,6 +159,20 @@ export default function SuperSend({ history }: Props) {
     );
   }
 
+  // let feeComponent;
+
+  // let decoded: any = hi.decodeBolt11(toText);
+  // if (!(decoded instanceof Error)) {
+  //   feeComponent = showLightningFeeSelection();
+  // } else {
+  //   decoded = hi.decodeBitcoinAddress(toText);
+  //   if (decoded instanceof Error) {
+  //     feeComponent = <p>send to a bitcoin address or lightning invoice</p>
+  //   } else {
+  //     feeComponent = showBitcoinFeeSelection();
+  //   }
+  // }
+
   return (
     <div>
       <ToastContainer />
@@ -195,7 +180,6 @@ export default function SuperSend({ history }: Props) {
       <div className="inner-container">
         <Form>
           <FormGroup row className="bordered-form-group">
-            <Label sm={12}>{toTextHeader(whatType(toText))}</Label>
             <Label for="toText" sm={3}>
               To:
             </Label>
@@ -212,7 +196,11 @@ export default function SuperSend({ history }: Props) {
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input value={amountText} onChange={event => setAmountText(event.target.value)} />
+                <Input
+                  value={(sendType.kind === 'lightning' && sendType.amount) || amountText}
+                  onChange={event => setAmountText(event.target.value)}
+                  disabled={sendType.kind === 'lightning' && sendType.amount !== 0}
+                />
                 <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat" />
                 <Button className="max-button" color="danger" onClick={setMaxAmount}>
                   max
@@ -221,8 +209,11 @@ export default function SuperSend({ history }: Props) {
             </Col>
           </FormGroup>
 
-          {whatType(toText) === 'lightning' ? showLightningFeeSelection() : showBitcoinFeeSelection()}
-          <OptionalNote />
+          {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
+          {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
+          {sendType.kind === 'error' ? <p>Could not parse to text: {sendType.message}</p> : undefined}
+
+          {/* add memo */}
 
           <FormGroup row>
             <Col className="submit-button-container">
@@ -245,4 +236,34 @@ function useFeeSchedule() {
   }, []);
 
   return feeSchedule;
+}
+
+async function doSend(toText: string, amountText: string, fee: number): Promise<string | Error> {
+  const address = toText;
+  // TODO: proper validation...
+  if (address.length < 5) {
+    return new Error('Oops! invalid address');
+  }
+
+  const isBitcoinSend = address.startsWith('tb1') || address.startsWith('bc1') || address.startsWith('1') || address.startsWith('2') || address.startsWith('3');
+
+  if (!isBitcoinSend && !address.startsWith('ln')) {
+    return new Error('Oops! not a bitcoin address, nor a lightning payment request');
+  }
+
+  const amount = Number.parseInt(amountText);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return new Error('Oops! invalid amount');
+  }
+
+  const feeLimit = 100; // todo...
+  // const payment = new hi.LightningPayment(toText, amount, feeLimit);
+
+  const transferHash = await wallet.sendHookout(address, amount, fee);
+  if (transferHash === 'NOT_ENOUGH_FUNDS') {
+    return new Error('Oops! not enough funds');
+  }
+
+  return `/claimables/${transferHash.toPOD()}`;
+  //history.push();
 }

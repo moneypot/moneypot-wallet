@@ -19,7 +19,7 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import History from './history/history';
 import ClaimableInfo from './claimable-info';
-import LightningInvoice from './lightning-invoice'
+import LightningInvoice from './lightning-invoice';
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
 import SendLightning from './send/lightning';

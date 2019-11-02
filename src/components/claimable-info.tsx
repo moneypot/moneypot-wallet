@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-import LightningInvoice from './lightning-invoice'
-import DevDataDisplay from './dev-data-display'
+import LightningInvoice from './lightning-invoice';
+import DevDataDisplay from './dev-data-display';
 
 import * as hi from 'hookedin-lib';
 
@@ -51,12 +51,7 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
 
   let kindOfClaimable = () => {
     if (claimableDoc.kind === 'LightningInvoice') {
-      return <LightningInvoice
-        paymentRequest={claimableDoc.paymentRequest}
-        created={claimableDoc.created}
-        memo="deposit"
-
-      />
+      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" />;
     }
 
     return (
@@ -73,18 +68,14 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
           Discard!
         </button>
       </div>
-    )
+    );
   };
-
-
 
   return (
     <div>
       {kindOfClaimable()}
       {claimable instanceof hi.Acknowledged.default && <ShowStatuses claimable={claimable} claimableHash={claimableDoc.hash} />}
-      <DevDataDisplay title="Raw Claimable">
-        {claimableDoc}
-      </DevDataDisplay>
+      <DevDataDisplay title="Raw Claimable">{claimableDoc}</DevDataDisplay>
     </div>
   );
 }
@@ -103,10 +94,9 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
           const obj = hi.statusToPOD(s);
 
           return (
-            <DevDataDisplay title={'Status - '+obj.kind} key={s.hash().toPOD()}>
+            <DevDataDisplay title={'Status - ' + obj.kind} key={s.hash().toPOD()}>
               {obj}
             </DevDataDisplay>
-
           );
         })}
       </ul>

@@ -3,8 +3,8 @@ import { RouteComponentProps } from 'react-router';
 import SubNavbar from './sub-navbar';
 
 import { wallet } from '../../state/wallet';
-import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from "reactstrap";
-import BitcoinUnitSwitch from "../send/bitcoin-unit-switch";
+import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from 'reactstrap';
+import BitcoinUnitSwitch from '../send/bitcoin-unit-switch';
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState('0');
@@ -27,18 +27,14 @@ export default function ReceiveLightning(props: RouteComponentProps) {
       <SubNavbar />
       <div className="inner-container">
         <Form>
-          <h6 style={{ marginBottom: "2rem"}}>Generate Lightning Invoice</h6>
+          <h6 style={{ marginBottom: '2rem' }}>Generate Lightning Invoice</h6>
           <FormGroup row>
             <Label for="memo" sm={3}>
               Memo:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input
-                  value={memo} onChange={e => setMemo(e.target.value)}
-                  type="text"
-                  className="to-text-input"
-                />
+                <Input value={memo} onChange={e => setMemo(e.target.value)} type="text" className="to-text-input" />
               </InputGroup>
             </Col>
           </FormGroup>
@@ -48,7 +44,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input type="number" value={amount} onChange={e => setAmount(e.target.value)}/>
+                <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} />
                 <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat" />
               </InputGroup>
             </Col>

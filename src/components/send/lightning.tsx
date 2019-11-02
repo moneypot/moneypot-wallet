@@ -29,8 +29,20 @@ export default function SendLightning({ history }: Props) {
       return;
     }
 
+    const pro = hi.decodeBolt11(address);
+    if (pro instanceof Error) {
+      console.warn('payment request error: ', pro);
+      toast.error('Payment request is not valid');
+      return;
+    }
+
+    if (pro.satoshis && pro.satoshis !== amount) {
+      console.warn('payment request is for: ', pro.satoshis, ' but trying to pay: ', amount);
+      toast.error('payment request is for: ' + pro.satoshis + ' but trying to pay: ' + amount);
+      return;
+    }
+
     const feeLimit = 100; // todo...
-    // const payment = new hi.LightningPayment(toText, amount, feeLimit);
 
     const transferHash = await wallet.sendLightningPayment(address, amount, feeLimit);
     if (transferHash === 'NOT_ENOUGH_FUNDS') {
