@@ -48,6 +48,11 @@ export default function SuperSend({ history }: Props) {
   };
 
   function calcFee(): number {
+    if (sendType.kind === 'lightning') {
+      return Number.parseInt(feeLimit);
+    }
+
+
     if (!feeSchedule) {
       return 0;
     }
@@ -68,13 +73,41 @@ export default function SuperSend({ history }: Props) {
     throw new Error('unknown priority selection: ' + prioritySelection);
   }
 
-  async function send() {
-    const s = await doSend(toText, amountText, calcFee());
-    if (s instanceof Error) {
-      toast.error(s.message);
-    } else {
-      history.push(s);
+  function getAmount() {
+    if (sendType.kind === 'lightning' && sendType.amount) {
+      return sendType.amount;
     }
+    return Number.parseInt(amountText);
+  }
+  function getAmountText() {
+    if (sendType.kind === 'lightning' && sendType.amount) {
+      return `${sendType.amount}`; // is there a better way to turn a number to string?
+    }
+    return amountText;
+  }
+
+  async function send() {
+
+    const amount = getAmount();
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error('invalid amount');
+      return;
+    }
+
+    let transferHash;
+    if (toText.startsWith('ln')) {
+      console.log('sending lightning payment: ', toText, amount, calcFee());
+      transferHash = await wallet.sendLightningPayment(toText, amount, calcFee());
+    } else {
+      transferHash = await wallet.sendHookout(toText, amount, calcFee());
+    }
+
+    if (typeof transferHash === 'string') {
+      toast.error('Oops! ' + transferHash);
+      return;
+    }
+  
+    history.push(`/claimables/${transferHash.toPOD()}`);
   }
 
   function ShowFeeText() {
@@ -197,7 +230,7 @@ export default function SuperSend({ history }: Props) {
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
                 <Input
-                  value={(sendType.kind === 'lightning' && sendType.amount) || amountText}
+                  value={ getAmountText() }
                   onChange={event => setAmountText(event.target.value)}
                   disabled={sendType.kind === 'lightning' && sendType.amount !== 0}
                 />
@@ -236,34 +269,4 @@ function useFeeSchedule() {
   }, []);
 
   return feeSchedule;
-}
-
-async function doSend(toText: string, amountText: string, fee: number): Promise<string | Error> {
-  const address = toText;
-  // TODO: proper validation...
-  if (address.length < 5) {
-    return new Error('Oops! invalid address');
-  }
-
-  const isBitcoinSend = address.startsWith('tb1') || address.startsWith('bc1') || address.startsWith('1') || address.startsWith('2') || address.startsWith('3');
-
-  if (!isBitcoinSend && !address.startsWith('ln')) {
-    return new Error('Oops! not a bitcoin address, nor a lightning payment request');
-  }
-
-  const amount = Number.parseInt(amountText);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return new Error('Oops! invalid amount');
-  }
-
-  const feeLimit = 100; // todo...
-  // const payment = new hi.LightningPayment(toText, amount, feeLimit);
-
-  const transferHash = await wallet.sendHookout(address, amount, fee);
-  if (transferHash === 'NOT_ENOUGH_FUNDS') {
-    return new Error('Oops! not enough funds');
-  }
-
-  return `/claimables/${transferHash.toPOD()}`;
-  //history.push();
 }
