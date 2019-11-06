@@ -1,7 +1,6 @@
 
 .transaction-card {
   background-color: #fff;
-
   box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
   border-radius: 0.2rem;
   margin: 1rem 0;
@@ -27,12 +26,6 @@
 .transaction-card .badge {
   margin: 0 0.4rem;
 }
-.transaction-card span.sent {
-  color: $bright-red;
-}
-.transaction-card span.received {
-  color: $wintergreen;
-}
 .transaction-card .badge.confirmed{
   background-color: $wintergreen;
 }
@@ -40,23 +33,14 @@
   background-color: $light-gray;
 }
 
-.transaction-history-header {
-  margin: 1rem 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.transaction-card a {
-  padding: 1.5rem;
-}
 
 // Icons
 
-.transaction-card .fa-arrow-circle-up, .transaction-card .lightning-payment {
+.transaction-card .fa-arrow-up, .transaction-card.LightningPayment .fa-bolt {
   color: $bright-red;
 }
 
-.transaction-card .fa-arrow-circle-down, .transaction-card .lightning-invoice {
+.transaction-card .fa-arrow-down, .transaction-card.LightningInvoice .fa-bolt {
   color: $wintergreen;
 }
 
@@ -66,6 +50,67 @@
    --fa-secondary-color: $wintergreen;
    */
   --fa-primary-opacity: 1.0;
-  --fa-secondary-opacity: 0.3;
+  --fa-secondary-opacity: 0.5;
 
+}
+.transaction-card.LightningInvoice .fa-circle , .transaction-card.Hookin .fa-circle {
+  color: lighten($wintergreen, 15%);
+  opacity: 0.2;
+}
+.transaction-card.LightningPayment .fa-circle , .transaction-card.Hookout .fa-circle, .transaction-card.FeeBump .fa-circle {
+  color: lighten($bright-red, 15%);
+  opacity: 0.2;
+}
+
+
+// History Table
+
+.history-table > a ,
+.history-table > div {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  padding: 2rem;
+}
+
+//Making the status column less wide
+.history-table > a > div:nth-child(4) ,
+.history-table > div > span:nth-child(4) {
+  width: 8%;
+}
+.history-table > a > *, .history-table > div > * {
+  display: table-cell;
+  vertical-align: middle;
+  word-break: break-word;
+    color: $body-text;
+}
+.history-table > a:hover {
+  color: $body-text;
+}
+  //header
+.history-table > div:nth-child(1) {
+  font-weight: 500;
+  border-top: 0;
+}
+
+.history-table {
+  margin: 2rem 1rem;
+  background: #f5f5f5;
+  padding: 1rem;
+}
+
+.history-table > a > div:nth-child(3), .history-table > div > span:nth-child(3) {
+  text-align: center;
+}
+
+// Amount Color
+.transaction-card.LightningPayment > div:nth-child(3),
+.transaction-card.FeeBump > div:nth-child(3),
+.transaction-card.Hookout > div:nth-child(3){
+  color: $bright-red;
+}
+
+.transaction-card.LightningInvoice > div:nth-child(3),
+.transaction-card.Hookin > div:nth-child(3){
+  color: darken($wintergreen,20%);
 }

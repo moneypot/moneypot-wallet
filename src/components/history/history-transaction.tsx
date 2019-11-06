@@ -21,34 +21,41 @@ export default function HistoryTransaction({ claimable }: { claimable: Docs.Clai
   function TransactionIcon(claimable: string) {
     let icon = 'fa-exclamation-triangle';
     if (claimable === 'Hookin') {
-      icon = 'fa-arrow-circle-down';
+      icon = 'fa-arrow-down';
     }
     if (claimable === 'Hookout') {
-      icon = 'fa-arrow-circle-up';
+      icon = 'fa-arrow-up';
     }
     if (claimable === 'FeeBump') {
-      icon = 'fa-arrow-circle-up';
+      icon = 'fa-arrow-up';
     }
     if (claimable === 'LightningPayment') {
-      icon = 'fa-bolt lightning-payment';
+      icon = 'fa-bolt';
     }
     if (claimable === 'LightningInvoice') {
-      icon = 'fa-bolt lightning-invoice';
+      icon = 'fa-bolt';
     }
-    return <i className={'fa-2x fad ' + icon} />;
+    return (
+
+      <span className="fa-stack">
+        <i className="fas fa-circle fa-stack-2x"/>
+        <i className={'fad fa-stack-1x fa-inverse ' + icon} />
+      </span>
+
+    );
   }
 
   return (
-    <div className="transaction-card">
-      <Link to={`claimables/${claimable.hash}`} style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span>#</span>
-        <span className="text-muted">{claimable.created.toISOString()}</span>
-        <span>
-          {TransactionIcon(claimable.kind)} {claimable.kind}
-        </span>
-        <span>{getAmount()}</span>
-        <span>Status</span>
-      </Link>
-    </div>
+    <Link to={`claimables/${claimable.hash}`} className={"transaction-card "+claimable.kind}>
+        <div className="text-muted">{claimable.created.toISOString()}</div>
+        <div>
+          {TransactionIcon(claimable.kind)}
+          <span>
+          {claimable.kind}
+          </span>
+        </div>
+        <div>{getAmount()}</div>
+        <div>Status</div>
+    </Link>
   );
 }

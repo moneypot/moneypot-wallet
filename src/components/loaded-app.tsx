@@ -6,7 +6,6 @@ import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send/send';
-import SuperSend from './super-send/super-send';
 import Hookins from './hookins';
 import Addresses from './addresses';
 import Coins from './coins';
@@ -22,7 +21,6 @@ import ClaimableInfo from './claimable-info';
 import LightningInvoice from './lightning-invoice';
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
-import SendLightning from './send/lightning';
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -56,8 +54,6 @@ export default function LoadedApp() {
             <Route path="/addresses/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" exact component={Send} />
-            <Route path="/send/lightning" exact component={SendLightning} />
-            <Route path="/super-send" exact component={SuperSend} />
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/lightning-invoice/:hash" component={LightningInvoice} />
             <Route path="/hookins" component={Hookins} />

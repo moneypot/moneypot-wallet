@@ -14,7 +14,7 @@ export default function GetLightningPaymentRequestAmount(paymentRequest: string)
     amount = pro.satoshis.toString();
   } else {
     // this invoice is for any amount
-    amount = 'Not determined';
+    amount = ' ';
   }
   return amount;
 }

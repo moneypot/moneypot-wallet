@@ -15,20 +15,17 @@ export default function QrScanner({ onCodeRead }: QrScannerProps) {
 
   return (
     <div>
-      <Button color="danger" onClick={toggle} className="scan-button">
+      <Button color="primary" onClick={toggle} className="scan-button">
         <i className="far fa-camera-alt" />
       </Button>
       <Modal isOpen={modal} toggle={toggle}>
-        <ModalHeader toggle={toggle}>Scan QR Code</ModalHeader>
-        <ModalBody>
+        <ModalBody style={{ padding: 0 }}>
           <ToastContainer />
           <QrReader delay={300} onError={handleError} onScan={handleScan} style={{ width: '100%' }} />
-        </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={toggle}>
+          <Button color="danger" onClick={toggle} style={{ position: 'absolute', right: '0.5rem', bottom: '0.5rem', zIndex: 1000 }}>
             Cancel
           </Button>
-        </ModalFooter>
+        </ModalBody>
       </Modal>
     </div>
   );
