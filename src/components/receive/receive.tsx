@@ -4,7 +4,6 @@ import { TheQr } from '@the-/ui-qr';
 import { Button, Row, Col } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
-import OptionalNote from '../optional-note';
 import CopyToClipboard from '../../util/copy-to-clipboard';
 import SubNavbar from './sub-navbar';
 
@@ -43,7 +42,6 @@ function show(addressDoc: Docs.BitcoinAddress) {
             After N confirmations, funds will be usable.
           </p>
         </div>
-        <OptionalNote />
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
         </Button>

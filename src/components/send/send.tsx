@@ -245,7 +245,6 @@ export default function Send({ history }: Props) {
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
           {sendType.kind === 'error' ? <p>Could not parse to text: {sendType.message}</p> : undefined}
 
-          {/* add memo */}
 
           <FormGroup row>
             <Col className="submit-button-container">
