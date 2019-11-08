@@ -26,6 +26,7 @@ export default interface Schema extends idb.DBSchema {
     keyPath: 'address';
     value: Docs.BitcoinAddress;
     indexes: {
+      'by-claimant': string;
       'by-created': Date;
     };
   };
@@ -48,6 +49,7 @@ export default interface Schema extends idb.DBSchema {
     keyPath: 'hash';
     value: Docs.Claimable;
     indexes: {
+      'by-kind': string;
       'by-bitcoin-address': string;
       'by-created': Date;
     };
@@ -107,6 +109,10 @@ export const schemaPOD: StoreInfo[] = [
     autoIncrement: false,
     indexes: [
       {
+        name: 'by-claimant',
+        keyPath: 'claimant',
+      },
+      {
         name: 'by-created',
         keyPath: 'created',
       },
@@ -134,6 +140,10 @@ export const schemaPOD: StoreInfo[] = [
     keyPath: 'hash',
     autoIncrement: false,
     indexes: [
+      {
+        name: 'by-kind',
+        keyPath: 'kind',
+      },
       {
         name: 'by-bitcoin-address',
         keyPath: 'bitcoinAddress',

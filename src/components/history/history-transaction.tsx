@@ -36,26 +36,22 @@ export default function HistoryTransaction({ claimable }: { claimable: Docs.Clai
       icon = 'fa-bolt';
     }
     return (
-
       <span className="fa-stack">
-        <i className="fas fa-circle fa-stack-2x"/>
+        <i className="fas fa-circle fa-stack-2x" />
         <i className={'fad fa-stack-1x fa-inverse ' + icon} />
       </span>
-
     );
   }
 
   return (
-    <Link to={`claimables/${claimable.hash}`} className={"transaction-card "+claimable.kind}>
-        <div className="text-muted">{claimable.created.toISOString()}</div>
-        <div>
-          {TransactionIcon(claimable.kind)}
-          <span>
-          {claimable.kind}
-          </span>
-        </div>
-        <div>{getAmount()}</div>
-        <div>Status</div>
+    <Link to={`claimables/${claimable.hash}`} className={'transaction-card ' + claimable.kind}>
+      <div className="text-muted">{claimable.created.toISOString()}</div>
+      <div>
+        {TransactionIcon(claimable.kind)}
+        <span>{claimable.kind}</span>
+      </div>
+      <div>{getAmount()}</div>
+      <div>Status</div>
     </Link>
   );
 }
