@@ -155,7 +155,7 @@ export default class Database extends EventEmitter {
     }
 
     // new db
-    const res = await idb.openDB<Schema>(name, 1, {
+    const res = await idb.openDB<Schema>(name, currentVersion, {
       upgrade(database, oldVersion, newVersion, transaction) {
         const db = database as idb.IDBPDatabase<unknown>;
         for (const { store, keyPath, autoIncrement, indexes } of schemaPOD) {
@@ -407,33 +407,22 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-    // let gapCount = 0;
-    // const addresses = await this.db.getAllFromIndex('bitcoinAddresses', 'by-index');
-    // for (const address of addresses) {
-    //   const used = await this.checkBitcoinAddress(address);
-    //   gapCount = used ? 0 : gapCount + 1;
-    // }
-    // let lastAddressIndex = addresses.length > 0 ? addresses[addresses.length - 1].index : -1;
-    // for (let checkIndex = lastAddressIndex + 1; gapCount < this.config.gapLimit; checkIndex++) {
-    //   const { bitcoinAddress } = this.deriveBitcoinAddress(checkIndex);
-    //   console.log('prechecking: ', bitcoinAddress);
-    //   const receives = await fetchBitcoinReceives(bitcoinAddress);
-    //   if (receives.length > 0) {
-    //     console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
-    //     // Add all missing addresses...
-    //     const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
-    //     for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
-    //       console.log('adding skipped bitcoin address: ', addIndex);
-    //       await this.addBitcoinAddress(transaction, addIndex);
-    //     }
-    //     const bitcoinAddressDoc = await this.addBitcoinAddress(transaction, checkIndex);
-    //     await this.addHookins(bitcoinAddressDoc, receives);
-    //     lastAddressIndex = checkIndex;
-    //     gapCount = 0;
-    //   } else {
-    //     gapCount++;
-    //   }
-    // }
+
+    let gapCount = 0;
+
+    for (let index = 0; gapCount < this.config.gapLimit ; index++) {
+      
+      const transaction = this.db.transaction(['counters', 'events', 'bitcoinAddresses', 'claimables'], 'readwrite');
+      const bitcoinAddressDoc = await this.getOrAddBitcoinAddressByIndex(index, transaction);
+      console.log('[sync:bitcoin-address] checking address: ', bitcoinAddressDoc.address, ' index ', index);
+
+      const found = await this.checkBitcoinAddress(bitcoinAddressDoc);
+
+      console.log('[sync:bitcoin-address] for address: ', bitcoinAddressDoc.address, ' we found something? ', found);
+
+      gapCount = found ? 0 : gapCount + 1;
+    }
+
   }
 
   public async sync() {
