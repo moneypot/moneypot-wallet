@@ -47,7 +47,7 @@
     "react-dom": "^16.11.0",
     "react-qr-reader": "^2.2.1",
     "react-router-dom": "^5.1.2",
-    "react-toastify": "^5.4.0",
+    "react-toastify": "^5.4.1",
     "react-transition-group": "^4.3.0"
   },
   "browser": {
