@@ -4,13 +4,15 @@ import SubNavbar from './sub-navbar';
 
 import { wallet } from '../../state/wallet';
 import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from 'reactstrap';
-import BitcoinUnitSwitch from '../send/bitcoin-unit-switch';
+import BitcoinAmountInput from '../bitcoin-amount-input';
+
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
-  const [amount, setAmount] = useState('0');
+  const [amount, setAmount] = useState(0);
+
 
   async function genInvoice() {
-    const amountInt = Number.parseInt(amount);
+    const amountInt = amount;
     if (!Number.isFinite(amountInt) || amountInt < 0) {
       console.warn('amount must be an integer >= 0');
       return;
@@ -38,17 +40,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               </InputGroup>
             </Col>
           </FormGroup>
-          <FormGroup row>
-            <Label for="amount" sm={3}>
-              Amount:
-            </Label>
-            <Col sm={{ size: 9, offset: 0 }}>
-              <InputGroup>
-                <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} />
-                <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat" />
-              </InputGroup>
-            </Col>
-          </FormGroup>
+          <BitcoinAmountInput  onAmountChange={setAmount} />
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-moneypot" onClick={() => genInvoice()}>

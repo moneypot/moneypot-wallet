@@ -141,12 +141,14 @@ export default function Send({ history }: Props) {
           <Col sm={{ size: 9, offset: 0 }}>
             <InputGroup>
               <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
-              <BitcoinUnitSwitch className="fee-units" name="units" valueOne="sat/vbyte" valueTwo="sat/weight" />
+              <div className="input-group-append">
+                <span className="input-group-text">sat/vbyte</span>
+              </div>
             </InputGroup>
           </Col>
         </FormGroup>
         <Row style={{ justifyContent: 'center' }}>
-          <small className="text-muted">This transaction will be sent with ??? sat/byte and a ETA of ? blocks (?0 mins).</small>
+          <small className="text-muted">This transaction will be sent with ??? sat/vbyte and a ETA of ? blocks (?0 mins).</small>
         </Row>
       </div>
     );
@@ -240,6 +242,7 @@ export default function Send({ history }: Props) {
               </InputGroup>
             </Col>
           </FormGroup>
+          
 
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
