@@ -22,6 +22,7 @@ const schema = `{
     keyPath: 'address',
     value: Docs.BitcoinAddress,
     indexes: [
+      { name: 'by-claimant', keyPath: 'claimant', value: string },
       { name: 'by-created', keyPath: 'created', value: Date }
     ]
   },
@@ -43,6 +44,7 @@ const schema = `{
     keyPath: 'hash',
     value: Docs.Claimable,
     indexes: [
+      { name: 'by-kind', keyPath: 'kind', value: string },
       { name: 'by-bitcoin-address', keyPath: 'bitcoinAddress', value: string },
       { name: 'by-created', keyPath: 'created', value: Date }
     ] 

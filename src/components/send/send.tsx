@@ -51,7 +51,6 @@ export default function Send({ history }: Props) {
       return Number.parseInt(feeLimit);
     }
 
-
     if (!feeSchedule) {
       return 0;
     }
@@ -86,7 +85,6 @@ export default function Send({ history }: Props) {
   }
 
   async function send() {
-
     const amount = getAmount();
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('invalid amount');
@@ -105,7 +103,7 @@ export default function Send({ history }: Props) {
       toast.error('Oops! ' + transferHash);
       return;
     }
-  
+
     history.push(`/claimables/${transferHash.toPOD()}`);
   }
 
@@ -231,7 +229,7 @@ export default function Send({ history }: Props) {
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
                 <Input
-                  value={ getAmountText() }
+                  value={getAmountText()}
                   onChange={event => setAmountText(event.target.value)}
                   disabled={sendType.kind === 'lightning' && sendType.amount !== 0}
                 />
@@ -247,7 +245,6 @@ export default function Send({ history }: Props) {
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
           {sendType.kind === 'error' ? <p>Could not parse to text: {sendType.message}</p> : undefined}
-
 
           <FormGroup row>
             <Col className="submit-button-container">

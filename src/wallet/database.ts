@@ -23,6 +23,8 @@ import addClaimable from './requests/add-claimable';
 
 import Claimed from 'hookedin-lib/dist/status/claimed';
 
+let currentVersion = 4;
+
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
   config: Config; // if not set, wallet is locked.
@@ -69,7 +71,23 @@ export default class Database extends EventEmitter {
     return transaction.objectStore('events').put({ name });
   }
 
-  async nextCounter<S extends StoreName, Stringable extends { toPOD(): string }>(
+  private async createCounter<S extends StoreName, Stringable extends { toPOD(): string }>(
+    purpose: string,
+    index: number,
+    value: Stringable,
+    transaction: idb.IDBPTransaction<Schema, (S | 'counters')[]>
+  ) {
+    await transaction.objectStore('counters').put({
+      purpose,
+      index,
+      value: value.toPOD(),
+      created: new Date(),
+    });
+
+    return value;
+  }
+
+  private async nextCounter<S extends StoreName, Stringable extends { toPOD(): string }>(
     purpose: string,
     transform: (i: number) => Stringable,
     transaction: idb.IDBPTransaction<Schema, (S | 'counters')[]>
@@ -83,22 +101,23 @@ export default class Database extends EventEmitter {
     if (cursor) {
       index = cursor.key[1] + 1;
     }
-
     const value = transform(index);
-
-    await transaction.objectStore('counters').put({
-      purpose,
-      index,
-      value: value.toPOD(),
-      created: new Date(),
-    });
-
-    return value;
+    return this.createCounter(purpose, index, value, transaction);
   }
 
   public static async open(name: string, password: string) {
     // upgrade stuff will go here....
-    const db = await idb.openDB<Schema>(name, 1);
+    const db = await idb.openDB<Schema>(name, currentVersion, {
+      upgrade(db, oldVersion, newVersion, transaction) {
+        console.log('upgrade called: ', 'db version: ', db.version, ' oldVersion ', oldVersion, ' new version ', newVersion);
+
+        if (oldVersion < 4) {
+          transaction.objectStore('bitcoinAddresses').createIndex('by-claimant', 'claimant');
+        }
+      },
+    });
+
+    console.log('db version is: ', db.version);
 
     const configDoc = await db.get('config', 1);
     if (!configDoc) {
@@ -136,7 +155,7 @@ export default class Database extends EventEmitter {
     }
 
     // new db
-    const res = await idb.openDB<Schema>(name, 1, {
+    const res = await idb.openDB<Schema>(name, currentVersion, {
       upgrade(database, oldVersion, newVersion, transaction) {
         const db = database as idb.IDBPDatabase<unknown>;
         for (const { store, keyPath, autoIncrement, indexes } of schemaPOD) {
@@ -388,33 +407,22 @@ export default class Database extends EventEmitter {
   }
 
   public async syncBitcoinAddresses() {
-    // let gapCount = 0;
-    // const addresses = await this.db.getAllFromIndex('bitcoinAddresses', 'by-index');
-    // for (const address of addresses) {
-    //   const used = await this.checkBitcoinAddress(address);
-    //   gapCount = used ? 0 : gapCount + 1;
-    // }
-    // let lastAddressIndex = addresses.length > 0 ? addresses[addresses.length - 1].index : -1;
-    // for (let checkIndex = lastAddressIndex + 1; gapCount < this.config.gapLimit; checkIndex++) {
-    //   const { bitcoinAddress } = this.deriveBitcoinAddress(checkIndex);
-    //   console.log('prechecking: ', bitcoinAddress);
-    //   const receives = await fetchBitcoinReceives(bitcoinAddress);
-    //   if (receives.length > 0) {
-    //     console.log('found: ', bitcoinAddress, ' has some hookins: ', receives.length);
-    //     // Add all missing addresses...
-    //     const transaction = this.db.transaction(['bitcoinAddresses', 'events'], 'readwrite');
-    //     for (let addIndex = checkIndex - 1; addIndex > lastAddressIndex; addIndex--) {
-    //       console.log('adding skipped bitcoin address: ', addIndex);
-    //       await this.addBitcoinAddress(transaction, addIndex);
-    //     }
-    //     const bitcoinAddressDoc = await this.addBitcoinAddress(transaction, checkIndex);
-    //     await this.addHookins(bitcoinAddressDoc, receives);
-    //     lastAddressIndex = checkIndex;
-    //     gapCount = 0;
-    //   } else {
-    //     gapCount++;
-    //   }
-    // }
+
+    let gapCount = 0;
+
+    for (let index = 0; gapCount < this.config.gapLimit ; index++) {
+      
+      const transaction = this.db.transaction(['counters', 'events', 'bitcoinAddresses', 'claimables'], 'readwrite');
+      const bitcoinAddressDoc = await this.getOrAddBitcoinAddressByIndex(index, transaction);
+      console.log('[sync:bitcoin-address] checking address: ', bitcoinAddressDoc.address, ' index ', index);
+
+      const found = await this.checkBitcoinAddress(bitcoinAddressDoc);
+
+      console.log('[sync:bitcoin-address] for address: ', bitcoinAddressDoc.address, ' we found something? ', found);
+
+      gapCount = found ? 0 : gapCount + 1;
+    }
+
   }
 
   public async sync() {
@@ -447,67 +455,94 @@ export default class Database extends EventEmitter {
   //   }
   // }
 
+  // this makes no network requests..
+  private async getLastUsedBitcoinAddresses<S extends StoreName>(
+    transaction: idb.IDBPTransaction<Schema, (S | 'claimables' | 'counters')[]>
+  ): Promise<([string, number]) | undefined> {
+    let cursor = await transaction
+      .objectStore('counters')
+      .index('by-purpose-index')
+      .openCursor(IDBKeyRange.bound(['bitcoinAddress', 0], ['bitcoinAddress', Number.MAX_SAFE_INTEGER], false), 'prev');
+
+    while (cursor) {
+      const index = cursor.key[1];
+      const claimant = cursor.value.value;
+
+      const claimantPub = util.notError(hi.PublicKey.fromPOD(claimant));
+      const bitcoinAdress = this.deriveBitcoinAddressFromClaimant(claimantPub);
+
+      console.log('checking if address: ', { bitcoinAdress, index }, ' is used');
+
+      // Check if it's used...
+      const k = await transaction
+        .objectStore('claimables')
+        .index('by-bitcoin-address')
+        .getKey(bitcoinAdress);
+      if (k) {
+        return [bitcoinAdress, index];
+      }
+
+      cursor = await cursor.continue();
+    }
+
+    // couldn't find any used address:
+    return undefined;
+  }
+
   async getUnusedBitcoinAddress(): Promise<Docs.BitcoinAddress> {
     const transaction = this.db.transaction(['counters', 'events', 'bitcoinAddresses', 'claimables'], 'readwrite');
 
-    const cursor = await transaction
-      .objectStore('bitcoinAddresses')
-      .index('by-created')
-      .openCursor(undefined, 'prev');
+    const lastUsedUsedAddress = await this.getLastUsedBitcoinAddresses(transaction);
+    let index = lastUsedUsedAddress ? lastUsedUsedAddress[1] + 1 : 0;
 
-    if (!cursor) {
-      const address = await this.addBitcoinAddress(transaction);
-      await transaction.done;
-      return address;
-    }
-
-    const bitcoinAddress = cursor.value;
-
-    const hookinCursor = await transaction
-      .objectStore('claimables')
-      .index('by-bitcoin-address')
-      .openKeyCursor(bitcoinAddress.address);
-
-    if (!hookinCursor) {
-      // hasn't been used...
-      return bitcoinAddress;
-    } else {
-      const address = await this.addBitcoinAddress(transaction);
-      await transaction.done;
-      return address;
-    }
+    return this.getOrAddBitcoinAddressByIndex(index, transaction);
+    // Should we first wait for transaction.done ?
   }
 
-  // public async newBitcoinAddress(): Promise<Docs.BitcoinAddress> {
-  //   const transaction = this.db.transaction(['counters', 'bitcoinAddresses', 'events'], 'readwrite');
-
-  //   const r = this.addBitcoinAddress(transaction);
-
-  //   await transaction.done;
-
-  //   return r;
-  // }
-
-  // transaction must support write to 'bitcoinAddresses'
-  private async addBitcoinAddress<S extends StoreName>(
-    transaction: idb.IDBPTransaction<Schema, (S | 'counters' | 'events' | 'bitcoinAddresses')[]>
+  private async getOrAddBitcoinAddressByClaimant<S extends StoreName>(
+    claimant: string,
+    transaction: idb.IDBPTransaction<Schema, (S | 'events' | 'bitcoinAddresses')[]>
   ): Promise<Docs.BitcoinAddress> {
-    const purpose = 'bitcoinAddress';
-    const claimant = await this.nextCounter(purpose, (i: number) => this.deriveClaimableClaimant(i, purpose).toPublicKey(), transaction);
+    const bitcoinAddress = await transaction
+      .objectStore('bitcoinAddresses')
+      .index('by-claimant')
+      .get(claimant);
+    if (bitcoinAddress) {
+      return bitcoinAddress;
+    }
 
-    const bitcoinAddress = this.deriveBitcoinAddressFromClaimant(claimant);
+    const pub = util.notError(hi.PublicKey.fromPOD(claimant));
 
     const bitcoinAddressDoc: Docs.BitcoinAddress = {
-      address: bitcoinAddress,
-      claimant: claimant.toPOD(),
+      address: this.deriveBitcoinAddressFromClaimant(pub),
+      claimant: claimant,
       created: new Date(),
     };
 
-    const t = await transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
+    await transaction.objectStore('bitcoinAddresses').add(bitcoinAddressDoc);
 
     this.emitInTransaction('table:bitcoinAddresses', transaction);
 
     return bitcoinAddressDoc;
+  }
+
+  private async getOrAddBitcoinAddressByIndex<S extends StoreName>(
+    index: number,
+    transaction: idb.IDBPTransaction<Schema, (S | 'counters' | 'events' | 'bitcoinAddresses')[]>
+  ): Promise<Docs.BitcoinAddress> {
+    const counter = await transaction
+      .objectStore('counters')
+      .index('by-purpose-index')
+      .get(['bitcoinAddress', index]);
+    if (counter) {
+      const claimant = counter.value;
+      return this.getOrAddBitcoinAddressByClaimant(claimant, transaction);
+    }
+
+    const purpose = 'bitcoinAddress';
+    const claimant = this.deriveClaimableClaimant(index, purpose).toPublicKey();
+    await this.createCounter(purpose, index, claimant, transaction);
+    return this.getOrAddBitcoinAddressByClaimant(claimant.toPOD(), transaction);
   }
 
   // return if used or not
