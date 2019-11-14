@@ -40,7 +40,16 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               </InputGroup>
             </Col>
           </FormGroup>
-          <BitcoinAmountInput  onAmountChange={setAmount} />
+          <FormGroup row>
+      <Label for="amount" sm={3}>
+        Amount:
+      </Label>
+      <Col sm={{ size: 9, offset: 0 }}>
+      <InputGroup>
+        <BitcoinAmountInput  onAmountChange={setAmount} />
+      </InputGroup>
+      </Col>
+    </FormGroup>         
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-moneypot" onClick={() => genInvoice()}>

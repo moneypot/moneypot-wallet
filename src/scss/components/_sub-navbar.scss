@@ -8,6 +8,10 @@
   color: darken($theme-blue, 25%);
 }
 
+#active-sub-nav {
+  border-top: solid 3px $neon-blue;
+}
+
 .custom-sub-navbar {
   display: grid;
   grid-template-rows: 1fr;
@@ -21,10 +25,16 @@
 .custom-sub-navbar a {
   padding: 0.7rem;
   box-shadow: 0 5px 24px -24px rgba(0, 0, 0, 0.04);
-
   border-top-left-radius: 0.2rem;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-top-right-radius: 0.2rem;
+  font-weight: 500;
 }
 
+.custom-sub-navbar a:hover, .custom-sub-navbar a:active {
+
+  background: $theme-blue;
+  color: white;
+ 
+}

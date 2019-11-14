@@ -10,6 +10,7 @@
         color: $white;
         height: $mobile-navbar-height;
         align-items: center;
+        
     }
     .custom-navbar a{
         width: 100%;
@@ -48,6 +49,8 @@
         align-items: center;
         text-align: center;
         height: 100vh;
+        position: sticky;
+        top: 0;
     }
 
     .custom-navbar a {

@@ -72,11 +72,6 @@ export default function BitcoinAmountInput(props: Props) {
   
 
   return (
-    <FormGroup row>
-      <Label for="amount" sm={3}>
-        Amount:
-      </Label>
-      <Col sm={{ size: 9, offset: 0 }}>
       <InputGroup>
         <Input type="number" 
         className={error !=='' ? 'is-invalid': ''}
@@ -107,13 +102,10 @@ export default function BitcoinAmountInput(props: Props) {
           </label>
           <span className="switch-selection"/>
         </div>
-      </InputGroup>
-      <div className="is-errored-text">
+        <div className="is-errored-text">
       {error}
         </div>
-      </Col>
-    </FormGroup>
-
+      </InputGroup>
   );
 }
 
