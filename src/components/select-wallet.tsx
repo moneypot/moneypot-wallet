@@ -13,8 +13,8 @@ export default function SelectWallet(props: any) {
     dbInfo.list().then(dbNames => {
       setExistingDbs(dbNames);
 
-      if (dbNames.indexOf('autoloadx') !== -1) {
-        loadWallet('autoloadx', '');
+      if (dbNames.indexOf('autoload') !== -1) {
+        loadWallet('autoload', '');
       }
     });
   }, []);
