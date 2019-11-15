@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+import * as bip39 from '../bip39';
 import WalletDatabase from '../wallet/database';
 import { setWallet } from '../state/wallet';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
@@ -12,9 +14,10 @@ export default function CreateWallet(props: any) {
 
   const [custodianUrl, setCustodianUrl] = useState(defaultCustodian);
   const [password, setPassword] = useState('');
+  const [seed, setSeed] = useState(bip39.generateMnemonic());
 
   async function createWallet() {
-    const db = await WalletDatabase.create(walletName, custodianUrl, password);
+    const db = await WalletDatabase.create(walletName, custodianUrl, seed, password);
     if (db instanceof Error) {
       console.error(db);
       toast.error('Oops! ' + db.message);
@@ -55,6 +58,14 @@ export default function CreateWallet(props: any) {
           </Label>
           <Col sm={{ size: 8, offset: 0 }}>
             <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="password" name="password" />
+          </Col>
+        </FormGroup>
+        <FormGroup row>
+          <Label for="seed" sm={4} onClick={() => setSeed(bip39.generateMnemonic())}>
+            Seed:
+          </Label>
+          <Col sm={{ size: 8, offset: 0 }}>
+            <Input value={seed} onChange={e => setSeed(e.target.value)} />
           </Col>
         </FormGroup>
         <FormGroup row>

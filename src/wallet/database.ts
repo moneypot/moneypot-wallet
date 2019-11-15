@@ -22,6 +22,8 @@ import getStatusesByClaimable from './requests/get-statuses-by-claimable';
 import addClaimable from './requests/add-claimable';
 
 import Claimed from 'hookedin-lib/dist/status/claimed';
+import getInvoicesByClaimant from './requests/get-invoices-by-claimant';
+import getClaimableByInputOwner from './requests/get-claimable-by-input-owner';
 
 let currentVersion = 4;
 
@@ -132,15 +134,17 @@ export default class Database extends EventEmitter {
     return new Database(db, config);
   }
 
-  public static async create(name: string, custodianUrl: string, password: string): Promise<Database | Error> {
+  public static async create(name: string, custodianUrl: string, mnemonic: string, password: string): Promise<Database | Error> {
     const custodian = await getCustodianInfo(custodianUrl);
     if (custodian instanceof Error) {
       return custodian;
     }
 
-    const mnemonic = bip39.generateMnemonic();
+    if (!bip39.validateMnemonic(mnemonic)) {
+      return new Error('got invalid mnemoic');
+    }
 
-    const gapLimit = 10; // default
+    const gapLimit = 10;
 
     // If the custodianUrl has a # for verification, we want to strip it now
     const n = custodianUrl.indexOf('#');
@@ -173,9 +177,6 @@ export default class Database extends EventEmitter {
 
     return new Database(res, config);
   }
-  // <S extends StoreName>(name: string, transaction: idb.IDBPTransaction<Schema, (S | 'events')[]>) {
-
-  //private async processClaimResponse
 
   private async processClaimResponseT<S extends StoreName>(
     status: hi.Acknowledged.Status,
@@ -229,8 +230,8 @@ export default class Database extends EventEmitter {
     this.emit('table:claimables');
   }
 
-  public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable) {
-    const claimable = ackdClaimable.contents;
+  public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable | Docs.Claimable) {
+    const claimable = ackdClaimable instanceof hi.Acknowledged.default ? ackdClaimable.contents : util.notError(hi.claimableFromPOD(ackdClaimable));
 
     const transaction = this.db.transaction(['coins', 'counters', 'claimables', 'events', 'statuses'], 'readwrite');
 
@@ -261,7 +262,8 @@ export default class Database extends EventEmitter {
         .get(claimable.claimant.toPOD());
 
       if (!counter) {
-        throw new Error('coult not find counter for ' + claimable.toPOD());
+        console.error('could not find counter by claimant: ', claimable.claimant.toPOD());
+        throw new Error('coult not find counter for ' + claimable.hash().toPOD());
       }
 
       claimant = this.deriveClaimableClaimant(counter.index, counter.purpose);
@@ -283,13 +285,14 @@ export default class Database extends EventEmitter {
 
   public async requestStatuses(claimableHash: string) {
     const statuses = await getStatusesByClaimable(this.config, claimableHash);
-    console.log('got statuses: ', statuses);
-    if (statuses.length > 0) {
-      await this.processStatuses(statuses);
-    }
+    await this.processStatuses(statuses);
   }
 
   private async processStatuses(statuses: hi.Acknowledged.Status[]) {
+    if (statuses.length === 0) {
+      return;
+    }
+
     const transaction = this.db.transaction(['coins', 'statuses', 'events'], 'readwrite');
 
     let newStatus = false;
@@ -303,15 +306,13 @@ export default class Database extends EventEmitter {
 
       const exists = await transaction.objectStore('statuses').getKey(statusDoc.hash);
       if (exists) {
-        console.log('Status: ', statusDoc, ' already exists');
-      } else {
-        newStatus = true;
-        await transaction.objectStore('statuses').add(statusDoc);
-        if (status.contents instanceof Claimed) {
-          await this.processClaimResponseT(status, transaction); // TODO: same transaction...
-        } else {
-          console.log('status not claimed', status);
-        }
+        continue;
+      }
+
+      newStatus = true;
+      await transaction.objectStore('statuses').add(statusDoc);
+      if (status.contents instanceof Claimed) {
+        await this.processClaimResponseT(status, transaction);
       }
     }
 
@@ -406,12 +407,10 @@ export default class Database extends EventEmitter {
     return sum;
   }
 
-  public async syncBitcoinAddresses() {
-
+  async syncBitcoinAddresses() {
     let gapCount = 0;
 
-    for (let index = 0; gapCount < this.config.gapLimit ; index++) {
-      
+    for (let index = 0; gapCount < this.config.gapLimit; index++) {
       const transaction = this.db.transaction(['counters', 'events', 'bitcoinAddresses', 'claimables'], 'readwrite');
       const bitcoinAddressDoc = await this.getOrAddBitcoinAddressByIndex(index, transaction);
       console.log('[sync:bitcoin-address] checking address: ', bitcoinAddressDoc.address, ' index ', index);
@@ -422,12 +421,89 @@ export default class Database extends EventEmitter {
 
       gapCount = found ? 0 : gapCount + 1;
     }
-
   }
 
-  public async sync() {
+  async syncLightningInvoices() {
+    let gapCount = 0;
+    for (let index = 0; gapCount < this.config.gapLimit; index++) {
+      const purpose = 'lightningInvoice';
+
+      const claimant = this.deriveClaimableClaimant(index, purpose).toPublicKey();
+
+      const invoices = await getInvoicesByClaimant(this.config, claimant);
+
+      if (invoices.length === 0) {
+        gapCount++;
+        continue;
+      }
+
+      gapCount = 0;
+      const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
+      let added = false;
+      for (const invoice of invoices) {
+        const invoiceHash = invoice.hash().toPOD();
+
+        const found = await transaction.objectStore('claimables').getKey(invoiceHash);
+
+        if (found) {
+          continue;
+        }
+
+        const invoiceDoc = {
+          created: new Date(),
+          ...invoice.toPOD(),
+        };
+        await this.createCounter(purpose, index, claimant, transaction);
+
+        await transaction.objectStore('claimables').add(invoiceDoc);
+        added = true;
+      }
+
+      if (added) {
+        await this.emitInTransaction('table:claimables', transaction);
+      }
+    }
+  }
+
+  async syncClaimable() {
+    const claimables = await this.db.getAll('claimables');
+    for (const claimable of claimables) {
+      await this.requestStatuses(claimable.hash);
+      await this.claimClaimable(claimable);
+    }
+  }
+
+  async syncCoins() {
+    const coins = await this.db.getAll('coins');
+    for (const coin of coins) {
+      const claimable = await getClaimableByInputOwner(this.config, coin.owner);
+      if (!claimable) {
+        continue;
+      }
+      const claimableHash = claimable.hash().toPOD();
+
+      const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
+      if (await transaction.objectStore('claimables').getKey(claimableHash)) {
+        continue;
+      }
+
+      const claimableDoc: Docs.Claimable = {
+        created: new Date(),
+        ...claimable.toPOD(),
+      };
+
+      await transaction.objectStore('claimables').add(claimableDoc);
+      await this.emitInTransaction('table:claimables', transaction);
+
+      await transaction.done;
+    }
+  }
+
+  async sync() {
     await this.syncBitcoinAddresses();
-    // await this.syncHookins();
+    await this.syncLightningInvoices();
+    await this.syncCoins();
+    await this.syncClaimable();
 
     // TODO: find coins that are funded...
   }
