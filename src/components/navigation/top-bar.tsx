@@ -3,6 +3,7 @@ import { RouteComponentProps } from 'react-router';
 import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import { wallet, useBalance } from '../../state/wallet';
+import SyncBtn from './sync-btn';
 
 export default withRouter(TopBar);
 
@@ -29,11 +30,16 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
         <span className="wallet-info">
           {props.isMobile ? '' : wallet.db.name} {props.location.pathname !== '/' ? balance + ' sat' : ''}
         </span>
-        <span className="nav-item-right">
+        <div className="nav-item-right">
+        {props.isMobile ? 
+          <SyncBtn/>
+         : 
+        ''
+      }
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
             <i className="fa fa-cog" />
           </button>
-        </span>
+        </div>
         <Collapse isOpen={isOpen} navbar>
           <Nav className="ml-auto" navbar>
             <NavItem>

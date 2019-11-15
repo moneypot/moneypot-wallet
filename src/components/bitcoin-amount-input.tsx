@@ -1,8 +1,10 @@
 import React , { useState } from 'react';
 
-import { Col, FormGroup, Input, InputGroup, Label } from "reactstrap";
+import { Input, InputGroup, Button } from "reactstrap";
+import { ToastContainer, toast } from 'react-toastify';
 
-type Props = {
+type Props = {                max?: number,
+
                 onAmountChange: (x: number) => void;
 }
 
@@ -28,6 +30,23 @@ export default function BitcoinAmountInput(props: Props) {
     }
   }
 
+  function renderMaxButton() {
+    if (props.max === undefined ) return
+    return (
+      <Button className="max-button" color="danger" onClick={maxButtonClickHandler}>
+                    max
+                  </Button>
+    )
+  }
+
+  function maxButtonClickHandler() {
+    if(props.max){
+    console.log('max btn was clicked')
+    toast('Max amount selected');
+    setText(props.max.toString())
+    syncAmount(props.max.toString(), unit);
+    }
+  }
 
 
   function onDisplayAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -102,6 +121,7 @@ export default function BitcoinAmountInput(props: Props) {
           </label>
           <span className="switch-selection"/>
         </div>
+        {renderMaxButton()}
         <div className="is-errored-text">
       {error}
         </div>

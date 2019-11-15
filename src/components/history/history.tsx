@@ -4,6 +4,8 @@ import { useClaimables } from '../../state/wallet';
 
 export default function History() {
   const claimables = useClaimables();
+ 
+
 
   return (
     <div>
@@ -16,7 +18,7 @@ export default function History() {
           <span>Status</span>
         </div>
 
-        {claimables.map(c => (
+        { claimables.slice(0).reverse().map(c => (
           <HistoryTransaction key={c.hash} claimable={c} />
         ))}
       </div>

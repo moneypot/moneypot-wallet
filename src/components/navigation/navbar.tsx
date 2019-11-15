@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import Logo from '../../img/logo.svg';
+import SyncBtn from './sync-btn';
 
 export default withRouter(NavBar);
 
@@ -22,7 +23,9 @@ function NavBar(props: any) {
             <img src={Logo} alt="moneypot logo" className="logo" />
             moneypot
           </Link>
-          <p>v 0.1</p>
+          <div><span>v 0.1</span>
+          <SyncBtn/>
+          </div>
         </div>
       )}
       <NavLink to="/" path={props.location.pathname}>

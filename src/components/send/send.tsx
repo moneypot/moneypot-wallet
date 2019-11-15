@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import * as hi from 'hookedin-lib';
 
-import { wallet } from '../../state/wallet';
+import { wallet, useBalance } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css';
-import BitcoinUnitSwitch from './bitcoin-unit-switch';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
+import BitcoinAmountInput from '../bitcoin-amount-input'
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
   const feeSchedule = useFeeSchedule();
   const [toText, setToText] = useState('');
-  const [amountText, setAmountText] = useState('');
+  const [amountInput, setAmountInput] = useState(0);
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState('100');
@@ -41,10 +40,6 @@ export default function Send({ history }: Props) {
     setToText(event.target.value);
   }
 
-  const setMaxAmount = async () => {
-    toast('Max amount selected');
-    // TODO
-  };
 
   function calcFee(): number {
     if (sendType.kind === 'lightning') {
@@ -75,13 +70,13 @@ export default function Send({ history }: Props) {
     if (sendType.kind === 'lightning' && sendType.amount) {
       return sendType.amount;
     }
-    return Number.parseInt(amountText);
+    return amountInput;
   }
-  function getAmountText() {
+  function getAmountInput() {
     if (sendType.kind === 'lightning' && sendType.amount) {
       return `${sendType.amount}`; // is there a better way to turn a number to string?
     }
-    return amountText;
+    return amountInput;
   }
 
   async function send() {
@@ -175,7 +170,7 @@ export default function Send({ history }: Props) {
   function showBitcoinFeeSelection() {
     return (
       <FormGroup row className="bordered-form-group">
-        <Label for="amountText" sm={3}>
+        <Label for="feeSelection" sm={3}>
           Type of Fee:
         </Label>
 
@@ -205,6 +200,13 @@ export default function Send({ history }: Props) {
   //   }
   // }
 
+
+
+  const balance = useBalance();
+
+  const maxAmount = balance; // TODO: Reduce the tx fee
+
+
   return (
     <div>
       <ToastContainer />
@@ -223,22 +225,12 @@ export default function Send({ history }: Props) {
             </Col>
           </FormGroup>
           <FormGroup row className="bordered-form-group">
-            <Label for="amountText" sm={3}>
+            <Label for="amountInput" sm={3}>
               Amount:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
-              <InputGroup>
-                <Input
-                  value={getAmountText()}
-                  onChange={event => setAmountText(event.target.value)}
-                  disabled={sendType.kind === 'lightning' && sendType.amount !== 0}
-                />
-                <BitcoinUnitSwitch name="unit" valueOne="btc" valueTwo="sat" />
-                <Button className="max-button" color="danger" onClick={setMaxAmount}>
-                  max
-                </Button>
-              </InputGroup>
-            </Col>
+                <BitcoinAmountInput  onAmountChange={setAmountInput} max={maxAmount}/>
+              </Col>
           </FormGroup>
           
 
