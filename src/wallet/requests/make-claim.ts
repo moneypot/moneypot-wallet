@@ -30,7 +30,7 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
         console.warn('server asked us to retry with a different nonce (very normal). Retry: ', retry);
         continue;
       }
-      throw claimResp;
+      return claimResp;
     }
 
     console.log('Claim response is: ', claimResp);
