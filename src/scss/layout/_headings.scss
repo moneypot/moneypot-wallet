@@ -6,6 +6,11 @@
 }
 
 @include headings {
-  font-weight: 500;
-  letter-spacing: 0.2rem;
+  font-weight: 600;
+  letter-spacing: 0.15rem;
+}
+
+h5 {
+  text-transform: uppercase;
+  font-size: 1.1rem;
 }

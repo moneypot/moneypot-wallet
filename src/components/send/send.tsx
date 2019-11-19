@@ -210,7 +210,7 @@ export default function Send({ history }: Props) {
   return (
     <div>
       <ToastContainer />
-      <h5>Send</h5>
+      <h5 className="main-header">Send</h5>
       <div className="inner-container">
         <Form>
           <FormGroup row className="bordered-form-group">

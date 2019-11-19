@@ -5,13 +5,11 @@ import { Button, Row, Col } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 import CopyToClipboard from '../../util/copy-to-clipboard';
-import SubNavbar from './sub-navbar';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   return (
     <div>
-      <h5>Receive</h5>
-      <SubNavbar />
+      <h5 className="main-header">Receive</h5>
       <div className="inner-container">
         <div className="qr-code-wrapper">
           <div className="qr-code-container">

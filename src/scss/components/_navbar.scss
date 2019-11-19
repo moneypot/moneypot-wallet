@@ -5,11 +5,12 @@
     .custom-navbar {
         display: grid;
         grid-area: navbar;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         justify-items: center;
         color: $white;
         height: $mobile-navbar-height;
         align-items: center;
+    
         
     }
     .custom-navbar a{
@@ -23,15 +24,14 @@
         text-transform: lowercase;
         letter-spacing: 0.03rem;
         font-size: 1.5rem;
-        font-weight: 500;
+        font-weight: 600;
         color: $theme-blue;
-        flex-direction: row;
 
     }
     .navbar-link-text {
         display: none;
     }
-    .custom-navbar .fal, .custom-navbar .fab  {
+    .custom-navbar .fal, .custom-navbar .fab, .custom-navbar .fad  {
         font-size: 1.3em;
     }
 
@@ -44,7 +44,7 @@
         grid-area: sidenav;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(6, 110px) 1fr;
+        grid-template-rows: 150px repeat(4, 110px) 1fr;
         color: $white;
         align-items: center;
         text-align: center;
@@ -55,7 +55,7 @@
 
     .custom-navbar a {
         text-transform: uppercase;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.7rem;
         letter-spacing: 0.2rem;
         height: 100%;
@@ -64,46 +64,83 @@
         justify-content: center;
         flex-direction: column;
         padding: 0 0.5rem;
+        background-color: $theme-blue;
+    }
+    .custom-navbar div {
+
+        height: 100%;
+    
+        background-color: $bg;
     }
     .custom-navbar .navbar-brand {
         text-transform: lowercase;
         letter-spacing: 0.03rem;
         font-size: 1.5rem;
-        font-weight: 500;
+        font-weight: 600;
         color: #fff;
+        margin: 0;
+        padding: 0 1rem;
         flex-direction: row;
+        background-color: $theme-blue;
 
     }
     #active-nav {
         border-left: $neon-blue 3px solid;
+        color: $theme-blue;
+        background: $bg;
+        border-top-left-radius: 2.5rem;
+        border-bottom-left-radius: 2.5rem;
+        margin-left: 1.5rem;
     }
+
     .navbar-link-text {
         margin-top: 0.5rem;
     }
-    .custom-navbar .fal, .custom-navbar .fab  {
+    .custom-navbar .fal, .custom-navbar .fab, .custom-navbar .fad  {
         font-size: 3em;
     }
 
+    #active-nav i,  #active-nav span {
+        margin-left: -1.5rem;
+        word-break: break-all;
+    }
+
+    .custom-navbar > div div:last-child{
+        background-color: $theme-blue;
+    }
+    
+    .custom-navbar > div div:last-child{
+        padding-top: 2rem;
+    }
+
+    .prev-non-active-nav {
+        border-bottom-right-radius: 4.0rem;
+    }
+    
+    .post-non-active-nav {
+        border-top-right-radius: 4.0rem;
+    }
+    
+    .custom-navbar div.active-nav {
+        background-color: $theme-blue;
+    }
 }
 
-// General
 
-#active-nav {
-    color: #fff;
-    background: darken($theme-blue, 25%);
-}
-#active-nav:hover {
-    color: #fff;
-    background: darken($theme-blue, 25%);
-}
+
+
+
+
 
 // Logo
-.logo {
-    width: 40px;
-    margin: 0 0.5rem 0 0;
+.logo.fad{
+    font-size: 3.5rem;
+    margin-top: -1rem;
+    margin-right: 0.5rem;
 }
 
 .sync-btn {
     margin-left: 0.5rem;
     font-size: 0.75rem;
 }
+

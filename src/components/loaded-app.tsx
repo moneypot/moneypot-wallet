@@ -1,6 +1,5 @@
 import React from 'react';
 
-import Dashboard from './dashboard/dashboard';
 import BitcoinAddressInfo from './bitcoin-address-info';
 import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
@@ -16,7 +15,7 @@ import Navbar from './navigation/navbar';
 import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
-import History from './history/history';
+import Transactions from './transactions/transactions';
 import ClaimableInfo from './claimable-info';
 import LightningInvoice from './lightning-invoice';
 import Support from './support';
@@ -48,7 +47,7 @@ export default function LoadedApp() {
         <div className="main-container">
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
-            <Route path="/" exact component={Dashboard} />
+            <Route path="/" exact component={Transactions} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/receive/lightning" exact component={ReceiveLightning} />
             <Route path="/addresses/:address" component={BitcoinAddressInfo} />
@@ -61,8 +60,7 @@ export default function LoadedApp() {
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />
-            <Route path="/support" render={props => <Support />} />
-            <Route path="/history" component={History} />
+            <Route path="/support" render={props => <Support />} />            
             <Route component={NoMatch} />
           </Switch>
           {!mobileView ? (

@@ -28,7 +28,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
           ''
         )}
         <span className="wallet-info">
-          {props.isMobile ? '' : wallet.db.name} {props.location.pathname !== '/' ? balance + ' sat' : ''}
+          <b style={{ fontWeight: 'bold'}}>{props.isMobile ? '' : wallet.db.name} </b> {balance + ' sat'}
         </span>
         <div className="nav-item-right">
         {props.isMobile ? 

@@ -1,36 +1,21 @@
 
+
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,600,700,800,900&display=swap');
+
 @font-face {
-  font-family: 'Graphik Bold';
-  src: url('./fonts/Graphik/Graphik-Bold.eot');
-  src: url('/fonts/Graphik/Graphik-Bold.woff2') format('woff2'),
-  url('/fonts/Graphik/Graphik-Bold.woff') format('woff'),
-  url('/fonts/Graphik/Graphik-Bold.ttf') format('truetype'),
-  url('/fonts/Graphik/Graphik-Bold.svg') format('svg'),
-  url('/fonts/Graphik/Graphik-Bold.eot?#iefix') format('embedded-opentype');
+  font-family: 'Nunito Bold';
+  src: url('/fonts/Nunito/Nunito-Bold.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Graphik Medium';
-  src: url('./fonts/Graphik/Graphik-Medium.eot');
-  src: url('./fonts/Graphik/Graphik-Medium.woff2') format('woff2'),
-  url('./fonts/Graphik/Graphik-Medium.woff') format('woff'),
-  url('./fonts/Graphik/Graphik-Medium.ttf') format('truetype'),
-  url('./fonts/Graphik/Graphik-Medium.svg') format('svg'),
-  url('./fonts/Graphik/Graphik-Medium.eot?#iefix') format('embedded-opentype');
+  font-family: 'Nunito';
+  src:   url('./fonts/Nunito/Nunito-Regular.ttf') format('truetype');
+
   font-weight: normal;
   font-style: normal;
 }
 
-@font-face {
-  font-family: 'Graphik Regular';
-  src: url('./fonts/Graphik/Graphik-Regular.eot');
-  src: url('./fonts/Graphik/Graphik-Regular.woff2') format('woff2'),
-  url('./fonts/Graphik/Graphik-Regular.woff') format('woff'),
-  url('./fonts/Graphik/Graphik-Regular.ttf') format('truetype'),
-  url('./fonts/Graphik/Graphik-Regular.svg') format('svg'),
-  url('./fonts/Graphik/Graphik-Regular.eot?#iefix') format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
+
+

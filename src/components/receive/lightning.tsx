@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { RouteComponentProps } from 'react-router';
-import SubNavbar from './sub-navbar';
 
 import { wallet } from '../../state/wallet';
 import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from 'reactstrap';
@@ -25,8 +24,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
   return (
     <div>
-      <h5>Receive</h5>
-      <SubNavbar />
+      <h5 className="main-header">Receive</h5>
       <div className="inner-container">
         <Form>
           <h6 style={{ marginBottom: '2rem' }}>Generate Lightning Invoice</h6>

@@ -88,7 +88,7 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
   const claimableAmount = hi.computeClaimableRemaining(claimable.contents, statuses);
   return (
     <div id="status">
-      <h5>Statuses ({statuses.length})</h5>
+      <h6>Statuses ({statuses.length})</h6>
       <ul>
         {statuses.map(s => {
           const obj = hi.statusToPOD(s);

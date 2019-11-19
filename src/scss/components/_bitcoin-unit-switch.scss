@@ -28,7 +28,7 @@
   padding-left: 3px;
 }
 .switch-label:active {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 
@@ -36,7 +36,7 @@
   display: none;
 }
 .switch-input:checked + .switch-label {
-  font-weight: 500;
+  font-weight: 600;
   color: #fff;
   transition: 0.15s ease-out;
   transition-property: color, text-shadow;
