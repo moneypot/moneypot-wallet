@@ -4,6 +4,7 @@ import { setWallet } from '../../state/wallet';
 import { Link } from 'react-router-dom';
 import { Button, FormGroup, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
+import LeftPanel from './left-panel';
 
 import * as dbInfo from '../../wallet/database-info';
 
@@ -33,6 +34,8 @@ export default function SelectWallet(props: any) {
 
   return (
     <div className="full-page-container">
+      <LeftPanel/>
+      <div className="full-page-right-side">
       <ToastContainer />
       <h2 className="main-heading">Select Wallet</h2>
       <div className="select-wallet-table">
@@ -47,6 +50,7 @@ export default function SelectWallet(props: any) {
           </Link>
         </Col>
       </FormGroup>
+      </div>
     </div>
   );
 }
