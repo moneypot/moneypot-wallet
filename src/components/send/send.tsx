@@ -26,8 +26,14 @@ export default function Send({ history }: Props) {
 
     let decodedBolt11 = hi.decodeBolt11(toText);
     if (!(decodedBolt11 instanceof Error)) {
+      if (decodedBolt11.timeExpireDate * 1000 <= Date.now()) {
+
+        return { kind: 'error', message: `lightning invoice has already expired (${decodedBolt11.timeExpireDateString} )` };
+      }
+
       return { kind: 'lightning', amount: decodedBolt11.satoshis || 0 };
     }
+  
 
     let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
     if (!(decodedBitcoinAddress instanceof Error)) {
@@ -224,7 +230,7 @@ export default function Send({ history }: Props) {
 
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
-          {sendType.kind === 'error' ? <p>Could not parse to text: {sendType.message}</p> : undefined}
+          {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
 
           <FormGroup row>
             <Col className="submit-button-container">

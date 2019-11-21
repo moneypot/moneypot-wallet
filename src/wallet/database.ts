@@ -230,19 +230,23 @@ export default class Database extends EventEmitter {
     this.emit('table:claimables');
   }
 
+  private async getStatuses<S extends StoreName>(
+    claimableHash: string,
+    transaction: idb.IDBPTransaction<Schema, (S | 'statuses')[]>
+  ) {
+    const statusDocs = await transaction
+      .objectStore('statuses')
+      .index('by-claimable-hash')
+      .getAll(claimableHash);
+
+    return statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
+  }
+
   public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable | Docs.Claimable) {
     const claimable = ackdClaimable instanceof hi.Acknowledged.default ? ackdClaimable.contents : util.notError(hi.claimableFromPOD(ackdClaimable));
+    const claimableHash = claimable.hash().toPOD();
 
-    const transaction = this.db.transaction(['coins', 'counters', 'claimables', 'events', 'statuses'], 'readwrite');
-
-    async function getStatuses() {
-      const statusDocs = await transaction
-        .objectStore('statuses')
-        .index('by-claimable-hash')
-        .getAll(claimable.hash().toPOD());
-
-      return statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
-    }
+    let transaction = this.db.transaction(['coins', 'counters', 'claimables', 'statuses'], 'readwrite');
 
     let claimant;
 
@@ -275,7 +279,7 @@ export default class Database extends EventEmitter {
       throw new Error(`Expected derived claimant is ${claimable.claimant.toPOD()} but got ${claimant.toPublicKey().toPOD()}`);
     }
 
-    let amountToClaim = hi.computeClaimableRemaining(claimable, await getStatuses());
+    let amountToClaim = hi.computeClaimableRemaining(claimable, await this.getStatuses(claimableHash, transaction));
     while (amountToClaim > 0) {
       const magnitudes = hi.amountToMagnitudes(amountToClaim);
 
@@ -283,7 +287,12 @@ export default class Database extends EventEmitter {
       if (claimResponse instanceof RequestError) {
         if (claimResponse.message === 'WRONG_CLAIM_AMOUNT') {
           await this.requestStatuses(claimable.hash().toPOD());
-          let newAmountToClaim = hi.computeClaimableRemaining(claimable, await getStatuses());
+
+          // after making a network request, we need a new transaction
+          transaction = this.db.transaction(['coins', 'counters', 'claimables', 'statuses'], 'readwrite');
+          
+          let newAmountToClaim = hi.computeClaimableRemaining(claimable, await this.getStatuses(claimableHash, transaction));
+          console.log('new amount to claim: ', newAmountToClaim, ' but we faield trying to claim: ', amountToClaim);
           if (newAmountToClaim === amountToClaim) {
             throw new Error(`tried to claim ${newAmountToClaim} but server told us it was wrong, but it looks fine..`);
           }
@@ -293,8 +302,8 @@ export default class Database extends EventEmitter {
 
         throw claimResponse;
       }
-
       await this.processStatuses([claimResponse]);
+      break;
     }
   }
 
