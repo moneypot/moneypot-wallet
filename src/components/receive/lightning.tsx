@@ -9,7 +9,6 @@ export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState(0);
 
-
   async function genInvoice() {
     const amountInt = amount;
     if (!Number.isFinite(amountInt) || amountInt < 0) {
@@ -39,15 +38,15 @@ export default function ReceiveLightning(props: RouteComponentProps) {
             </Col>
           </FormGroup>
           <FormGroup row>
-      <Label for="amount" sm={3}>
-        Amount:
-      </Label>
-      <Col sm={{ size: 9, offset: 0 }}>
-      <InputGroup>
-        <BitcoinAmountInput  onAmountChange={setAmount} />
-      </InputGroup>
-      </Col>
-    </FormGroup>         
+            <Label for="amount" sm={3}>
+              Amount:
+            </Label>
+            <Col sm={{ size: 9, offset: 0 }}>
+              <InputGroup>
+                <BitcoinAmountInput onAmountChange={setAmount} />
+              </InputGroup>
+            </Col>
+          </FormGroup>
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-moneypot" onClick={() => genInvoice()}>

@@ -60,7 +60,7 @@ export default function LoadedApp() {
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />
-            <Route path="/support" render={props => <Support />} />            
+            <Route path="/support" render={props => <Support />} />
             <Route component={NoMatch} />
           </Switch>
           {!mobileView ? (

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
-import * as bip39 from '../bip39';
-import WalletDatabase from '../wallet/database';
-import { setWallet } from '../state/wallet';
+import * as bip39 from '../../bip39';
+import WalletDatabase from '../../wallet/database';
+import { setWallet } from '../../state/wallet';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';

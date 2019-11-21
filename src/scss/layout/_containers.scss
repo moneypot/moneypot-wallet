@@ -36,12 +36,22 @@
 
 
 .full-page-container {
+    display: grid;
+    grid-template-rows: 100vh;
+    grid-template-areas: "left right right right";
+    width: 100vw;
+    height: 100vh;
+    background: $theme-blue;
+  }
+
+
+
+  .full-page-right-side {
+    grid-area: right;
+    background-color: $bg;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: $bg;
-    color: $white;
-
-}
+    justify-content: center;
+    padding: 2rem;
+  }

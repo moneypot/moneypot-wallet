@@ -237,13 +237,12 @@ export default class Database extends EventEmitter {
 
     async function getStatuses() {
       const statusDocs = await transaction
-      .objectStore('statuses')
-      .index('by-claimable-hash')
-      .getAll(claimable.hash().toPOD());
+        .objectStore('statuses')
+        .index('by-claimable-hash')
+        .getAll(claimable.hash().toPOD());
 
       return statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
     }
-
 
     let claimant;
 
@@ -278,14 +277,11 @@ export default class Database extends EventEmitter {
 
     let amountToClaim = hi.computeClaimableRemaining(claimable, await getStatuses());
     while (amountToClaim > 0) {
-
       const magnitudes = hi.amountToMagnitudes(amountToClaim);
 
       const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes);
       if (claimResponse instanceof RequestError) {
         if (claimResponse.message === 'WRONG_CLAIM_AMOUNT') {
-
-
           await this.requestStatuses(claimable.hash().toPOD());
           let newAmountToClaim = hi.computeClaimableRemaining(claimable, await getStatuses());
           if (newAmountToClaim === amountToClaim) {
@@ -553,7 +549,7 @@ export default class Database extends EventEmitter {
   // this makes no network requests..
   private async getLastUsedBitcoinAddresses<S extends StoreName>(
     transaction: idb.IDBPTransaction<Schema, (S | 'claimables' | 'counters')[]>
-  ): Promise<([string, number]) | undefined> {
+  ): Promise<[string, number] | undefined> {
     let cursor = await transaction
       .objectStore('counters')
       .index('by-purpose-index')

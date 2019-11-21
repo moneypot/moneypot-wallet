@@ -1,0 +1,12 @@
+#toggler {
+    color: $theme-blue;
+}
+#toggler:hover {
+    color: darken($theme-blue, 20%);
+}
+
+.custodian-url-text {
+    padding: 5px 15px;
+    font-size: smaller;
+    color: $text-secondary;
+}

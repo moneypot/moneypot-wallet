@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import WalletDatabase from '../wallet/database';
-import { setWallet } from '../state/wallet';
+import WalletDatabase from '../../wallet/database';
+import { setWallet } from '../../state/wallet';
 import { Link } from 'react-router-dom';
 import { Button, FormGroup, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 
-import * as dbInfo from '../wallet/database-info';
+import * as dbInfo from '../../wallet/database-info';
 
 export default function SelectWallet(props: any) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);

@@ -5,8 +5,6 @@ import { Button } from 'reactstrap';
 
 export default function History() {
   const claimables = useClaimables();
- 
-
 
   return (
     <div>
@@ -19,12 +17,15 @@ export default function History() {
           <span>Status</span>
         </div>
 
-        { claimables.slice(0).reverse().map(c => (
-          <TransactionItem key={c.hash} claimable={c} />
-        ))}
+        {claimables
+          .slice(0)
+          .reverse()
+          .map(c => (
+            <TransactionItem key={c.hash} claimable={c} />
+          ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center'}}>
-      <Button color="primary" >Load More</Button>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Button color="primary">Load More</Button>
       </div>
     </div>
   );

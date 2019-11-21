@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
-import BitcoinAmountInput from '../bitcoin-amount-input'
+import BitcoinAmountInput from '../bitcoin-amount-input';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -39,7 +39,6 @@ export default function Send({ history }: Props) {
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
     setToText(event.target.value);
   }
-
 
   function calcFee(): number {
     if (sendType.kind === 'lightning') {
@@ -200,12 +199,9 @@ export default function Send({ history }: Props) {
   //   }
   // }
 
-
-
   const balance = useBalance();
 
   const maxAmount = balance; // TODO: Reduce the tx fee
-
 
   return (
     <div>
@@ -229,10 +225,9 @@ export default function Send({ history }: Props) {
               Amount:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
-                <BitcoinAmountInput  onAmountChange={setAmountInput} max={maxAmount}/>
-              </Col>
+              <BitcoinAmountInput onAmountChange={setAmountInput} max={maxAmount} />
+            </Col>
           </FormGroup>
-          
 
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
