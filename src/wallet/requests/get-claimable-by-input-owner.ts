@@ -3,7 +3,6 @@ import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
 export default async function getClaimableByInputOwner(config: Config, inputOwnerStr: string) {
-  // const inputOwnerStr = inputOwner.toPOD();
   const url = `${config.custodianUrl}/claimable-by-input-owner/${inputOwnerStr}`;
 
   const claimablePOD = await makeRequest<(hi.POD.Claimable & hi.POD.Acknowledged) | null>(url);

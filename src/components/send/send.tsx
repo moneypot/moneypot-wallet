@@ -16,7 +16,7 @@ export default function Send({ history }: Props) {
   const [amountInput, setAmountInput] = useState(0);
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
   const [feeText, setFeeText] = useState('');
-  const [feeLimit, setFeeLimit] = useState('100');
+  const [feeLimit, setFeeLimit] = useState(100);
   const balance = useBalance();
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'lightning'; amount: number } | { kind: 'bitcoin' } => {
@@ -43,7 +43,7 @@ export default function Send({ history }: Props) {
 
   function calcFee(): number {
     if (sendType.kind === 'lightning') {
-      return Number.parseInt(feeLimit);
+      return feeLimit;
     }
 
     if (!feeSchedule) {
@@ -149,7 +149,7 @@ export default function Send({ history }: Props) {
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>
           <InputGroup>
-            <Input value={feeLimit} onChange={event => setFeeLimit(event.target.value)} />
+            <BitcoinAmountInput onAmountChange={ setFeeLimit } max={maxAmount} defaultAmount={ feeLimit } prefix="fee" />
           </InputGroup>
           satoshis
         </Col>

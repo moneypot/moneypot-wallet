@@ -2,17 +2,24 @@ import React, { useState } from 'react';
 
 import { Input, InputGroup, Button } from 'reactstrap';
 import { toast } from 'react-toastify';
+import useUniqueId from '../util/use-unique-id';
 
 type Props = {
   max?: number;
+  defaultAmount?: number;
   amount?: number;
+  prefix?: string;
   onAmountChange: (x: number) => void;
 };
 
 export default function BitcoinAmountInput(props: Props) {
   const [unit, setUnit] = useState<'sat' | 'btc'>('sat');
-  const [text, setText] = useState('');
+  const [text, setText] = useState(props.defaultAmount === undefined ? '' : `${props.defaultAmount}`);
   const [error, setError] = useState('');
+
+  const formName = useUniqueId();
+  const btcId = useUniqueId();
+  const satId = useUniqueId();
 
   function syncAmount(text: string, unit: 'sat' | 'btc') {
     const val = Number.parseFloat(text);
@@ -42,10 +49,11 @@ export default function BitcoinAmountInput(props: Props) {
       throw new Error('max button click handler called when there is no max');
     }
 
-    console.log('max btn was clicked');
     toast('Max amount selected');
-    setText(props.max.toString());
-    syncAmount(props.max.toString(), unit);
+    let divisor = unit === 'sat' ? 1 : 1e8;
+    displayText = `${props.max / divisor}`;
+    setText(displayText);
+    syncAmount(displayText, unit);
   }
 
   function onDisplayAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -86,7 +94,7 @@ export default function BitcoinAmountInput(props: Props) {
   }
 
   let displayText;
-  if (typeof props.amount === 'number') {
+  if (props.amount !== undefined) {
     let divisor = unit === 'sat' ? 1 : 1e8;
     displayText = `${props.amount / divisor}`;
   } else {
@@ -100,34 +108,34 @@ export default function BitcoinAmountInput(props: Props) {
         className={error !== '' ? 'is-invalid' : ''}
         value={displayText}
         onChange={onDisplayAmountChange}
-        disabled={typeof props.amount === 'number'}
+        disabled={props.amount !== undefined}
       />
       <div className="switch">
         <input
           type="radio"
           className="switch-input"
-          name="unit"
+          name={ formName }
           value="sat"
-          id="sat"
+          id={ satId }
           onChange={() => {
             onUnitChange('sat');
           }}
           defaultChecked
         />
-        <label htmlFor="sat" className="switch-label switch-label-off">
+        <label htmlFor={ satId } className="switch-label switch-label-off">
           sat
         </label>
         <input
           type="radio"
           className="switch-input"
-          name="unit"
+          name={ formName }
           value="btc"
-          id="btc"
+          id={ btcId }
           onChange={() => {
             onUnitChange('btc');
           }}
         />
-        <label htmlFor="btc" className="switch-label switch-label-on">
+        <label htmlFor={ btcId } className="switch-label switch-label-on">
           btc
         </label>
         <span className="switch-selection" />
