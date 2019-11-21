@@ -17,6 +17,7 @@ export default function Send({ history }: Props) {
   const [prioritySelection, setPrioritySelection] = useState<'CUSTOM' | 'IMMEDIATE' | 'BATCH' | 'FREE'>('IMMEDIATE');
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState('100');
+  const balance = useBalance();
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'lightning'; amount: number } | { kind: 'bitcoin' } => {
     if (toText === '') {
@@ -68,12 +69,6 @@ export default function Send({ history }: Props) {
   function getAmount() {
     if (sendType.kind === 'lightning' && sendType.amount) {
       return sendType.amount;
-    }
-    return amountInput;
-  }
-  function getAmountInput() {
-    if (sendType.kind === 'lightning' && sendType.amount) {
-      return `${sendType.amount}`; // is there a better way to turn a number to string?
     }
     return amountInput;
   }
@@ -199,8 +194,6 @@ export default function Send({ history }: Props) {
   //   }
   // }
 
-  const balance = useBalance();
-
   const maxAmount = balance; // TODO: Reduce the tx fee
 
   return (
@@ -225,7 +218,7 @@ export default function Send({ history }: Props) {
               Amount:
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
-              <BitcoinAmountInput onAmountChange={setAmountInput} max={maxAmount} />
+              <BitcoinAmountInput onAmountChange={setAmountInput} max={maxAmount} amount={(sendType.kind === 'lightning' && sendType.amount) || undefined} />
             </Col>
           </FormGroup>
 

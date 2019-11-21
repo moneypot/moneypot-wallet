@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
 import { Input, InputGroup, Button } from 'reactstrap';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 type Props = {
   max?: number;
-
+  amount?: number;
   onAmountChange: (x: number) => void;
 };
 
@@ -29,7 +29,7 @@ export default function BitcoinAmountInput(props: Props) {
   }
 
   function renderMaxButton() {
-    if (props.max === undefined) return;
+    if (props.max === undefined || props.amount !== undefined) return;
     return (
       <Button className="max-button" color="danger" onClick={maxButtonClickHandler}>
         max
@@ -38,12 +38,14 @@ export default function BitcoinAmountInput(props: Props) {
   }
 
   function maxButtonClickHandler() {
-    if (props.max) {
-      console.log('max btn was clicked');
-      toast('Max amount selected');
-      setText(props.max.toString());
-      syncAmount(props.max.toString(), unit);
+    if (!props.max) {
+      throw new Error('max button click handler called when there is no max');
     }
+
+    console.log('max btn was clicked');
+    toast('Max amount selected');
+    setText(props.max.toString());
+    syncAmount(props.max.toString(), unit);
   }
 
   function onDisplayAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -83,9 +85,23 @@ export default function BitcoinAmountInput(props: Props) {
     setText(newValue);
   }
 
+  let displayText;
+  if (typeof props.amount === 'number') {
+    let divisor = unit === 'sat' ? 1 : 1e8;
+    displayText = `${props.amount / divisor}`;
+  } else {
+    displayText = text;
+  }
+
   return (
     <InputGroup>
-      <Input type="number" className={error !== '' ? 'is-invalid' : ''} value={text} onChange={onDisplayAmountChange} />
+      <Input
+        type="number"
+        className={error !== '' ? 'is-invalid' : ''}
+        value={displayText}
+        onChange={onDisplayAmountChange}
+        disabled={typeof props.amount === 'number'}
+      />
       <div className="switch">
         <input
           type="radio"
