@@ -3,7 +3,7 @@ import { RouteComponentProps } from 'react-router';
 import LightningInvoice from './lightning-invoice';
 import DevDataDisplay from './dev-data-display';
 
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import { wallet, useClaimable, useClaimableStatuses } from '../state/wallet';
 import { notError } from '../util';

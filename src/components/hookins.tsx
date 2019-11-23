@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import * as Docs from '../wallet/docs';
 import { useClaimableKinds } from '../state/wallet';

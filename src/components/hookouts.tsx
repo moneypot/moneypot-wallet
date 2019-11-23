@@ -1,5 +1,5 @@
 import React from 'react';
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import { Link } from 'react-router-dom';
 import { wallet, useClaimableKinds } from '../state/wallet';

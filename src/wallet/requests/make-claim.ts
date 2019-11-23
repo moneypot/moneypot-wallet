@@ -1,5 +1,5 @@
-import * as hi from 'hookedin-lib';
-import Claimed from 'hookedin-lib/dist/status/claimed';
+import * as hi from 'moneypot-lib';
+import Claimed from 'moneypot-lib/dist/status/claimed';
 
 import makeRequest, { RequestError } from './make-request';
 import genNonces from './gen-nonces';

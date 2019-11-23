@@ -1,4 +1,4 @@
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 import * as bip39 from '../bip39';
 import * as util from '../util';
 import * as Docs from './docs';

@@ -9,7 +9,7 @@ export default function(props: RouteComponentProps<{ hash: string }>) {
 // import { RouteComponentProps } from 'react-router';
 // import { Link } from 'react-router-dom';
 
-// import * as hi from 'hookedin-lib';
+// import * as hi from 'moneypot-lib';
 // import * as Docs from '../wallet/docs';
 
 // // @ts-ignore

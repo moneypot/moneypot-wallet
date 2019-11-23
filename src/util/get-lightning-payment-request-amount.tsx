@@ -1,5 +1,5 @@
 import React from 'react';
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 // Only useful for Lightning Invoices
 export default function GetLightningPaymentRequestAmount(paymentRequest: string): number | string {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import { wallet } from '../state/wallet';
 

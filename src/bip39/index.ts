@@ -1,4 +1,4 @@
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 import DEFAULT_WORDLIST from './english';
 import pbkdf2 from './pbkdf2-browser'; // TODO: switching..
 

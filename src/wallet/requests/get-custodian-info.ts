@@ -1,4 +1,4 @@
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 import * as config from '../config';
 import makeRequest, { RequestError } from './make-request';
 import { notError } from '../../util';

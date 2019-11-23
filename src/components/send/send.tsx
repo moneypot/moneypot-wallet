@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import { wallet, useBalance } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';

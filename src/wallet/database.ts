@@ -1,5 +1,5 @@
 import * as Docs from './docs';
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 import * as util from '../util';
 import * as idb from 'idb';
 
@@ -20,7 +20,7 @@ import * as dbInfo from './database-info';
 
 import * as requests from './requests';
 
-import Claimed from 'hookedin-lib/dist/status/claimed';
+import Claimed from 'moneypot-lib/dist/status/claimed';
 import getInvoicesByClaimant from './requests/get-invoices-by-claimant';
 import getClaimableByInputOwner from './requests/get-claimable-by-input-owner';
 import { RequestError } from './requests/make-request';

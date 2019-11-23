@@ -41,7 +41,7 @@
     "@the-/ui-qr": "^15.5.0",
     "@types/react-transition-group": "^4.2.3",
     "deep-equal": "^1.1.1",
-    "hookedin-lib": "git+https://github.com/hookedin/hookedin-lib.git",
+    "moneypot-lib": "git+https://github.com/moneypot/moneypot-lib.git",
     "idb": "^4.0.5",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",

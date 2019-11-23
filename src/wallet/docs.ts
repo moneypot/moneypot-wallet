@@ -1,4 +1,4 @@
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 export interface Config {
   one: 1; // for indexing

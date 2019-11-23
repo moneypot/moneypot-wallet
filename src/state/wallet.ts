@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import * as hi from 'hookedin-lib';
+import * as hi from 'moneypot-lib';
 
 import WalletDatabase from '../wallet/database';
 import * as Docs from '../wallet/docs';
