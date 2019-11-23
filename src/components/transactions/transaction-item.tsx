@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import GetLightningPaymentRequestAmount from '../../util/get-lightning-payment-request-amount';
 
 import * as Docs from '../../wallet/docs';
+import Timeago from '../../util/timeago';
 
 export default function TransactionItem({ claimable }: { claimable: Docs.Claimable }) {
-  console.log('claimable is: ', claimable);
 
   function getAmount() {
     if (claimable.kind === 'LightningInvoice') {
@@ -45,7 +45,9 @@ export default function TransactionItem({ claimable }: { claimable: Docs.Claimab
 
   return (
     <Link to={`claimables/${claimable.hash}`} className={'transaction-card ' + claimable.kind}>
-      <div className="text-muted">{claimable.created.toISOString()}</div>
+      <div className="text-muted">
+        <Timeago date={ claimable.created } />
+      </div>
       <div>
         {TransactionIcon(claimable.kind)}
         <span>{claimable.kind}</span>

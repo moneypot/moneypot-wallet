@@ -8,12 +8,12 @@
     "build": "webpack --config webpack.config.js",
     "build-cdn": "NODE_ENV=production USE_CDN=true webpack --config webpack.config.js",
     "prettier": "prettier --single-quote --trailing-comma es5 --print-width 160 --write \"src/**/*.{ts,tsx}\"",
-    "publish": "npm run build-cdn && cp -r dist/* ../hundredeyes-dist && cd ../hundredeyes-dist/ && git add -A && git commit -m \"Add built files\" && git pull --rebase && git push"
+    "publish": "npm run build-cdn && cp -r dist/* ../moneypot-wallet-dist && cd ../moneypot-wallet-dist/ && git add -A && git commit -m \"Add built files\" && git pull --rebase && git push"
   },
   "author": "",
   "license": "UNLICENSED",
   "devDependencies": {
-    "@types/react": "^16.9.11",
+    "@types/react": "^16.9.12",
     "@types/react-dom": "^16.9.4",
     "@types/react-router-dom": "^5.1.2",
     "@types/reactstrap": "^8.0.6",
@@ -41,8 +41,9 @@
     "@the-/ui-qr": "^15.5.0",
     "@types/react-transition-group": "^4.2.3",
     "deep-equal": "^1.1.1",
-    "moneypot-lib": "git+https://github.com/moneypot/moneypot-lib.git",
     "idb": "^4.0.5",
+    "javascript-time-ago": "^2.0.4",
+    "moneypot-lib": "git+https://github.com/moneypot/moneypot-lib.git",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-qr-reader": "^2.2.1",

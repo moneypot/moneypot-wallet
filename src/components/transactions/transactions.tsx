@@ -18,8 +18,6 @@ export default function History() {
         </div>
 
         {claimables
-          .slice(0)
-          .reverse()
           .map(c => (
             <TransactionItem key={c.hash} claimable={c} />
           ))}
