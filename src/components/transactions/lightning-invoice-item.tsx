@@ -26,9 +26,6 @@ export default function LightningInvoiceItem({ claimable, statuses }: Props) {
             description = tag.data;
         }
     }
-
-    console.log({ pro });
-
     let icon = (
       <span className="fa-stack">
         <i className="fas fa-circle fa-stack-2x" />

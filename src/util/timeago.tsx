@@ -21,7 +21,7 @@ export default function Timeago({ date }: Props) {
     const toggle = () => setTooltipOpen(!tooltipOpen);
 
     return <div>
-       <span style={{textDecoration: "underline" }} id="TooltipExample">{ timeAgo.format(date) }</span>
+       <div style={{textDecoration: "underline" }} id="TooltipExample">{ timeAgo.format(date) }</div>
        <Tooltip placement="top" isOpen={ tooltipOpen } target="TooltipExample" toggle={ toggle }>
         { date.toISOString() }
       </Tooltip>  

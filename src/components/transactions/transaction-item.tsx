@@ -7,6 +7,7 @@ import Timeago from '../../util/timeago';
 import { useClaimableStatuses } from '../../state/wallet';
 import LightningInvoiceItem from './lightning-invoice-item';
 import HookinItem from './hookin-item';
+import HookoutItem from './hookout-item';
 
 export default function TransactionItem({ claimable }: { claimable: Docs.Claimable }) {
 
@@ -17,6 +18,9 @@ export default function TransactionItem({ claimable }: { claimable: Docs.Claimab
   }
   if (claimable.kind === 'Hookin') {
     return <HookinItem claimable={ claimable } statuses={ statuses } />
+  }
+  if (claimable.kind === 'Hookout') {
+    return <HookoutItem claimable={ claimable } statuses={ statuses } />
   }
 
 
