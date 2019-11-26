@@ -20,7 +20,7 @@ export function useClaimables(): Docs.Claimable[] {
   async function getAndSet() {
     const transfers = await wallet.db.getAllFromIndex('claimables', 'by-created');
 
-    setClaimables(transfers);
+    setClaimables(transfers.reverse());
   }
 
   useEffect(() => {

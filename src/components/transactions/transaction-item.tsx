@@ -4,8 +4,21 @@ import GetLightningPaymentRequestAmount from '../../util/get-lightning-payment-r
 
 import * as Docs from '../../wallet/docs';
 import Timeago from '../../util/timeago';
+import { useClaimableStatuses } from '../../state/wallet';
+import LightningInvoiceItem from './lightning-invoice-item';
+import HookinItem from './hookin-item';
 
 export default function TransactionItem({ claimable }: { claimable: Docs.Claimable }) {
+
+  const statuses = useClaimableStatuses(claimable.hash);
+
+  if (claimable.kind === 'LightningInvoice') {
+    return <LightningInvoiceItem claimable={ claimable } statuses={statuses} />
+  }
+  if (claimable.kind === 'Hookin') {
+    return <HookinItem claimable={ claimable } statuses={ statuses } />
+  }
+
 
   function getAmount() {
     if (claimable.kind === 'LightningInvoice') {
@@ -42,6 +55,9 @@ export default function TransactionItem({ claimable }: { claimable: Docs.Claimab
       </span>
     );
   }
+
+
+
 
   return (
     <Link to={`claimables/${claimable.hash}`} className={'transaction-card ' + claimable.kind}>
