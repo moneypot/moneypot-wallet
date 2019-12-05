@@ -10,19 +10,17 @@ import HookinItem from './hookin-item';
 import HookoutItem from './hookout-item';
 
 export default function TransactionItem({ claimable }: { claimable: Docs.Claimable }) {
-
   const statuses = useClaimableStatuses(claimable.hash);
 
   if (claimable.kind === 'LightningInvoice') {
-    return <LightningInvoiceItem claimable={ claimable } statuses={statuses} />
+    return <LightningInvoiceItem claimable={claimable} statuses={statuses} />;
   }
   if (claimable.kind === 'Hookin') {
-    return <HookinItem claimable={ claimable } statuses={ statuses } />
+    return <HookinItem claimable={claimable} statuses={statuses} />;
   }
   if (claimable.kind === 'Hookout') {
-    return <HookoutItem claimable={ claimable } statuses={ statuses } />
+    return <HookoutItem claimable={claimable} statuses={statuses} />;
   }
-
 
   function getAmount() {
     if (claimable.kind === 'LightningInvoice') {
@@ -60,13 +58,10 @@ export default function TransactionItem({ claimable }: { claimable: Docs.Claimab
     );
   }
 
-
-
-
   return (
     <Link to={`claimables/${claimable.hash}`} className={'transaction-card ' + claimable.kind}>
       <div className="text-muted">
-        <Timeago date={ claimable.created } />
+        <Timeago date={claimable.created} />
       </div>
       <div>
         {TransactionIcon(claimable.kind)}

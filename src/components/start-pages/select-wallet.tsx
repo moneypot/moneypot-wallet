@@ -34,22 +34,22 @@ export default function SelectWallet(props: any) {
 
   return (
     <div className="full-page-container">
-      <LeftPanel/>
+      <LeftPanel />
       <div className="full-page-right-side">
-      <ToastContainer />
-      <h2 className="main-heading">Select Wallet</h2>
-      <div className="select-wallet-table">
-        {existingDbs.map(dbName => (
-          <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
-        ))}
-      </div>
-      <FormGroup row>
-        <Col className="submit-button-container">
-          <Link className="btn-moneypot btn btn-success" to="/create-wallet">
-            <i className="fa fa-plus-circle" /> Create New
-          </Link>
-        </Col>
-      </FormGroup>
+        <ToastContainer />
+        <h2 className="main-heading">Select Wallet</h2>
+        <div className="select-wallet-table">
+          {existingDbs.map(dbName => (
+            <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
+          ))}
+        </div>
+        <FormGroup row>
+          <Col className="submit-button-container">
+            <Link className="btn-moneypot btn btn-success" to="/create-wallet">
+              <i className="fa fa-plus-circle" /> Create New
+            </Link>
+          </Col>
+        </FormGroup>
       </div>
     </div>
   );

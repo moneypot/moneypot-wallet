@@ -230,10 +230,7 @@ export default class Database extends EventEmitter {
     this.emit('table:claimables');
   }
 
-  private async getStatuses<S extends StoreName>(
-    claimableHash: string,
-    transaction: idb.IDBPTransaction<Schema, (S | 'statuses')[]>
-  ) {
+  private async getStatuses<S extends StoreName>(claimableHash: string, transaction: idb.IDBPTransaction<Schema, (S | 'statuses')[]>) {
     const statusDocs = await transaction
       .objectStore('statuses')
       .index('by-claimable-hash')
@@ -290,7 +287,7 @@ export default class Database extends EventEmitter {
 
           // after making a network request, we need a new transaction
           transaction = this.db.transaction(['coins', 'counters', 'claimables', 'statuses'], 'readwrite');
-          
+
           let newAmountToClaim = hi.computeClaimableRemaining(claimable, await this.getStatuses(claimableHash, transaction));
           console.log('new amount to claim: ', newAmountToClaim, ' but we faield trying to claim: ', amountToClaim);
           if (newAmountToClaim === amountToClaim) {
@@ -717,8 +714,7 @@ export default class Database extends EventEmitter {
     return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.LightningPayment({ inputs, amount, fee }, paymentRequest), amount + fee);
   }
 
-  public async sendHookout(bitcoinAddress: string, amount: number, fee: number) {
-    const priority = 'IMMEDIATE'; // TODO: ..
+  public async sendHookout(priority: 'CUSTOM' | 'IMMEDIATE' | 'FREE' | 'BATCH', bitcoinAddress: string, amount: number, fee: number) {
 
     return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority), amount + fee);
   }

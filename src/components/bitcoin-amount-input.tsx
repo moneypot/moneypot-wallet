@@ -114,28 +114,28 @@ export default function BitcoinAmountInput(props: Props) {
         <input
           type="radio"
           className="switch-input"
-          name={ formName }
+          name={formName}
           value="sat"
-          id={ satId }
+          id={satId}
           onChange={() => {
             onUnitChange('sat');
           }}
           defaultChecked
         />
-        <label htmlFor={ satId } className="switch-label switch-label-off">
+        <label htmlFor={satId} className="switch-label switch-label-off">
           sat
         </label>
         <input
           type="radio"
           className="switch-input"
-          name={ formName }
+          name={formName}
           value="btc"
-          id={ btcId }
+          id={btcId}
           onChange={() => {
             onUnitChange('btc');
           }}
         />
-        <label htmlFor={ btcId } className="switch-label switch-label-on">
+        <label htmlFor={btcId} className="switch-label switch-label-on">
           btc
         </label>
         <span className="switch-selection" />

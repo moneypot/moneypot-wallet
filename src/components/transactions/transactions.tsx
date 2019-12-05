@@ -17,10 +17,9 @@ export default function History() {
           <span>Status</span>
         </div>
 
-        {claimables
-          .map(c => (
-            <TransactionItem key={c.hash} claimable={c} />
-          ))}
+        {claimables.map(c => (
+          <TransactionItem key={c.hash} claimable={c} />
+        ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <Button color="primary">Load More</Button>

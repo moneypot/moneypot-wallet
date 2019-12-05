@@ -6,44 +6,44 @@ import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction
 import * as Docs from '../../wallet/docs';
 import Timeago from '../../util/timeago';
 
-
 type Props = {
-    statuses: mp.Status[] | undefined
-    claimable: Docs.Claimable
+  statuses: mp.Status[] | undefined;
+  claimable: Docs.Claimable;
 };
 
 export default function HookoutItem({ claimable, statuses }: Props) {
-    if (claimable.kind !== 'Hookout') {
-        throw new Error('expected hookout');
-    }
+  if (claimable.kind !== 'Hookout') {
+    throw new Error('expected hookout');
+  }
 
-
-    let status = 'not yet sent';
-    if (statuses === undefined) {
-        status = '';
-    } else {
-        for (const s of statuses) {
-            if (s instanceof BitcoinTransactionSent) {
-                status = 'sent!';
-            }
-        }
+  let status = 'not yet sent';
+  if (statuses === undefined) {
+    status = '';
+  } else {
+    for (const s of statuses) {
+      if (s instanceof BitcoinTransactionSent) {
+        status = 'sent!';
+      }
     }
-  
+  }
 
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card Hookout">
       <div className="text-muted">
-        <Timeago date={ claimable.created } />
+        <Timeago date={claimable.created} />
       </div>
       <div>
         <span className="fa-stack">
           <i className="fas fa-circle fa-stack-2x" />
           <i className={'fad fa-stack-1x fa-inverse fa-arrow-up'} />
         </span>
-        <span>Bitcoin Send<br /> ( { claimable.bitcoinAddress } ) </span>
+        <span>
+          Bitcoin Send
+          <br /> ( {claimable.bitcoinAddress} ){' '}
+        </span>
       </div>
-      <div>-{ claimable.amount } satoshis</div>
-      <div>{ status }</div>
+      <div>-{claimable.amount} satoshis</div>
+      <div>{status}</div>
     </Link>
   );
 }

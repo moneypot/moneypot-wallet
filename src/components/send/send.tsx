@@ -27,13 +27,11 @@ export default function Send({ history }: Props) {
     let decodedBolt11 = hi.decodeBolt11(toText);
     if (!(decodedBolt11 instanceof Error)) {
       if (decodedBolt11.timeExpireDate * 1000 <= Date.now()) {
-
         return { kind: 'error', message: `lightning invoice has already expired (${decodedBolt11.timeExpireDateString} )` };
       }
 
       return { kind: 'lightning', amount: decodedBolt11.satoshis || 0 };
     }
-  
 
     let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
     if (!(decodedBitcoinAddress instanceof Error)) {
@@ -91,7 +89,7 @@ export default function Send({ history }: Props) {
       console.log('sending lightning payment: ', toText, amount, calcFee());
       transferHash = await wallet.sendLightningPayment(toText, amount, calcFee());
     } else {
-      transferHash = await wallet.sendHookout(toText, amount, calcFee());
+      transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee());
     }
 
     if (typeof transferHash === 'string') {
@@ -155,7 +153,7 @@ export default function Send({ history }: Props) {
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>
           <InputGroup>
-            <BitcoinAmountInput onAmountChange={ setFeeLimit } max={maxAmount} defaultAmount={ feeLimit } prefix="fee" />
+            <BitcoinAmountInput onAmountChange={setFeeLimit} max={maxAmount} defaultAmount={feeLimit} prefix="fee" />
           </InputGroup>
           satoshis
         </Col>
