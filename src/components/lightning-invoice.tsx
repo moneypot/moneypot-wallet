@@ -5,23 +5,48 @@ import { Col, Row } from 'reactstrap';
 import CopyToClipboard from '../util/copy-to-clipboard';
 import GetLightningPaymentRequestAmount from '../util/get-lightning-payment-request-amount';
 
+import {useClaimableStatuses } from '../state/wallet';
 type LightningInvoiceProps = {
   paymentRequest: string;
   memo: string;
   created: object;
+  claimableHash: string;
 };
+
+const Pending = () => { 
+  return (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+          Pending
+        </a>
+  )
+}
+const Sent =() => { 
+  return (
+  <a href="#status" className="btn btn-outline-success status-badge">
+          Received!
+        </a>
+        )
+}
 
 export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
+  const statuses =  useClaimableStatuses((props.claimableHash));
+
+  function GetStatuses() { 
+   if(!statuses) {
+    return <span>Loading statuses...</span>;
+   } else if(statuses.length >= 2) { 
+     return ( <Sent></Sent> )
+   } else return (<Pending></Pending>)
+ }
+ 
   return (
     <div>
       <h5>
         <i className="far fa-bolt" /> Lightning Invoice
       </h5>
       <div className="inner-container">
-        <a href="#status" className="btn btn-outline-warning status-badge">
-          Pending
-        </a>
+        <GetStatuses></GetStatuses>
         <div className="qr-code-wrapper">
           <div className="qr-code-container">
             <span>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import * as bip39 from '../../bip39';
 import WalletDatabase from '../../wallet/database';
 import { setWallet } from '../../state/wallet';
@@ -54,6 +53,7 @@ export default function CreateWallet(props: any) {
               <datalist id="default=custodian-urls">
                 <option value="https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
                 <option value="http://localhost:3030" />
+                <option value="https://example.com/"></option>
               </datalist>
             </Col>
             <UncontrolledCollapse toggler="#toggler">
@@ -80,10 +80,9 @@ export default function CreateWallet(props: any) {
             By creating a wallet submit you are agreeing to moneypot's <a href="">Terms and Conditions</a>, <a href="">Cookies</a> and{' '}
             <a href="">Privacy Policy</a>.
           </small>
-        </Form>
-
-        <p>Already have a wallet? Restore</p>
-      </div>
-    </div>
+        </Form>        
+        <p>Already have a wallet? <a href="/restore">Restore</a> </p>
+        </div>
+    </div>       
   );
 }

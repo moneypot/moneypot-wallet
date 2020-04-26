@@ -51,7 +51,7 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
 
   let kindOfClaimable = () => {
     if (claimableDoc.kind === 'LightningInvoice') {
-      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" />;
+      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" claimableHash={claimableDoc.hash}/>;
     }
 
     return (

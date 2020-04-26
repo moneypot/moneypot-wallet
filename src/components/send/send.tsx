@@ -232,7 +232,7 @@ export default function Send({ history }: Props) {
 
           <FormGroup row>
             <Col className="submit-button-container">
-              <Button color="success" className="btn-moneypot" onClick={send}>
+              <Button id="AppSendButton" color="success" className="btn-moneypot" onClick={() => {send(); disableAfterClick()}}> 
                 Send
               </Button>
             </Col>
@@ -242,6 +242,9 @@ export default function Send({ history }: Props) {
     </div>
   );
 }
+// this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
+function disableAfterClick() {
+  return (document.getElementById('AppSendButton') as HTMLInputElement).disabled = true;}
 
 function useFeeSchedule() {
   const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);

@@ -6,6 +6,7 @@ import { setWallet } from '../../state/wallet';
 import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
+import LeftPanel from './left-panel';
 
 const defaultCustodian = 'https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
 
@@ -30,7 +31,10 @@ export default function CreateWallet(props: any) {
   return (
     <div className="full-page-container">
       <ToastContainer />
-      <h2 className="main-heading">Create New Wallet</h2>
+      <LeftPanel/>
+      <div className="full-page-right-side">
+
+      <h2 className="main-heading">Restore your wallet</h2>
       <Form>
         <FormGroup row>
           <Label for="walletName" sm={4}>
@@ -75,7 +79,12 @@ export default function CreateWallet(props: any) {
             </Button>
           </Col>
         </FormGroup>
+        <small className="text-secondary">
+            By creating a wallet submit you are agreeing to moneypot's <a href="">Terms and Conditions</a>, <a href="">Cookies</a> and{' '}
+            <a href="">Privacy Policy</a>.
+          </small>
       </Form>
+    </div>
     </div>
   );
 }
