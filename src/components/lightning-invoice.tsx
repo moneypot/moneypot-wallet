@@ -5,7 +5,7 @@ import { Col, Row } from 'reactstrap';
 import CopyToClipboard from '../util/copy-to-clipboard';
 import GetLightningPaymentRequestAmount from '../util/get-lightning-payment-request-amount';
 
-import {useClaimableStatuses } from '../state/wallet';
+import { useClaimableStatuses } from '../state/wallet';
 type LightningInvoiceProps = {
   paymentRequest: string;
   memo: string;
@@ -13,33 +13,33 @@ type LightningInvoiceProps = {
   claimableHash: string;
 };
 
-const Pending = () => { 
+const Pending = () => {
   return (
     <a href="#status" className="btn btn-outline-warning status-badge">
-          Pending
-        </a>
-  )
-}
-const Sent =() => { 
+      Pending
+    </a>
+  );
+};
+const Sent = () => {
   return (
-  <a href="#status" className="btn btn-outline-success status-badge">
-          Received!
-        </a>
-        )
-}
+    <a href="#status" className="btn btn-outline-success status-badge">
+      Received!
+    </a>
+  );
+};
 
 export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
-  const statuses =  useClaimableStatuses((props.claimableHash));
+  const statuses = useClaimableStatuses(props.claimableHash);
 
-  function GetStatuses() { 
-   if(!statuses) {
-    return <span>Loading statuses...</span>;
-   } else if(statuses.length >= 2) { 
-     return ( <Sent></Sent> )
-   } else return (<Pending></Pending>)
- }
- 
+  function GetStatuses() {
+    if (!statuses) {
+      return <span>Loading statuses...</span>;
+    } else if (statuses.length >= 2) {
+      return <Sent></Sent>;
+    } else return <Pending></Pending>;
+  }
+
   return (
     <div>
       <h5>

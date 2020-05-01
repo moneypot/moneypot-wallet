@@ -20,6 +20,8 @@ import ClaimableInfo from './claimable-info';
 import LightningInvoice from './lightning-invoice';
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
+import FeebumpSend from './send/feebump-send';
+import Backup from './backup';
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -49,10 +51,12 @@ export default function LoadedApp() {
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={Transactions} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
+            <Route path="/backup" exact component={Backup} />
             <Route path="/receive/lightning" exact component={ReceiveLightning} />
             <Route path="/addresses/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses" component={Addresses} />
             <Route path="/send" exact component={Send} />
+            <Route path="/feebump-send" exact component={FeebumpSend} />
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/lightning-invoice/:hash" component={LightningInvoice} />
             <Route path="/hookins" component={Hookins} />

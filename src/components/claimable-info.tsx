@@ -7,6 +7,8 @@ import * as hi from 'moneypot-lib';
 
 import { wallet, useClaimable, useClaimableStatuses } from '../state/wallet';
 import { notError } from '../util';
+import { Link } from 'react-router-dom';
+import StatusStuff from './StatusStuff';
 
 export default function ClaimableInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;
@@ -51,24 +53,31 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
 
   let kindOfClaimable = () => {
     if (claimableDoc.kind === 'LightningInvoice') {
-      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" claimableHash={claimableDoc.hash}/>;
+      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" claimableHash={claimableDoc.hash} />;
     }
-
-    return (
-      <div>
-        <h1>Kind: {claimableDoc.kind}</h1>
-        <hr />
-        {ackStatus()}
-        <button
-          onClick={() => {
-            wallet.discardClaimable(claimableDoc.hash);
-            props.history.push('/claimables');
-          }}
-        >
-          Discard!
-        </button>
-      </div>
-    );
+    if (claimableDoc.kind === 'Hookout' || claimableDoc.kind === 'Hookin' || claimableDoc.kind === 'FeeBump') {
+      return (
+        <React.Fragment>
+          <StatusStuff
+            claimableHash={claimableDoc.hash}
+            amount={claimableDoc.amount}
+            created={claimableDoc.created}
+            kind={claimableDoc.kind}
+            claimable={claimable.toPOD()}
+          ></StatusStuff>
+          <button
+            onClick={() => {
+              wallet.discardClaimable(claimableDoc.hash);
+              props.history.push('/claimables');
+            }}
+          >
+            Discard!
+          </button>
+          {<br />}
+          {<br />}
+        </React.Fragment>
+      );
+    }
   };
 
   return (
@@ -100,12 +109,15 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
           );
         })}
       </ul>
-      <button className="btn btn-light" onClick={() => wallet.requestStatuses(claimableHash)}>
-        Check for status updates
-      </button>
       <button className="btn btn-light" onClick={() => wallet.claimClaimable(claimable)}>
         Claim {claimableAmount} sats
-      </button>
+      </button>{' '}
+      <button className="btn btn-light" onClick={() => wallet.requestStatuses(claimableHash)}>
+        Check for status updates
+      </button>{' '}
+      <Link to="/feebump-send">
+        <button className="btn btn-secondary">Feebump this transaction!</button>
+      </Link>
     </div>
   );
 }

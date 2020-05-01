@@ -715,12 +715,14 @@ export default class Database extends EventEmitter {
   }
 
   public async sendHookout(priority: 'CUSTOM' | 'IMMEDIATE' | 'FREE' | 'BATCH', bitcoinAddress: string, amount: number, fee: number) {
-
     return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority), amount + fee);
   }
 
+  public async sendFeeBump(txid: Uint8Array, fee: number, amount: number) {
+    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.FeeBump({ inputs, amount, fee }, txid), amount + fee);
+  }
   private async sendAbstractTransfer(
-    cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout,
+    cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout | hi.FeeBump,
     totalToSend: number
   ): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
     const transaction = this.db.transaction(['events', 'coins', 'claimables'], 'readwrite');

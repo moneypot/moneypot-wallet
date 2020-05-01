@@ -8,6 +8,7 @@ import { useClaimableStatuses } from '../../state/wallet';
 import LightningInvoiceItem from './lightning-invoice-item';
 import HookinItem from './hookin-item';
 import HookoutItem from './hookout-item';
+import FeeBumpItem from './FeeBump-item';
 
 export default function TransactionItem({ claimable }: { claimable: Docs.Claimable }) {
   const statuses = useClaimableStatuses(claimable.hash);
@@ -20,6 +21,9 @@ export default function TransactionItem({ claimable }: { claimable: Docs.Claimab
   }
   if (claimable.kind === 'Hookout') {
     return <HookoutItem claimable={claimable} statuses={statuses} />;
+  }
+  if (claimable.kind === 'FeeBump') {
+    return <FeeBumpItem claimable={claimable} statuses={statuses} />;
   }
 
   function getAmount() {
