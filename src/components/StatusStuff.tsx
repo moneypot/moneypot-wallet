@@ -5,8 +5,7 @@ import CopyToClipboard from '../util/copy-to-clipboard';
 import * as hi from 'moneypot-lib';
 // import { useClaimableStatuses, useClaimable } from "../state/wallet";
 import { getStatusesByClaimable } from '../wallet/requests';
-
-import { wallet } from '../state/wallet';
+import { wallet, useClaimableStatuses } from '../state/wallet';
 
 // import getClaimableByClaimant from '../wallet/requests/get-claimable-by-claimant';
 
@@ -28,27 +27,27 @@ type isHookin = {
 type clhash = {
   claimableHash: string;
   kind: string;
-  hasLength: number;
+  // hasLength: number;
 };
 
 type kind = {
   kind: string;
 };
 
-const Pending = (props: kind) => {
-  if (props.kind === 'Hookin') {
+const Pending = ({ kind }: kind) => {
+  if (kind === 'Hookin') {
     return (
       <a href="#status" className="btn btn-outline-warning status-badge">
         Waiting for confirmation{' '}
       </a>
     );
-  } else if (props.kind === 'Hookout') {
+  } else if (kind === 'Hookout') {
     return (
       <a href="#status" className="btn btn-outline-warning status-badge">
         In queue!{' '}
       </a>
     );
-  } else if (props.kind === 'FeeBump') {
+  } else if (kind === 'FeeBump') {
     return (
       <a href="#status" className="btn btn-outline-warning status-badge">
         In queue!{' '}
@@ -58,47 +57,46 @@ const Pending = (props: kind) => {
   return <div>Not found!</div>;
 };
 
-// remove (TODO)
-
-const Failed = (props: kind) => {
-  if (props.kind === 'Hookin') {
+// not requesting the custodian for updates but instead relying on the wallet may cause false positives, so let's relax the tone..? (TODO)
+const Failed = ({ kind }: kind) => {
+  if (kind === 'Hookin') {
     return (
-      <a href="#status" className="btn btn-outline-danger status-badge">
-        Invalid Hookin!{' '}
+      <a href="#status" className="btn btn-outline-warning status-badge">
+        Hookin might be invalid! Please sync!{' '}
       </a>
     );
-  } else if (props.kind === 'Hookout') {
+  } else if (kind === 'Hookout') {
     return (
-      <a href="#status" className="btn btn-outline-danger status-badge">
-        Hookout failed! Please discard!{' '}
+      <a href="#status" className="btn btn-outline-warning status-badge">
+        Hookout might be invalid! Please sync!{' '}
       </a>
     );
-  } else if (props.kind === 'FeeBump') {
+  } else if (kind === 'FeeBump') {
     return (
-      <a href="#status" className="btn btn-outline-danger status-badge">
-        Feebump failed! please discard!
+      <a href="#status" className="btn btn-outline-warning status-badge">
+        Feebump might be invalid! Please sync!
       </a>
     );
   }
   return <div>Not found!</div>;
 };
 
-const Sent = (props: kind) => {
-  if (props.kind === 'Hookin') {
+const Sent = ({ kind }: kind) => {
+  if (kind === 'Hookin') {
     return (
       <a href="#status" className="btn btn-outline-success status-badge">
         {' '}
         Confirmed!{' '}
       </a>
     );
-  } else if (props.kind === 'Hookout') {
+  } else if (kind === 'Hookout') {
     return (
       <a href="#status" className="btn btn-outline-success status-badge">
         {' '}
         Sent!{' '}
       </a>
     );
-  } else if (props.kind === 'FeeBump') {
+  } else if (kind === 'FeeBump') {
     return (
       <a href="#status" className="btn btn-outline-success status-badge">
         {' '}
@@ -110,14 +108,17 @@ const Sent = (props: kind) => {
 };
 
 const GetStatuses = (props: clhash) => {
-  // const statuses = useClaimableStatuses(props.claimableHash);
-  const s = props.hasLength;
-  if (!s) {
-    return <Failed kind={props.kind} />;
-  } else if (s >= 2) {
+  const statuses = useClaimableStatuses(props.claimableHash);
+  // const s = props.hasLength;
+  if (!statuses) {
+    return null;
+  } else if (statuses.length >= 2) {
     return <Sent kind={props.kind} />;
-  } else if (s == 1) {
+  } else if (statuses.length == 1) {
     return <Pending kind={props.kind} />;
+  }
+  if (statuses.length === 0) {
+    return <Failed kind={props.kind} />;
   }
   return null;
 };
@@ -153,7 +154,7 @@ async function gettxid(a: string, e: string) {
       if ('contents' in element) {
         let txidstatus = element['contents'];
         if ('txid' in txidstatus) {
-          // todo: check if this always returns the last (first) txid in case of feebumps
+          // check if this always returns the last (first) txid in case of feebumps
           return hi.Buffutils.toHex(txidstatus['txid']);
         }
         //  else if (!("txid" in txidstatus)) {
@@ -167,14 +168,13 @@ async function gettxid(a: string, e: string) {
   }
 }
 
-// todo: cache
-const getStatuses = async (a: string) => {
-  const statuses = await getStatusesByClaimable(wallet.config, a);
-  return statuses.length;
-};
+// const getStatuses = async (a: string) => {
+//   const statuses = await getStatusesByClaimable(wallet.config, a);
+//   return statuses.length;
+// };
 
-const IsHookin = (props: isHookin) => {
-  if (props.kind === 'Hookin') {
+const IsHookin = ({ kind, current, claimable }: isHookin) => {
+  if (kind === 'Hookin') {
     return (
       <Row>
         <Col sm={{ size: 2, offset: 0 }}>
@@ -182,15 +182,15 @@ const IsHookin = (props: isHookin) => {
         </Col>
         <Col sm={{ size: 8, offset: 0 }}>
           <div className="claimable-text-container">
-            {props.claimable.txid}
-            <CopyToClipboard className="btn btn-light" style={{}} text={props.claimable.txid}>
+            {claimable.txid}
+            <CopyToClipboard className="btn btn-light" style={{}} text={claimable.txid}>
               <i className="fa fa-copy" />
             </CopyToClipboard>
           </div>
         </Col>
       </Row>
     );
-  } else
+  } else if (kind === 'Hookout' || kind === 'FeeBump') {
     return (
       <Row>
         <Col sm={{ size: 2, offset: 0 }}>
@@ -198,39 +198,72 @@ const IsHookin = (props: isHookin) => {
         </Col>
         <Col sm={{ size: 8, offset: 0 }}>
           <div className="claimable-text-container">
-            {props.current}
-            <CopyToClipboard className="btn btn-light" style={{}} text={props.current}>
+            {current}
+            <CopyToClipboard className="btn btn-light" style={{}} text={current}>
               <i className="fa fa-copy" />
             </CopyToClipboard>
           </div>
         </Col>
       </Row>
     );
+  }
+  return null;
 };
 
+const walletStatuses = async (claimablehash: string) => {
+  const statuses = await useClaimableStatuses(claimablehash);
+  if (statuses != undefined) {
+    return statuses;
+  } else return null;
+};
 export default function StatusStuff(props: StatusStuffProps) {
   const [CurrentTxid, setCurrentTxid] = useState('');
-  const [statusLength, setStatusLength] = useState(Number);
+  // const [statusLength, setStatusLength] = useState(Number);
   //  const [actualTxid, setactualTxid] = useState('')
+
+  const xyz = walletStatuses(props.claimableHash)
+    .then(data => {
+      if (data != null) {
+        return data;
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      return undefined;
+    });
   const a = async () => props.claimableHash;
   const e = async () => props.claimable.claimant;
   const amount = props.amount;
-
   useEffect(() => {
     const getData = async () => {
-      const data = await gettxid(await a(), await e());
-      if (data != undefined) {
-        setCurrentTxid(data);
+      const isReal = await xyz;
+      if (isReal != undefined) {
+        if (isReal.length > 1) {
+          // filter for txid. and if it is confirmed???
+          for (var i = isReal.length; i--; ) {
+            const element = isReal[i];
+            if ('txid' in element) {
+              let txidstatus = element['txid'];
+              // check if this always returns the last (first) txid in case of feebumps
+              setCurrentTxid(hi.Buffutils.toHex(txidstatus));
+            }
+          }
+        }
+      } else if (isReal === undefined) {
+        const data = await gettxid(await a(), await e());
+        if (data != undefined) {
+          setCurrentTxid(data);
+        }
       }
     };
     getData();
-    const getStatus = async () => {
-      const data = await getStatuses(await a());
-      if (data != undefined) {
-        setStatusLength(data);
-      }
-    };
-    getStatus();
+    // const getStatus = async () => {
+    //   const data = await getStatuses(await a());
+    //   if (data != undefined) {
+    //     setStatusLength(data);
+    //   }
+    // };
+    // getStatus();
   });
 
   const fee = () => {
@@ -242,11 +275,14 @@ export default function StatusStuff(props: StatusStuffProps) {
   };
   return (
     <div>
-      <h5>
-        {props.kind}
-      </h5>
+      <h5>{props.kind}</h5>
       <div className="inner-container">
-        <GetStatuses claimableHash={props.claimableHash} hasLength={statusLength} kind={props.kind}></GetStatuses>
+        <GetStatuses
+          claimableHash={props.claimableHash}
+          // hasLength={statusLength}
+          kind={props.kind}
+        />
+
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Address: </p>

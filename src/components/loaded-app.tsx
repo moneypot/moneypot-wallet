@@ -22,6 +22,7 @@ import Support from './support';
 import ReceiveLightning from './receive/lightning';
 import FeebumpSend from './send/feebump-send';
 import Backup from './backup';
+import Settings from './settings';
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -63,6 +64,7 @@ export default function LoadedApp() {
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
+            <Route path="/settings" exact component={Settings} />
             <Route path="/contact" render={props => <Page {...props} page="Contact" />} />
             <Route path="/support" render={props => <Support />} />
             <Route component={NoMatch} />

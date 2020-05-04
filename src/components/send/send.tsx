@@ -8,6 +8,17 @@ import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
 import BitcoinAmountInput from '../bitcoin-amount-input';
+import {
+  templateTransactionWeight,
+  legacyTransactionWeight,
+  segwitOutput,
+  wrappedTransactionWeight,
+  legacyOutput,
+  wrappedOutput,
+  segmultiOutput,
+  segmultiTransactionWeight,
+} from '../../config';
+import { decodeBitcoinAddress } from 'moneypot-lib';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -46,6 +57,10 @@ export default function Send({ history }: Props) {
   }
 
   function calcFee(): number {
+    const isType = decodeBitcoinAddress(toText);
+    if (isType instanceof Error) {
+      throw isType;
+    }
     if (sendType.kind === 'lightning') {
       return feeLimit;
     }
@@ -54,14 +69,39 @@ export default function Send({ history }: Props) {
       return 0;
     }
 
+    // check p2wsh sizes, also check if this holds up with dynamic feerates against the custodian (testnet is dull.).
+   
+   // ternary operators?...
     if (prioritySelection === 'IMMEDIATE') {
-      return feeSchedule.immediate;
+      if (isType.kind === 'p2pkh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * legacyTransactionWeight);
+      } else if (isType.kind === 'p2sh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * wrappedTransactionWeight);
+      } else if (isType.kind === 'p2wsh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * segmultiTransactionWeight);
+      }
+      return Math.ceil(feeSchedule.immediateFeeRate * templateTransactionWeight);
     }
     if (prioritySelection === 'BATCH') {
-      return feeSchedule.batch;
+      if (isType.kind === 'p2pkh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * legacyOutput);
+      } else if (isType.kind === 'p2sh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * wrappedOutput);
+      } else if (isType.kind === 'p2wsh') {
+        return Math.ceil(feeSchedule.immediateFeeRate * segmultiOutput);
+      }
+      return Math.ceil(feeSchedule.immediateFeeRate * segwitOutput);
     }
     if (prioritySelection === 'CUSTOM') {
-      return -1; // TODO:  what ever they Math.round(picked  * hi.Params.templateTransactionWeight)
+      if (isType.kind === 'p2pkh') {
+        return Math.ceil((Number(feeText) * legacyTransactionWeight) / 4);
+      } else if (isType.kind === 'p2sh') {
+        return Math.ceil((Number(feeText) * wrappedTransactionWeight) / 4);
+      } else if (isType.kind === 'p2wsh') {
+        return Math.ceil((Number(feeText) * segmultiTransactionWeight) / 4);
+      }
+      // does this work adequately
+      return Math.ceil((Number(feeText) * templateTransactionWeight) / 4); // TODO:  what ever they Math.round(picked  * hi.Params.templateTransactionWeight)
     }
     if (prioritySelection == 'FREE') {
       return 0;
@@ -112,7 +152,7 @@ export default function Send({ history }: Props) {
           </Col>
         </Row>
         <Row style={{ justifyContent: 'center' }}>
-          {feeSchedule && <small className="text-muted">This transaction will be sent with {feeSchedule.immediateFeeRate} sat/vbyte</small>}
+          {feeSchedule && <small className="text-muted">This transaction will be sent with {feeSchedule.immediateFeeRate * 4} sat/vbyte</small>}
         </Row>
       </div>
     );
@@ -139,7 +179,7 @@ export default function Send({ history }: Props) {
           </Col>
         </FormGroup>
         <Row style={{ justifyContent: 'center' }}>
-          <small className="text-muted">This transaction will be sent with ??? sat/vbyte and a ETA of ? blocks (?0 mins).</small>
+          <small className="text-muted">This transaction will be sent with {feeText} sat/vbyte and a ETA of ? blocks (?0 mins).</small>
         </Row>
       </div>
     );
@@ -232,7 +272,15 @@ export default function Send({ history }: Props) {
 
           <FormGroup row>
             <Col className="submit-button-container">
-              <Button id="AppSendButton" color="success" className="btn-moneypot" onClick={() => {send(); disableAfterClick()}}> 
+              <Button
+                id="AppSendButton"
+                color="success"
+                className="btn-moneypot"
+                onClick={() => {
+                  send();
+                  disableAfterClick();
+                }}
+              >
                 Send
               </Button>
             </Col>
@@ -244,7 +292,8 @@ export default function Send({ history }: Props) {
 }
 // this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
 function disableAfterClick() {
-  return (document.getElementById('AppSendButton') as HTMLInputElement).disabled = true;}
+  return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
+}
 
 function useFeeSchedule() {
   const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);

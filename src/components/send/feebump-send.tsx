@@ -1,6 +1,5 @@
 import React, { useState,  } from 'react';
 import * as hi from 'moneypot-lib';
-
 import { wallet, useBalance } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
@@ -19,9 +18,7 @@ interface Status {
   confirmed?: boolean;
 }
 
-// we can ask the server for txid, or blockstream? , placeholder
 // Should probably actually ask the custodian...?
-// todo
 function getTxData<T>(decodedTxid: string) {
   return fetch('https://blockstream.info/testnet/api/tx/' + decodedTxid).then(response => {
     if (!response.ok) {
@@ -73,9 +70,9 @@ export default function FeebumpSend({ history }: Props) {
     // It seems like feebump increase is by default 5 sat/b ? todo: check this
     const minFee = (myVal.weight / 4) * 5;
     if (amount < minFee) {
-      return minFee;
+      return Math.round(minFee);
     }
-    return amount;
+    return Math.round(amount);
   }
 
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
