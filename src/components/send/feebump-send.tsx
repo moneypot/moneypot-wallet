@@ -1,4 +1,4 @@
-import React, { useState,  } from 'react';
+import React, { useState, useEffect,  } from 'react';
 import * as hi from 'moneypot-lib';
 import { wallet, useBalance } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
@@ -28,10 +28,14 @@ function getTxData<T>(decodedTxid: string) {
   });
 }
 
-export default function FeebumpSend({ history }: Props) {
-  const [toText, setToText] = useState('');
-  const balance = useBalance();
-
+export default function FeebumpSend(props: any, { history }: Props) {
+  const hasTxid =  props.history.location.state.txid
+   const [toText, setToText] = useState('');
+   const balance = useBalance();
+    useEffect(() => {
+      setToText(hasTxid["CurrentTxid"]);
+    }, []);
+  
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'txid' } => {
     if (toText === '') {
       return { kind: 'empty' };

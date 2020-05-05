@@ -6,6 +6,7 @@ import * as hi from 'moneypot-lib';
 // import { useClaimableStatuses, useClaimable } from "../state/wallet";
 import { getStatusesByClaimable } from '../wallet/requests';
 import { wallet, useClaimableStatuses } from '../state/wallet';
+import { Link } from 'react-router-dom';
 
 // import getClaimableByClaimant from '../wallet/requests/get-claimable-by-claimant';
 
@@ -341,6 +342,9 @@ export default function StatusStuff(props: StatusStuffProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
+        <Link to={{pathname: '/feebump-send', state: {txid: {CurrentTxid}} }} >
+        <button className="btn btn-secondary">Feebump this transaction!</button>
+      </Link>
       </div>
     </div>
   );

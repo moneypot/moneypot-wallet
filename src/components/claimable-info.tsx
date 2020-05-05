@@ -7,7 +7,6 @@ import * as hi from 'moneypot-lib';
 
 import { wallet, useClaimable, useClaimableStatuses } from '../state/wallet';
 import { notError } from '../util';
-import { Link } from 'react-router-dom';
 import StatusStuff from './StatusStuff';
 
 export default function ClaimableInfo(props: RouteComponentProps<{ hash: string }>) {
@@ -64,7 +63,7 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
             created={claimableDoc.created}
             kind={claimableDoc.kind}
             claimable={claimable.toPOD()}
-          ></StatusStuff>
+          />
           <button
             onClick={() => {
               wallet.discardClaimable(claimableDoc.hash);
@@ -115,9 +114,6 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
       <button className="btn btn-light" onClick={() => wallet.requestStatuses(claimableHash)}>
         Check for status updates
       </button>{' '}
-      <Link to="/feebump-send">
-        <button className="btn btn-secondary">Feebump this transaction!</button>
-      </Link>
     </div>
   );
 }
