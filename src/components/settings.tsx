@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Form, Label, Input } from 'reactstrap';
+import { wallet } from '../state/wallet';
 
 // humble beginnings.
 export default function Settings(props: any) {
-  // get settings before loading component?
 
-  const hasSettings = () => {
-    if (localStorage.getItem('hasNested') != null) {
-      if (localStorage.getItem('hasNested') === 'true') {
-        return true;
-      } else return false;
-    }
-    return false;
-  };
-  // a plethora of setting states which i guess we just write to localstorage? zzz. bit ugly, will be applied across all wallets in the browser? todo.
-  //(note: Is using P2SH addresses even worth the hassle...?)
   const [Setting1, setSetting1] = useState(false);
   const updateOne = () => setSetting1(!Setting1);
-  console.log(Setting1);
   const [Setting2, setSetting2] = useState(false);
   const updateTwo = () => setSetting2(!Setting2);
   useEffect(() => {
-    setSetting1(hasSettings);
+    const hasSettings = () => {
+      if (localStorage.getItem(`${wallet.db.name}-hasNested`) != null) {
+        if (localStorage.getItem(`${wallet.db.name}-hasNested`) === 'true') {
+           setSetting1(true);
+        } else setSetting1(false);
+      }
+      if (localStorage.getItem(`${wallet.db.name}-setting2`) != null) {
+        if (localStorage.getItem(`${wallet.db.name}-setting2`) === 'true') {
+          setSetting2(true);
+        } else setSetting2(false);
+      }
+    };
+    hasSettings()
   }, []);
 
   const [modal, setModal] = useState(false);
@@ -29,13 +30,22 @@ export default function Settings(props: any) {
 
   const applysettings = () => {
     if (Setting1 === true) {
-      localStorage.setItem('hasNested', 'true');
+      localStorage.setItem(`${wallet.db.name}-hasNested`, 'true');
+      wallet.resetAddresses()
     } else if (Setting1 === false) {
-      localStorage.setItem('hasNested', 'false');
+      localStorage.setItem(`${wallet.db.name}-hasNested`, 'false');
+      wallet.resetAddresses()
+    }
+    if(Setting2 === true) { 
+      localStorage.setItem(`${wallet.db.name}-setting2`, 'true');
+    } else if(Setting2 === false) {
+      localStorage.setItem(`${wallet.db.name}-setting2`, 'false');
     }
   };
 
   //template, todo
+  // switching addresstypes causes the wallet to only sync public keys to the chosen address type. 
+  //(todo: sync both? maybe? I don't think we should mix up address types anyway..?)
   return (
     <React.Fragment>
       <div>
@@ -43,7 +53,7 @@ export default function Settings(props: any) {
         <div className="inner-container">
           <p>
             Within Moneypot, there are a number of settings you can change. <br /> <br /> For example, if your current wallet does not support sending to native
-            segwit (Addresses starting with bc1...), you can also use nested segwit (These start with 3...){' '}
+            segwit (These start with bc1..), you can also use nested segwit (These start with 3...){' '}
           </p>
           <small>
             We do recommend you use bech32 (native segwit) addresses as it greatly reduces fees!{' '}
@@ -56,7 +66,13 @@ export default function Settings(props: any) {
           <Form>
             <FormGroup check>
               <Label check>
-                <Input id="setting1" type="checkbox" onChange={updateOne} checked={Setting1} /> Switch newly generated addresses to P2SH-P2WPKH.
+                <Input id="setting1" type="checkbox" onChange={updateOne} checked={Setting1} /> Switch to P2SH-P2WPKH address format. (3...).
+               <p><b>Note:</b> you should only do this if you have not yet received any Ƀ in this particular wallet!</p> 
+              </Label> 
+              <br/>
+              <Label check>
+                <Input id="setting2" type="checkbox" onChange={updateTwo} checked={Setting2} /> ...
+               <p><b>Note:</b> ...</p> 
               </Label>
             </FormGroup>
             <br />
@@ -65,11 +81,10 @@ export default function Settings(props: any) {
               className="btn btn-secondary"
               onClick={() => {
                 toggle();
-                // remove soon
                 applysettings();
               }}
             >
-              Submit Changes
+              Save Changes
             </Button>
           </Form>
         </div>
@@ -77,7 +92,7 @@ export default function Settings(props: any) {
 
       <Modal isOpen={modal} toggle={toggle} className="someModal">
         <ModalHeader toggle={toggle}>Applying Settings.... Brrrt.</ModalHeader>
-        <ModalBody>Are you sure you want to apply these settings?  (todo: modal based on different settings..?))Changing ("""") Might increase the consolidation fees you pay when hooking in!</ModalBody>
+        <ModalBody>Are you sure you want to apply these settings? for example, switching to P2SH addresses will result in higher consolidation fees when hooking in!</ModalBody>
         <ModalFooter>
           <Button color="primary" onClick={toggle}>
             I understand..

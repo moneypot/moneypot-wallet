@@ -367,6 +367,9 @@ export default class Database extends EventEmitter {
 
     return invoiceDoc;
   }
+  public async resetAddresses() { 
+    await this.db.clear("bitcoinAddresses")
+  }
 
   public async reset() {
     for (const store of this.db.objectStoreNames) {
@@ -771,7 +774,7 @@ export default class Database extends EventEmitter {
   //   const claimant = this.config.bitcoinAddressGenerator().derive(n);
   //   const claimantPub = claimant.toPublicKey();
 
-  //   const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
+  //   const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.bzuffer).buffer;
   //   const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
 
   //   const tweakPubkey = tweak.toPublicKey();
@@ -786,9 +789,13 @@ export default class Database extends EventEmitter {
     const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
 
     const tweakPubkey = tweak.toPublicKey();
-
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
 
+    if (localStorage.getItem(`${this.db.name}-hasNested`) !== null) {
+      if (localStorage.getItem(`${this.db.name}-hasNested`) === 'true') {
+        return pubkey.toNestedBitcoinAddress();
+      }
+    }
     return pubkey.toBitcoinAddress();
   }
 

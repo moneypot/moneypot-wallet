@@ -269,6 +269,10 @@ export default function StatusStuff(props: StatusStuffProps) {
 
   const fee = () => {
     if (props.kind === 'Hookin') {
+      // we can also ask the custodian but let's just do this for now. (It won't be dynamic anyway and i don't think we want to send too many req's to the custodian for a const value anyway?)
+       if(addressType(props.claimable["bitcoinAddress"]) === "p2sh"){
+         return 500
+       }
       return 100; // return consolidation fee
     } else if (props.kind === 'Hookout' || props.kind === 'FeeBump') {
       return props.claimable.fee;
@@ -342,10 +346,29 @@ export default function StatusStuff(props: StatusStuffProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
+        <br/>
+        {props.kind == "Hookout" || props.kind == "FeeBump" ? 
         <Link to={{pathname: '/feebump-send', state: {txid: {CurrentTxid}} }} >
         <button className="btn btn-secondary">Feebump this transaction!</button>
-      </Link>
+      </Link> : null
+         }
       </div>
     </div>
   );
+}
+
+// good enough
+function addressType(address: string) {
+  if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
+    return 'legacy';
+  }
+  if (address.startsWith('2') || address.startsWith('3')) {
+    return 'p2sh';
+  }
+  if (address.startsWith('tb1') || address.startsWith('bc1')) {
+   //don't need p2wsh
+    return 'bech32';
+  }
+
+  throw new Error('unrecognized address: ' + address);
 }
