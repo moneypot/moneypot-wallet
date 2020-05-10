@@ -3,12 +3,9 @@ import { Col, Row } from 'reactstrap';
 import CopyToClipboard from '../util/copy-to-clipboard';
 
 import * as hi from 'moneypot-lib';
-// import { useClaimableStatuses, useClaimable } from "../state/wallet";
 import { getStatusesByClaimable } from '../wallet/requests';
 import { wallet, useClaimableStatuses } from '../state/wallet';
 import { Link } from 'react-router-dom';
-
-// import getClaimableByClaimant from '../wallet/requests/get-claimable-by-claimant';
 
 type StatusStuffProps = {
   claimableHash: string;
@@ -35,146 +32,78 @@ type kind = {
   kind: string;
 };
 
-const Pending = ({ kind }: kind) => {
-  if (kind === 'Hookin') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Waiting for confirmation{' '}
-      </a>
-    );
-  } else if (kind === 'Hookout') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        In queue!{' '}
-      </a>
-    );
-  } else if (kind === 'FeeBump') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        In queue!{' '}
-      </a>
-    );
-  }
-  return <div>Not found!</div>;
+const Pending = ({ kind }: kind): JSX.Element => {
+  return kind === 'Hookin' ? (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+      Waiting for confirmation!{" "} <i className="fad fa-question"/>
+    </a>
+  ) : kind === 'Hookout' || kind === 'FeeBump' ? (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+      In queue!{" "} <i className="fad fa-question"/>
+    </a>
+  ) : <></>;
 };
 
-// not requesting the custodian for updates but instead relying on the wallet may cause false positives, so let's relax the tone..? (TODO)
-const Failed = ({ kind }: kind) => {
-  if (kind === 'Hookin') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Hookin might be invalid! Please sync!{' '}
-      </a>
-    );
-  } else if (kind === 'Hookout') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Hookout might be invalid! Please sync!{' '}
-      </a>
-    );
-  } else if (kind === 'FeeBump') {
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Feebump might be invalid! Please sync!
-      </a>
-    );
-  }
-  return <div>Not found!</div>;
+// not requesting the custodian for updates but instead relying on the wallet may cause false positives, so let's relax the tone..?
+const Failed = ({ kind }: kind): JSX.Element => {
+  return kind === 'Hookin' ? (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+      Hookin might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+    </a>
+  ) : kind === 'Hookout' ? (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+      Hookout might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+    </a>
+  ) : kind === 'FeeBump' ? (
+    <a href="#status" className="btn btn-outline-warning status-badge">
+      Feebump might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+    </a>
+  ) : <></>;
 };
 
-const Sent = ({ kind }: kind) => {
-  if (kind === 'Hookin') {
-    return (
-      <a href="#status" className="btn btn-outline-success status-badge">
-        {' '}
-        Confirmed!{' '}
-      </a>
-    );
-  } else if (kind === 'Hookout') {
-    return (
-      <a href="#status" className="btn btn-outline-success status-badge">
-        {' '}
-        Sent!{' '}
-      </a>
-    );
-  } else if (kind === 'FeeBump') {
-    return (
-      <a href="#status" className="btn btn-outline-success status-badge">
-        {' '}
-        Sent!{' '}
-      </a>
-    );
-  }
-  return <div>Not found!</div>;
+const Sent = ({ kind }: kind): JSX.Element => {
+  return kind === 'Hookin' ? (
+    <a href="#status" className="btn btn-outline-success status-badge">
+      Confirmed!{" "} <i className="fad fa-check"/>
+    </a>
+  ) : kind === 'Hookout' || kind === 'FeeBump' ? (
+    <a href="#status" className="btn btn-outline-success status-badge">
+      Sent!{" "}   <i className="fad fa-check"/>
+    </a>
+  ) : <></>;
 };
 
-const GetStatuses = (props: clhash) => {
+const GetStatuses = (props: clhash): JSX.Element => {
   const statuses = useClaimableStatuses(props.claimableHash);
-  // const s = props.hasLength;
-  if (!statuses) {
-    return null;
-  } else if (statuses.length >= 2) {
-    return <Sent kind={props.kind} />;
-  } else if (statuses.length == 1) {
-    return <Pending kind={props.kind} />;
-  }
-  if (statuses.length === 0) {
-    return <Failed kind={props.kind} />;
-  }
-  return null;
+  return (!(statuses)) ? <></> : statuses.length >= 2 ? (
+    <Sent kind={props.kind}></Sent>
+  ) : statuses.length === 1 ? (
+    <Pending kind={props.kind}></Pending>
+  ) : statuses.length === 0 ? (
+    <Failed kind={props.kind}></Failed>
+  ) : <></>;
 };
 
-// async function txid(claimableHashProp: string) {
-//   let statuses = useClaimableStatuses(claimableHashProp)
-//   if(!statuses) {
-//   } else if(statuses.length >= 0){
-//   for (let index = 0; index < statuses.length; index++) {
-//  const element = statuses[index];
-//    if('txid' in element) {
-//   // return (element['txid'])
-// }}}}
-// else if('contents' in claimable) {
-//   let gettxid = claimable['contents']
-//   if('txid' in gettxid) {
-//     return hi.Buffutils.toHex(gettxid['txid'])
-//   }
-// }
-
-// TODO: cache reqs??
-async function gettxid(a: string, e: string) {
+async function gettxid(a: string): Promise<string | undefined> {
   const statuses = await getStatusesByClaimable(wallet.config, a);
-  // const claimable = await getClaimableByClaimant(wallet.config, e);
-  // if (!claimable) {
-  //   return null;
-  // }
+  // if the function is called anyway, lets fetch new statuses.
+  wallet.requestStatuses(a);
   if (!statuses) {
-    return null;
+    return undefined;
   } else if (statuses.length > 0) {
     for (var i = statuses.length; i--; ) {
       const element = statuses[i];
       if ('contents' in element) {
-        let txidstatus = element['contents'];
+        let txidstatus = element.contents;
         if ('txid' in txidstatus) {
-          // check if this always returns the last (first) txid in case of feebumps
-          return hi.Buffutils.toHex(txidstatus['txid']);
+          return hi.Buffutils.toHex(txidstatus.txid);
         }
-        //  else if (!("txid" in txidstatus)) {
-        //   let hookin = claimable["contents"];
-        //   if ("txid" in hookin) {
-        //     return hi.Buffutils.toHex(hookin["txid"]);
-        //   }
-        // }
       }
     }
   }
 }
 
-// const getStatuses = async (a: string) => {
-//   const statuses = await getStatusesByClaimable(wallet.config, a);
-//   return statuses.length;
-// };
-
-const IsHookin = ({ kind, current, claimable }: isHookin) => {
+const IsHookin = ({ kind, current, claimable }: isHookin): JSX.Element => {
   if (kind === 'Hookin') {
     return (
       <Row>
@@ -208,19 +137,17 @@ const IsHookin = ({ kind, current, claimable }: isHookin) => {
       </Row>
     );
   }
-  return null;
+  return <></>;
 };
 
-const walletStatuses = async (claimablehash: string) => {
+const walletStatuses = async (claimablehash: string): Promise<hi.Status[] | undefined>  => {
   const statuses = await useClaimableStatuses(claimablehash);
   if (statuses != undefined) {
     return statuses;
-  } else return null;
+  } else return undefined;
 };
-export default function StatusStuff(props: StatusStuffProps) {
+export default function StatusStuff(props: StatusStuffProps): JSX.Element {
   const [CurrentTxid, setCurrentTxid] = useState('');
-  // const [statusLength, setStatusLength] = useState(Number);
-  //  const [actualTxid, setactualTxid] = useState('')
 
   const xyz = walletStatuses(props.claimableHash)
     .then(data => {
@@ -232,51 +159,43 @@ export default function StatusStuff(props: StatusStuffProps) {
       console.error(error);
       return undefined;
     });
-  const a = async () => props.claimableHash;
-  const e = async () => props.claimable.claimant;
-  const amount = props.amount;
+
   useEffect(() => {
-    const getData = async () => {
+    const getData = async (): Promise<void> => {
       const isReal = await xyz;
       if (isReal != undefined) {
         if (isReal.length > 1) {
-          // filter for txid. and if it is confirmed???
+          // TODO: we don't check for feebumps..?
           for (var i = isReal.length; i--; ) {
             const element = isReal[i];
             if ('txid' in element) {
-              let txidstatus = element['txid'];
+              let txidstatus = element.txid;
               // check if this always returns the last (first) txid in case of feebumps
               setCurrentTxid(hi.Buffutils.toHex(txidstatus));
             }
           }
         }
-      } else if (isReal === undefined) {
-        const data = await gettxid(await a(), await e());
+      }
+      // if undefined or length = 0, 1
+      else {
+        const data = await gettxid(props.claimableHash);
+        console.log(data);
         if (data != undefined) {
           setCurrentTxid(data);
+        } else {
+          setCurrentTxid('');
         }
       }
     };
     getData();
-    // const getStatus = async () => {
-    //   const data = await getStatuses(await a());
-    //   if (data != undefined) {
-    //     setStatusLength(data);
-    //   }
-    // };
-    // getStatus();
   });
 
-  const fee = () => {
+  const fee = (): number => {
     if (props.kind === 'Hookin') {
       // we can also ask the custodian but let's just do this for now. (It won't be dynamic anyway and i don't think we want to send too many req's to the custodian for a const value anyway?)
-       if(addressType(props.claimable["bitcoinAddress"]) === "p2sh"){
-         return 500
-       }
-      return 100; // return consolidation fee
-    } else if (props.kind === 'Hookout' || props.kind === 'FeeBump') {
-      return props.claimable.fee;
-    }
+     return addressType(props.claimable.bitcoinAddress) === 'p2sh' ? 500 : 100
+    } 
+    else return props.kind === 'Hookout' || props.kind === "Feebump" ? props.claimable.fee : 100
   };
   return (
     <div>
@@ -287,16 +206,22 @@ export default function StatusStuff(props: StatusStuffProps) {
           // hasLength={statusLength}
           kind={props.kind}
         />
-
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Address: </p>
+            {props.kind === 'Hookout' || props.kind === 'Hookin' ? (
+              <p className="address-title">Address: </p>
+            ) : (
+              <p className="address-title">Original TXID: </p>
+            )}
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {props.claimable.bitcoinAddress}
-
-              <CopyToClipboard className="btn btn-light" style={{}} text={props.claimable.bitcoinAddress}>
+              {props.kind === 'Hookout' || props.kind === 'Hookin' ? props.claimable.bitcoinAddress : props.claimable.txid}
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={props.kind === 'Hookout' || props.kind === 'Hookin' ? props.claimable.bitcoinAddress : props.claimable.txid}
+              >
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
@@ -309,8 +234,8 @@ export default function StatusStuff(props: StatusStuffProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {`${amount} sat`}
-              <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
+              {`${props.amount} sat`}
+              <CopyToClipboard className="btn btn-light" style={{}} text={props.amount.toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
@@ -324,7 +249,7 @@ export default function StatusStuff(props: StatusStuffProps) {
             <div className="claimable-text-container">
               {`${fee()} sat`}
 
-              <CopyToClipboard className="btn btn-light" style={{}} text={fee()}>
+              <CopyToClipboard className="btn btn-light" style={{}} text={fee().toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
@@ -346,19 +271,19 @@ export default function StatusStuff(props: StatusStuffProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        <br/>
-        {props.kind == "Hookout" || props.kind == "FeeBump" ? 
-        <Link to={{pathname: '/feebump-send', state: {txid: {CurrentTxid}} }} >
-        <button className="btn btn-secondary">Feebump this transaction!</button>
-      </Link> : null
-         }
+        <br />
+        {props.kind == 'Hookout' || props.kind == 'FeeBump' ? (
+          <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
+            <button className="btn btn-secondary">Feebump this transaction!</button>
+          </Link>
+        ) : null}
       </div>
     </div>
   );
 }
 
 // good enough
-function addressType(address: string) {
+function addressType(address: string): string {
   if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
     return 'legacy';
   }

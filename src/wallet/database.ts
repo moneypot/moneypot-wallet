@@ -367,8 +367,8 @@ export default class Database extends EventEmitter {
 
     return invoiceDoc;
   }
-  public async resetAddresses() { 
-    await this.db.clear("bitcoinAddresses")
+  public async resetAddresses() {
+    await this.db.clear('bitcoinAddresses');
   }
 
   public async reset() {
@@ -717,8 +717,8 @@ export default class Database extends EventEmitter {
     return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.LightningPayment({ inputs, amount, fee }, paymentRequest), amount + fee);
   }
 
-  public async sendHookout(priority: 'CUSTOM' | 'IMMEDIATE' | 'FREE' | 'BATCH', bitcoinAddress: string, amount: number, fee: number) {
-    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority), amount + fee);
+  public async sendHookout(priority: 'CUSTOM' | 'IMMEDIATE' | 'FREE' | 'BATCH', bitcoinAddress: string, amount: number, fee: number, rbf: boolean) {
+    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority, rbf), amount + fee);
   }
 
   public async sendFeeBump(txid: Uint8Array, fee: number, amount: number) {
@@ -791,8 +791,8 @@ export default class Database extends EventEmitter {
     const tweakPubkey = tweak.toPublicKey();
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
 
-    if (localStorage.getItem(`${this.db.name}-hasNested`) !== null) {
-      if (localStorage.getItem(`${this.db.name}-hasNested`) === 'true') {
+    if (localStorage.getItem(`${this.db.name}-setting1-hasNested`) !== null) {
+      if (localStorage.getItem(`${this.db.name}-setting1-hasNested`) === 'true') {
         return pubkey.toNestedBitcoinAddress();
       }
     }

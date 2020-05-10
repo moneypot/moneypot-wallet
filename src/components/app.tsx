@@ -23,7 +23,7 @@ export default function App() {
   if (!existingDbs) {
     return <p>Loading...</p>;
   }
-  if (existingDbs.length < 1 && window.location.pathname !== "/restore") {
+  if (existingDbs.length < 1 && window.location.pathname !== '/restore') {
     return <CreateWallet setIsWalletSet={setIsWalletSet} />;
   }
 

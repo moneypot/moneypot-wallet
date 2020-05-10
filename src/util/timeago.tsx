@@ -19,15 +19,15 @@ export default function Timeago({ date }: Props) {
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const toggle = () => setTooltipOpen(!tooltipOpen);
-
+  // on hover it returns all tooltips. todo: dynid or just remove
   return (
     <div>
       <div style={{ textDecoration: 'underline' }} id="TooltipExample">
         {timeAgo.format(date)}
       </div>
-      <Tooltip placement="top" isOpen={tooltipOpen} target="TooltipExample" toggle={toggle}>
+      {/* <Tooltip placement="top" isOpen={tooltipOpen} target="TooltipExample" toggle={toggle}>
         {date.toISOString()}
-      </Tooltip>
+      </Tooltip> */}
     </div>
   );
 }

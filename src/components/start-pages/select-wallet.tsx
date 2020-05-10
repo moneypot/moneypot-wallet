@@ -51,12 +51,12 @@ export default function SelectWallet(props: any) {
           </Col>
         </FormGroup>
         <FormGroup>
-        <Col className="submit-button-container">
+          <Col className="submit-button-container">
             <Link className="btn-moneypot btn btn-success" to="/restore">
               <i className="fa fa-plus-circle" /> Restore wallet
             </Link>
           </Col>
-          </FormGroup>
+        </FormGroup>
       </div>
     </div>
   );

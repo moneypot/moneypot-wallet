@@ -13,21 +13,6 @@ type LightningInvoiceProps = {
   claimableHash: string;
 };
 
-const Pending = () => {
-  return (
-    <a href="#status" className="btn btn-outline-warning status-badge">
-      Pending
-    </a>
-  );
-};
-const Sent = () => {
-  return (
-    <a href="#status" className="btn btn-outline-success status-badge">
-      Received!
-    </a>
-  );
-};
-
 export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
   const statuses = useClaimableStatuses(props.claimableHash);
@@ -36,8 +21,17 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
     if (!statuses) {
       return <span>Loading statuses...</span>;
     } else if (statuses.length >= 2) {
-      return <Sent></Sent>;
-    } else return <Pending></Pending>;
+      return (
+        <a href="#status" className="btn btn-outline-success status-badge">
+          Received!
+        </a>
+      );
+    } else
+      return (
+        <a href="#status" className="btn btn-outline-warning status-badge">
+          Pending
+        </a>
+      );
   }
 
   return (

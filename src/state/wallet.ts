@@ -117,6 +117,22 @@ export function useCoins(): Docs.Coin[] {
 
   return claimed;
 }
+// bad typing on purpose..
+export function getAllClaimables(): any {
+  const [claimed, setClaimed] = useState<any[]>([]);
+
+  async function get() {
+    const coins = await wallet.db.getAll('claimables');
+    setClaimed(coins);
+  }
+  useEffect(() => {
+    const cleanup = wallet.on('table:claimables', get);
+    get();
+    return cleanup;
+  }, []);
+
+  return claimed;
+}
 
 export function useBalance(): number {
   const [balance, setBalance] = useState(0);

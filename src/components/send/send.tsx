@@ -22,6 +22,8 @@ import { decodeBitcoinAddress } from 'moneypot-lib';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
+  const [isRBF, setRBF] = useState(true);
+  const updateRBF = () => setRBF(!isRBF);
   const feeSchedule = useFeeSchedule();
   const [toText, setToText] = useState('');
   const [amountInput, setAmountInput] = useState(0);
@@ -29,6 +31,13 @@ export default function Send({ history }: Props) {
   const [feeText, setFeeText] = useState('');
   const [feeLimit, setFeeLimit] = useState(100);
   const balance = useBalance();
+  useEffect(() => {
+    if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) != null) {
+      if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) === 'true') {
+        setRBF(false);
+      }
+    }
+  }, []);
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'lightning'; amount: number } | { kind: 'bitcoin' } => {
     if (toText === '') {
@@ -70,38 +79,32 @@ export default function Send({ history }: Props) {
     }
 
     // check p2wsh sizes, also check if this holds up with dynamic feerates against the custodian (testnet is dull.).
-   
-   // ternary operators?...
     if (prioritySelection === 'IMMEDIATE') {
-      if (isType.kind === 'p2pkh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * legacyTransactionWeight);
-      } else if (isType.kind === 'p2sh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * wrappedTransactionWeight);
-      } else if (isType.kind === 'p2wsh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * segmultiTransactionWeight);
-      }
-      return Math.ceil(feeSchedule.immediateFeeRate * templateTransactionWeight);
+      return isType.kind === 'p2pkh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * legacyTransactionWeight)
+        : isType.kind === 'p2sh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * wrappedTransactionWeight)
+        : isType.kind === 'p2wsh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * segmultiTransactionWeight)
+        : Math.ceil(feeSchedule.immediateFeeRate * templateTransactionWeight);
     }
     if (prioritySelection === 'BATCH') {
-      if (isType.kind === 'p2pkh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * legacyOutput);
-      } else if (isType.kind === 'p2sh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * wrappedOutput);
-      } else if (isType.kind === 'p2wsh') {
-        return Math.ceil(feeSchedule.immediateFeeRate * segmultiOutput);
-      }
-      return Math.ceil(feeSchedule.immediateFeeRate * segwitOutput);
+      return isType.kind === 'p2pkh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * legacyOutput)
+        : isType.kind === 'p2sh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * wrappedOutput)
+        : isType.kind === 'p2wsh'
+        ? Math.ceil(feeSchedule.immediateFeeRate * segmultiOutput)
+        : Math.ceil(feeSchedule.immediateFeeRate * segwitOutput);
     }
     if (prioritySelection === 'CUSTOM') {
-      if (isType.kind === 'p2pkh') {
-        return Math.ceil((Number(feeText) * legacyTransactionWeight) / 4);
-      } else if (isType.kind === 'p2sh') {
-        return Math.ceil((Number(feeText) * wrappedTransactionWeight) / 4);
-      } else if (isType.kind === 'p2wsh') {
-        return Math.ceil((Number(feeText) * segmultiTransactionWeight) / 4);
-      }
-      // does this work adequately
-      return Math.ceil((Number(feeText) * templateTransactionWeight) / 4); // TODO:  what ever they Math.round(picked  * hi.Params.templateTransactionWeight)
+      return isType.kind === 'p2pkh'
+        ? Math.ceil((Number(feeText) * legacyTransactionWeight) / 4)
+        : isType.kind === 'p2sh'
+        ? Math.ceil((Number(feeText) * wrappedTransactionWeight) / 4)
+        : isType.kind === 'p2wsh'
+        ? Math.ceil((Number(feeText) * segmultiTransactionWeight) / 4)
+        : Math.ceil((Number(feeText) * templateTransactionWeight) / 4);
     }
     if (prioritySelection == 'FREE') {
       return 0;
@@ -119,6 +122,10 @@ export default function Send({ history }: Props) {
 
   async function send() {
     const amount = getAmount();
+    const disableRBF = () => {
+      return prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE' ? isRBF : true;
+      // batched and free transactions aren't initiators anyway
+    };
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('invalid amount');
       return;
@@ -129,7 +136,7 @@ export default function Send({ history }: Props) {
       console.log('sending lightning payment: ', toText, amount, calcFee());
       transferHash = await wallet.sendLightningPayment(toText, amount, calcFee());
     } else {
-      transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee());
+      transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee(), disableRBF());
     }
 
     if (typeof transferHash === 'string') {
@@ -264,6 +271,14 @@ export default function Send({ history }: Props) {
             <Col sm={{ size: 9, offset: 0 }}>
               <BitcoinAmountInput onAmountChange={setAmountInput} max={maxAmount} amount={(sendType.kind === 'lightning' && sendType.amount) || undefined} />
             </Col>
+          </FormGroup>
+          <FormGroup check>
+            <Label check>
+              <Input id="setting1" type="checkbox" onChange={updateRBF} checked={!isRBF} /> Disable RBF when sending immediate transactions.
+              <p>
+                <b>Note:</b> you will be unable to feebump it. A usecase for this would be if you wanted to use 0-conf at any exchange, shop, or casino.
+              </p>
+            </Label>
           </FormGroup>
 
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
