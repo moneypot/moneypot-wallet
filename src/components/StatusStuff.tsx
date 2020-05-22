@@ -76,11 +76,11 @@ const Sent = ({ kind }: kind): JSX.Element => {
 const GetStatuses = (props: clhash): JSX.Element => {
   const statuses = useClaimableStatuses(props.claimableHash);
   return (!(statuses)) ? <></> : statuses.length >= 2 ? (
-    <Sent kind={props.kind}></Sent>
+    <Sent kind={props.kind}/>
   ) : statuses.length === 1 ? (
-    <Pending kind={props.kind}></Pending>
+    <Pending kind={props.kind}/>
   ) : statuses.length === 0 ? (
-    <Failed kind={props.kind}></Failed>
+    <Failed kind={props.kind}/>
   ) : <></>;
 };
 
@@ -149,7 +149,7 @@ const walletStatuses = async (claimablehash: string): Promise<hi.Status[] | unde
 export default function StatusStuff(props: StatusStuffProps): JSX.Element {
   const [CurrentTxid, setCurrentTxid] = useState('');
 
-  const xyz = walletStatuses(props.claimableHash)
+  const getAlreadyStoredStatuses = walletStatuses(props.claimableHash)
     .then(data => {
       if (data != null) {
         return data;
@@ -162,7 +162,7 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      const isReal = await xyz;
+      const isReal = await getAlreadyStoredStatuses;
       if (isReal != undefined) {
         if (isReal.length > 1) {
           // TODO: we don't check for feebumps..?
@@ -174,16 +174,13 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
               setCurrentTxid(hi.Buffutils.toHex(txidstatus));
             }
           }
-        }
-      }
-      // if undefined or length = 0, 1
-      else {
-        const data = await gettxid(props.claimableHash);
-        console.log(data);
-        if (data != undefined) {
-          setCurrentTxid(data);
         } else {
-          setCurrentTxid('');
+          const data = await gettxid(props.claimableHash);
+          if (data != undefined) {
+            setCurrentTxid(data);
+          } else {
+            setCurrentTxid('');
+          }
         }
       }
     };
