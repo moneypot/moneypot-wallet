@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
 import LightningInvoice from './lightning-invoice';
+import LightningPayment from './lightning-payment'
 import DevDataDisplay from './dev-data-display';
 
 import * as hi from 'moneypot-lib';
@@ -53,6 +54,8 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
   let kindOfClaimable = () => {
     if (claimableDoc.kind === 'LightningInvoice') {
       return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" claimableHash={claimableDoc.hash} />;
+    } else if (claimableDoc.kind === "LightningPayment") { 
+      return <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash}></LightningPayment>
     }
     if (claimableDoc.kind === 'Hookout' || claimableDoc.kind === 'Hookin' || claimableDoc.kind === 'FeeBump') {
       return (

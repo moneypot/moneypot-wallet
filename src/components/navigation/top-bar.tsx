@@ -48,6 +48,11 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
                 Settings
               </Link>
             </NavItem>
+            <NavItem>
+              <Link className="nav-link" to="/faq">
+                FAQ / General  
+              </Link>
+            </NavItem>
             <NavItem className="new-section">
               <Link className="nav-link" to="/addresses">
                 Addresses

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 // @ts-ignore
 import { TheQr } from "@the-/ui-qr";
 import { Col, Row } from "reactstrap";
@@ -8,7 +8,8 @@ import * as mp from "moneypot-lib";
 import { useClaimableStatuses, wallet } from "../state/wallet";
 import { notError } from "../util";
 import { getStatusesByClaimable } from "../wallet/requests";
-import InvoiceSettled from "moneypot-lib/dist/status/invoice-settled";
+import Failed from "moneypot-lib/dist/status/failed";
+import LightningPaymentSent from "moneypot-lib/dist/status/lightning-payment-sent";
 type LightningInvoiceProps = {
   paymentRequest: string;
   memo: string;
@@ -16,49 +17,50 @@ type LightningInvoiceProps = {
   claimableHash: string;
 };
 
-// export interface InvoiceSettled {
-//   kind: string;
-//   hash: string;
-//   claimableHash: string;
-//   amount: number;
-//   rPreimage: string;
-//   time: Date;
-// }
-
-export default function LightningInvoice(props: LightningInvoiceProps) {
+export default function LightningPayment(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
   const statuses = useClaimableStatuses(props.claimableHash);
 
-  // this is not that interesting, just placeholders. maybe we want to call the custodian for transfer hashes
-  const [hasInvoiceSettled, setInvoiceSettled] = useState<InvoiceSettled>(
+  const [paymentStatusFailed, setPaymentStatusFailed] = useState<Failed>(
     Object
   );
-  const [hasPreimage, setPreimage] = useState("");
-
+  const [paymentStatusSuccess, setPaymentStatusSuccess] = useState<
+    LightningPaymentSent
+  >(Object);
+  const [paymentPreimage, setpaymentPreimage] = useState("");
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
-  let description;
+  //   let description;
+  //   for (const tag of pro.tags) {
+  //     if (tag.tagName === 'description') {
+  //       description = tag.data;
+  //     }
+  //   }
+  let payment_hash;
   for (const tag of pro.tags) {
-    if (tag.tagName === "description") {
-      description = tag.data;
+    if (tag.tagName === "payment_hash") {
+      payment_hash = tag.data;
     }
   }
 
-  // we need to build a bit of a makeshift fetching solution to continously check if the invoice has been paid and claimed. (Simply getstatuses against the custodian..)
+  let hash = payment_hash != null ? payment_hash : "";
+
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses != undefined) {
         if (statuses.length > 1) {
           for (var i = statuses.length; i--; ) {
             const element = statuses[i];
-            if ("rPreimage" in element) {
-              setInvoiceSettled(element);
-              setPreimage(mp.Buffutils.toHex(element.rPreimage));
+            if ("reason" in element) {
+              setPaymentStatusFailed(element);
+            } else if ("totalFees" in element) {
+              setPaymentStatusSuccess(element);
+              setpaymentPreimage(mp.Buffutils.toHex(element.paymentPreimage));
             }
           }
         } else if (statuses.length <= 1) {
           // get statuses...
           const data = await getNewStatuses(props.claimableHash);
-          console.log(data); // fetch this todo
+          console.log(data)// fetch this todo
         }
       }
     };
@@ -84,24 +86,33 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   function GetStatuses() {
     if (!statuses) {
       return <span>Loading statuses...</span>;
-    } else if (statuses.length >= 2) {
+    } else if (statuses.length >= 2 && paymentStatusFailed.hash === undefined) {
       return (
         <a href="#status" className="btn btn-outline-success status-badge">
-          Received!
+          Sent!
         </a>
       );
-    } else
+    } else if (
+      statuses.length >= 2 &&
+      paymentStatusSuccess.hash === undefined
+    ) {
       return (
-        <a href="#status" className="btn btn-outline-warning status-badge">
-          Pending
+        <a href="#status" className="btn btn-outline-danger status-badge">
+          payment has failed!
         </a>
       );
+    }
+    return (
+      <a href="#status" className="btn btn-outline-warning status-badge">
+        Pending
+      </a>
+    );
   }
 
   return (
     <div>
       <h5>
-        <i className="far fa-bolt" /> Lightning Invoice
+        <i className="far fa-bolt" /> Lightning Payment!
       </h5>
       <div className="inner-container">
         <GetStatuses></GetStatuses>
@@ -131,23 +142,6 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         </Row>
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">rPreimage:</p>
-          </Col>
-          <Col sm={{ size: 8, offset: 0 }}>
-            <div className="address-text-container">
-              <code>{hasPreimage}</code>{" "}
-              <CopyToClipboard
-                className="btn btn-light"
-                style={{}}
-                text={hasPreimage}
-              >
-                <i className="fa fa-copy" />
-              </CopyToClipboard>
-            </div>
-          </Col>
-        </Row>
-        <Row>
-          <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Amount: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
@@ -166,12 +160,83 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         </Row>
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
+            <p className="address-title">Payment Hash: </p>
+          </Col>
+          <Col sm={{ size: 8, offset: 0 }}>
+            <div className="claimable-text-container">
+              {hash}
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={hash.toString()}
+              >
+                <i className="fa fa-copy" />
+              </CopyToClipboard>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col sm={{ size: 2, offset: 0 }}>
+            <p className="address-title">
+              {paymentStatusSuccess.hash != undefined
+                ? "rPreimage"
+                : paymentStatusFailed != undefined
+                ? "Reason for failure"
+                : "Waiting for statuses"}{" "}
+            </p>
+          </Col>
+          <Col sm={{ size: 8, offset: 0 }}>
+            <div className="claimable-text-container">
+              {paymentStatusSuccess.hash != undefined
+                ? paymentPreimage
+                : paymentStatusFailed != undefined
+                ? paymentStatusFailed.reason
+                : "..."}
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={
+                  paymentStatusSuccess.hash != undefined
+                    ? paymentPreimage
+                    : paymentStatusFailed != undefined
+                    ? paymentStatusFailed.reason
+                    : "..."
+                }
+              >
+                <i className="fa fa-copy" />
+              </CopyToClipboard>
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col sm={{ size: 2, offset: 0 }}>
+            <p className="address-title">
+              {paymentStatusSuccess.hash != undefined
+                ? "total fees"
+                : paymentStatusFailed != undefined
+                ? "rebate"
+                : "Waiting for statuses"}{" "}
+            </p>
+          </Col>
+          <Col sm={{ size: 8, offset: 0 }}>
+            <div className="claimable-text-container">
+              {paymentStatusSuccess.hash != undefined
+                ? paymentStatusSuccess.totalFees
+                : paymentStatusFailed != undefined
+                ? paymentStatusFailed.rebate
+                : "..."}{" "}
+              {" sat"}
+            </div>
+          </Col>
+        </Row>
+        {/* <Row>
+          <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Memo: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">{description}</div>
           </Col>
-        </Row>
+        </Row> */}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Created: </p>

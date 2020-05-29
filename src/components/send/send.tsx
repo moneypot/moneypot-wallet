@@ -66,12 +66,13 @@ export default function Send({ history }: Props) {
   }
 
   function calcFee(): number {
+    
+    if (sendType.kind === 'lightning') {
+      return feeLimit;
+    }
     const isType = decodeBitcoinAddress(toText);
     if (isType instanceof Error) {
       throw isType;
-    }
-    if (sendType.kind === 'lightning') {
-      return feeLimit;
     }
 
     if (!feeSchedule) {

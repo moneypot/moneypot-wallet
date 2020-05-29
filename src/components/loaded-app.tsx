@@ -23,6 +23,7 @@ import ReceiveLightning from './receive/lightning';
 import FeebumpSend from './send/feebump-send';
 import Backup from './backup';
 import Settings from './settings';
+import FAQ from './faq';
 
 function NoMatch(params: RouteComponentProps<any>) {
   return (
@@ -53,6 +54,7 @@ export default function LoadedApp() {
             <Route path="/" exact component={Transactions} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/backup" exact component={Backup} />
+            <Route path="/faq" exact component={FAQ} />
             <Route path="/receive/lightning" exact component={ReceiveLightning} />
             <Route path="/addresses/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses" component={Addresses} />

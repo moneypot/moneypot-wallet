@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Col, Row } from 'reactstrap';
-import CopyToClipboard from '../util/copy-to-clipboard';
+import React, { useState, useEffect } from "react";
+import { Col, Row } from "reactstrap";
+import CopyToClipboard from "../util/copy-to-clipboard";
 
-import * as hi from 'moneypot-lib';
-import { getStatusesByClaimable } from '../wallet/requests';
-import { wallet, useClaimableStatuses } from '../state/wallet';
-import { Link } from 'react-router-dom';
+import * as hi from "moneypot-lib";
+import { getStatusesByClaimable } from "../wallet/requests";
+import { wallet, useClaimableStatuses } from "../state/wallet";
+import { Link } from "react-router-dom";
 
 type StatusStuffProps = {
   claimableHash: string;
@@ -33,58 +33,68 @@ type kind = {
 };
 
 const Pending = ({ kind }: kind): JSX.Element => {
-  return kind === 'Hookin' ? (
+  return kind === "Hookin" ? (
     <a href="#status" className="btn btn-outline-warning status-badge">
-      Waiting for confirmation!{" "} <i className="fad fa-question"/>
+      Waiting for confirmation! <i className="fad fa-question" />
     </a>
-  ) : kind === 'Hookout' || kind === 'FeeBump' ? (
+  ) : kind === "Hookout" || kind === "FeeBump" ? (
     <a href="#status" className="btn btn-outline-warning status-badge">
-      In queue!{" "} <i className="fad fa-question"/>
+      In queue! <i className="fad fa-question" />
     </a>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 // not requesting the custodian for updates but instead relying on the wallet may cause false positives, so let's relax the tone..?
 const Failed = ({ kind }: kind): JSX.Element => {
-  return kind === 'Hookin' ? (
+  return kind === "Hookin" ? (
     <a href="#status" className="btn btn-outline-warning status-badge">
-      Hookin might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+      Hookin might be invalid! Please sync! <i className="fad fa-question" />
     </a>
-  ) : kind === 'Hookout' ? (
+  ) : kind === "Hookout" ? (
     <a href="#status" className="btn btn-outline-warning status-badge">
-      Hookout might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+      Hookout might be invalid! Please sync! <i className="fad fa-question" />
     </a>
-  ) : kind === 'FeeBump' ? (
+  ) : kind === "FeeBump" ? (
     <a href="#status" className="btn btn-outline-warning status-badge">
-      Feebump might be invalid! Please sync!{" "} <i className="fad fa-question"/>
+      Feebump might be invalid! Please sync! <i className="fad fa-question" />
     </a>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 const Sent = ({ kind }: kind): JSX.Element => {
-  return kind === 'Hookin' ? (
+  return kind === "Hookin" ? (
     <a href="#status" className="btn btn-outline-success status-badge">
-      Confirmed!{" "} <i className="fad fa-check"/>
+      Confirmed! <i className="fad fa-check" />
     </a>
-  ) : kind === 'Hookout' || kind === 'FeeBump' ? (
+  ) : kind === "Hookout" || kind === "FeeBump" ? (
     <a href="#status" className="btn btn-outline-success status-badge">
-      Sent!{" "}   <i className="fad fa-check"/>
+      Sent! <i className="fad fa-check" />
     </a>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 const GetStatuses = (props: clhash): JSX.Element => {
   const statuses = useClaimableStatuses(props.claimableHash);
-  return (!(statuses)) ? <></> : statuses.length >= 2 ? (
-    <Sent kind={props.kind}/>
+  return !statuses ? (
+    <></>
+  ) : statuses.length >= 2 ? (
+    <Sent kind={props.kind} />
   ) : statuses.length === 1 ? (
-    <Pending kind={props.kind}/>
+    <Pending kind={props.kind} />
   ) : statuses.length === 0 ? (
-    <Failed kind={props.kind}/>
-  ) : <></>;
+    <Failed kind={props.kind} />
+  ) : (
+    <></>
+  );
 };
-
-async function gettxid(a: string): Promise<string | undefined> {
+//Gettxid
+async function getNewStatuses(a: string): Promise<hi.Status | undefined> {
   const statuses = await getStatusesByClaimable(wallet.config, a);
   // if the function is called anyway, lets fetch new statuses.
   wallet.requestStatuses(a);
@@ -93,18 +103,15 @@ async function gettxid(a: string): Promise<string | undefined> {
   } else if (statuses.length > 0) {
     for (var i = statuses.length; i--; ) {
       const element = statuses[i];
-      if ('contents' in element) {
-        let txidstatus = element.contents;
-        if ('txid' in txidstatus) {
-          return hi.Buffutils.toHex(txidstatus.txid);
-        }
+      if ("contents" in element) {
+        return element.contents;
       }
     }
   }
 }
 
 const IsHookin = ({ kind, current, claimable }: isHookin): JSX.Element => {
-  if (kind === 'Hookin') {
+  if (kind === "Hookin") {
     return (
       <Row>
         <Col sm={{ size: 2, offset: 0 }}>
@@ -113,14 +120,18 @@ const IsHookin = ({ kind, current, claimable }: isHookin): JSX.Element => {
         <Col sm={{ size: 8, offset: 0 }}>
           <div className="claimable-text-container">
             {claimable.txid}
-            <CopyToClipboard className="btn btn-light" style={{}} text={claimable.txid}>
+            <CopyToClipboard
+              className="btn btn-light"
+              style={{}}
+              text={claimable.txid}
+            >
               <i className="fa fa-copy" />
             </CopyToClipboard>
           </div>
         </Col>
       </Row>
     );
-  } else if (kind === 'Hookout' || kind === 'FeeBump') {
+  } else if (kind === "Hookout" || kind === "FeeBump") {
     return (
       <Row>
         <Col sm={{ size: 2, offset: 0 }}>
@@ -129,7 +140,11 @@ const IsHookin = ({ kind, current, claimable }: isHookin): JSX.Element => {
         <Col sm={{ size: 8, offset: 0 }}>
           <div className="claimable-text-container">
             {current}
-            <CopyToClipboard className="btn btn-light" style={{}} text={current}>
+            <CopyToClipboard
+              className="btn btn-light"
+              style={{}}
+              text={current}
+            >
               <i className="fa fa-copy" />
             </CopyToClipboard>
           </div>
@@ -140,22 +155,24 @@ const IsHookin = ({ kind, current, claimable }: isHookin): JSX.Element => {
   return <></>;
 };
 
-const walletStatuses = async (claimablehash: string): Promise<hi.Status[] | undefined>  => {
+const walletStatuses = async (
+  claimablehash: string
+): Promise<hi.Status[] | undefined> => {
   const statuses = await useClaimableStatuses(claimablehash);
   if (statuses != undefined) {
     return statuses;
   } else return undefined;
 };
 export default function StatusStuff(props: StatusStuffProps): JSX.Element {
-  const [CurrentTxid, setCurrentTxid] = useState('');
-
+  const [CurrentTxid, setCurrentTxid] = useState("");
+  const [CurrentConsolidationFee, setCurrentConsolidationFee] = useState(0);
   const getAlreadyStoredStatuses = walletStatuses(props.claimableHash)
-    .then(data => {
+    .then((data) => {
       if (data != null) {
         return data;
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error(error);
       return undefined;
     });
@@ -168,31 +185,38 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
           // TODO: we don't check for feebumps..?
           for (var i = isReal.length; i--; ) {
             const element = isReal[i];
-            if ('txid' in element) {
+            if ("txid" in element) {
               let txidstatus = element.txid;
               // check if this always returns the last (first) txid in case of feebumps
               setCurrentTxid(hi.Buffutils.toHex(txidstatus));
             }
+            if ("consolidationFee" in element) {
+              const consolidationFeeStatus = element.consolidationFee;
+              setCurrentConsolidationFee(consolidationFeeStatus);
+            }
           }
         } else {
-          const data = await gettxid(props.claimableHash);
+          const data = await getNewStatuses(props.claimableHash);
           if (data != undefined) {
-            setCurrentTxid(data);
-          } else {
-            setCurrentTxid('');
+            if ("txid" in data) {
+              setCurrentTxid(hi.Buffutils.toHex(data.txid));
+            }
+            if ("consolidationFee" in data) {
+              setCurrentConsolidationFee(data.consolidationFee);
+            }
           }
         }
       }
     };
     getData();
   });
-
   const fee = (): number => {
-    if (props.kind === 'Hookin') {
-      // we can also ask the custodian but let's just do this for now. (It won't be dynamic anyway and i don't think we want to send too many req's to the custodian for a const value anyway?)
-     return addressType(props.claimable.bitcoinAddress) === 'p2sh' ? 500 : 100
-    } 
-    else return props.kind === 'Hookout' || props.kind === "Feebump" ? props.claimable.fee : 100
+    if (props.kind === "Hookin") {
+      return CurrentConsolidationFee;
+    } else
+      return props.kind === "Hookout" || props.kind === "Feebump"
+        ? props.claimable.fee
+        : "...";
   };
   return (
     <div>
@@ -205,7 +229,7 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
         />
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
-            {props.kind === 'Hookout' || props.kind === 'Hookin' ? (
+            {props.kind === "Hookout" || props.kind === "Hookin" ? (
               <p className="address-title">Address: </p>
             ) : (
               <p className="address-title">Original TXID: </p>
@@ -213,18 +237,28 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {props.kind === 'Hookout' || props.kind === 'Hookin' ? props.claimable.bitcoinAddress : props.claimable.txid}
+              {props.kind === "Hookout" || props.kind === "Hookin"
+                ? props.claimable.bitcoinAddress
+                : props.claimable.txid}
               <CopyToClipboard
                 className="btn btn-light"
                 style={{}}
-                text={props.kind === 'Hookout' || props.kind === 'Hookin' ? props.claimable.bitcoinAddress : props.claimable.txid}
+                text={
+                  props.kind === "Hookout" || props.kind === "Hookin"
+                    ? props.claimable.bitcoinAddress
+                    : props.claimable.txid
+                }
               >
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
           </Col>
         </Row>
-        <IsHookin claimable={props.claimable} kind={props.kind} current={CurrentTxid}></IsHookin>
+        <IsHookin
+          claimable={props.claimable}
+          kind={props.kind}
+          current={CurrentTxid}
+        ></IsHookin>
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Amount: </p>
@@ -232,7 +266,11 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               {`${props.amount} sat`}
-              <CopyToClipboard className="btn btn-light" style={{}} text={props.amount.toString()}>
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={props.amount.toString()}
+              >
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
@@ -246,7 +284,11 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
             <div className="claimable-text-container">
               {`${fee()} sat`}
 
-              <CopyToClipboard className="btn btn-light" style={{}} text={fee().toString()}>
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={fee().toString()}
+              >
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>
@@ -257,7 +299,9 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
             <p className="address-title">Priority: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">{props.claimable.priority}</div>
+            <div className="claimable-text-container">
+              {props.claimable.priority}
+            </div>
           </Col>
         </Row>
         <Row>
@@ -265,13 +309,19 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
             <p className="address-title">Created: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">{props.created.toString()}</div>
+            <div className="claimable-text-container">
+              {props.created.toString()}
+            </div>
           </Col>
         </Row>
         <br />
-        {props.kind == 'Hookout' || props.kind == 'FeeBump' ? (
-          <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
-            <button className="btn btn-secondary">Feebump this transaction!</button>
+        {props.kind == "Hookout" || props.kind == "FeeBump" ? (
+          <Link
+            to={{ pathname: "/feebump-send", state: { txid: { CurrentTxid } } }}
+          >
+            <button className="btn btn-secondary">
+              Feebump this transaction!
+            </button>
           </Link>
         ) : null}
       </div>
@@ -279,18 +329,17 @@ export default function StatusStuff(props: StatusStuffProps): JSX.Element {
   );
 }
 
-// good enough
-function addressType(address: string): string {
-  if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
-    return 'legacy';
-  }
-  if (address.startsWith('2') || address.startsWith('3')) {
-    return 'p2sh';
-  }
-  if (address.startsWith('tb1') || address.startsWith('bc1')) {
-   //don't need p2wsh
-    return 'bech32';
-  }
+// function addressType(address: string): string {
+//   if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
+//     return 'legacy';
+//   }
+//   if (address.startsWith('2') || address.startsWith('3')) {
+//     return 'p2sh';
+//   }
+//   if (address.startsWith('tb1') || address.startsWith('bc1')) {
+//    //don't need p2wsh
+//     return 'bech32';
+//   }
 
-  throw new Error('unrecognized address: ' + address);
-}
+//   throw new Error('unrecognized address: ' + address);
+// }

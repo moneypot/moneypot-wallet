@@ -309,6 +309,12 @@ export default class Database extends EventEmitter {
     await this.processStatuses(statuses);
   }
 
+  public async requestLightingInfo() {
+    return await requests.getLightingData(this.config);
+  }
+  public async requestLightingNodeInfo(publickey: string) {
+    return await requests.getLightingNodeData(this.config, publickey);
+  }
   private async processStatuses(statuses: hi.Acknowledged.Status[]) {
     if (statuses.length === 0) {
       return;

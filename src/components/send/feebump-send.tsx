@@ -6,20 +6,68 @@ import { ToastContainer, toast } from 'react-toastify';
 import getFeeSchedule from '../../wallet/requests/get-fee-schedule';
 type Props = { history: { push: (path: string) => void } };
 
-interface Options {
-  fee?: number;
-  weight?: number;
-  size?: number;
-  status?: Object;
-  vin?: Array<Object>;
-}
-interface sequence {
-  sequence?: number;
-}
-interface Status {
-  block_hash?: any;
-  confirmed?: boolean;
-}
+// interface Options {
+//   fee?: number;
+//   weight?: number;
+//   size?: number;
+//   status?: Object;
+//   vin?: Array<Object>;
+// }
+// interface sequence {
+//   sequence?: number;
+// }
+// interface Status {
+//   block_hash?: any;
+//   confirmed?: boolean;
+// }
+
+
+
+  export interface Prevout {
+      scriptpubkey: string;
+      scriptpubkey_asm: string;
+      scriptpubkey_type: string;
+      scriptpubkey_address: string;
+      value: number;
+  }
+
+  export interface Vin {
+      txid: string;
+      vout: number;
+      prevout: Prevout;
+      scriptsig: string;
+      scriptsig_asm: string;
+      witness: string[];
+      is_coinbase: boolean;
+      sequence: any;
+  }
+
+  export interface Vout {
+      scriptpubkey: string;
+      scriptpubkey_asm: string;
+      scriptpubkey_type: string;
+      scriptpubkey_address: string;
+      value: number;
+  }
+
+  export interface Status {
+      confirmed: boolean;
+      block_height: number;
+      block_hash: string;
+      block_time: number;
+  }
+
+  export interface Tx {
+      txid: string;
+      version: number;
+      locktime: number;
+      vin: Vin[];
+      vout: Vout[];
+      size: number;
+      weight: number;
+      fee: number;
+      status: Status;
+  }
 
 // Should probably actually ask the custodian...?
 function getTxData<T>(decodedTxid: string): Promise<T> {
@@ -53,12 +101,12 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
   })();
 
   async function calculateFee(): Promise<number> {
-    const myVal: Options = await getTxData(toText);
+    const myVal: Tx = await getTxData(toText);
     if (myVal.status === undefined || myVal.vin == undefined) {
       throw myVal;
     }
     for (let index = 0; index < myVal.vin.length; index++) {
-      const sequence: sequence = myVal.vin[index];
+      const sequence = myVal.vin[index];
       if (sequence.sequence === undefined) {
         throw 'invalid txid';
       }

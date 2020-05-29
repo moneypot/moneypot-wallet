@@ -30,3 +30,13 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
 
   return hi.Acknowledged.claimableFromPOD(resp);
 }
+
+// this is not at all useful
+export async function getLightingData(config: Config) {
+  const url = `${config.custodianUrl}/lighting-identity-pubkey/`;
+  return await makeRequest<any>(url);
+}
+export async function getLightingNodeData(config: Config, publickey: string) {
+  const url = `${config.custodianUrl}/lighting-node-information/${publickey}`;
+  return await makeRequest<any>(url);
+}
