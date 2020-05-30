@@ -19,6 +19,7 @@ import {
   segmultiTransactionWeight,
 } from '../../config';
 import { decodeBitcoinAddress } from 'moneypot-lib';
+import { notError } from '../../util';
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
@@ -213,6 +214,30 @@ export default function Send({ history }: Props) {
       </FormGroup>
     );
   }
+  function showLightningDescription() {
+    const pro = notError(hi.decodeBolt11(toText));
+    let description;
+    for (const tag of pro.tags) {
+      if (tag.tagName === "description") {
+        description = tag.data;
+      }
+    }
+    return (
+      <FormGroup row className="bordered-form-group">
+        <Label for="" sm={3}>
+          Memo:
+        </Label>
+        <Col sm={{ size: 8, offset: 0 }}>
+          {description}
+        </Col>
+        <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
+          <small className="text-muted">
+           This is the description that was attached to the invoice. If you expected a different memo, you might be getting scammed.
+          </small>
+        </Row>
+      </FormGroup>
+    );
+  }
   function showBitcoinFeeSelection() {
     return (
       <FormGroup row className="bordered-form-group">
@@ -283,6 +308,7 @@ export default function Send({ history }: Props) {
           </FormGroup>
 
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
+          {sendType.kind === 'lightning' ? showLightningDescription() : undefined}
           {sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
           {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
 

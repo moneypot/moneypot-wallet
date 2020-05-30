@@ -32,7 +32,8 @@ export default function Coins() {
 function ClaimedCoin({ coin }: { coin: Docs.Coin }) {
   // horrendous types, TODO...
   const claimableInputs = getAllClaimables().filter(function(spend: { kind: string }) {
-    return spend.kind != 'Hookin';
+    //fixed ln errors
+    return spend.kind != 'Hookin' && spend.kind != "LightningInvoice";
   });
 
   const spendInClaimable = (pubkey: string): mp.Hash | string => {

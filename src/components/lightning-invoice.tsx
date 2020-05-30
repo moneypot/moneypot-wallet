@@ -57,8 +57,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           }
         } else if (statuses.length <= 1) {
           // get statuses...
-          const data = await getNewStatuses(props.claimableHash);
-          console.log(data); // fetch this todo
+          await getNewStatuses(props.claimableHash);
         }
       }
     };

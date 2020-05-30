@@ -53,6 +53,11 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
                 FAQ / General  
               </Link>
             </NavItem>
+            <NavItem>
+              <Link className="nav-link" to="/config">
+                Config
+              </Link>
+            </NavItem>
             <NavItem className="new-section">
               <Link className="nav-link" to="/addresses">
                 Addresses
@@ -69,8 +74,13 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
               </Link>
             </NavItem>
             <NavItem>
-              <Link className="nav-link" to="/config">
-                Config
+              <Link className="nav-link" to="/invoices">
+                Invoices
+              </Link>
+            </NavItem>
+            <NavItem>
+              <Link className="nav-link" to="/payments">
+                Payments
               </Link>
             </NavItem>
             <NavItem>

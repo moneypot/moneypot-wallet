@@ -312,6 +312,9 @@ export default class Database extends EventEmitter {
   public async requestLightingInfo() {
     return await requests.getLightingData(this.config);
   }
+  public async requestLightningCapacities() {
+    return await requests.getLightningCapacities(this.config);
+  }
   public async requestLightingNodeInfo(publickey: string) {
     return await requests.getLightingNodeData(this.config, publickey);
   }

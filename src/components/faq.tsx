@@ -16,15 +16,28 @@ export interface lnd {
   num_channels: number;
   total_capacity: number;
 }
-export default function FAQ() {
+
+export interface capacities {
+  localbalance: number;
+  remotebalance: number;
+  capacity: number;
+}
+
+
+export default function Faq() {
   const [publicKey, setpublicKey] = useState("");
   const [lightninginfo, setlightningInfo] = useState<lnd>(Object);
-
+  const [lndcapacities, setlndcapacities] = useState<capacities>(Object);
+ 
   useEffect(() => {
     const getKeys = async () => {
       wallet.requestLightingInfo().then((data) => {
         getNodeInfo(data);
+  
       });
+      wallet.requestLightningCapacities().then((data) => { 
+        setlndcapacities(data)
+      })
     };
     const getNodeInfo = async (data: string) => {
       wallet.requestLightingNodeInfo(data).then((response) => {
@@ -51,6 +64,12 @@ export default function FAQ() {
           </b>
         </p>
         <p>
+          Of that capacity <b>{lndcapacities.localbalance === undefined ? "...": lndcapacities.localbalance}{" "} sat</b> is Outbound capacity.
+        </p>
+        <p>
+          Of that capacity <b>{lndcapacities.remotebalance === undefined ? "...": lndcapacities.remotebalance }{" "} sat</b> is Inbound capacity.
+        </p>
+        <p>
           We currently have{" "}
           <b>
             {lightninginfo.num_channels === undefined
@@ -73,6 +92,3 @@ export default function FAQ() {
     </div>
   );
 }
-
-// get public lightning key
-//  const invoice = wallet.

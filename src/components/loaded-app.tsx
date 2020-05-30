@@ -23,8 +23,9 @@ import ReceiveLightning from './receive/lightning';
 import FeebumpSend from './send/feebump-send';
 import Backup from './backup';
 import Settings from './settings';
-import FAQ from './faq';
-
+import Faq from './faq';
+import Invoices from './invoices';
+import Payments from './ln-payments';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -54,7 +55,7 @@ export default function LoadedApp() {
             <Route path="/" exact component={Transactions} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/backup" exact component={Backup} />
-            <Route path="/faq" exact component={FAQ} />
+            <Route path="/faq" exact component={Faq} />
             <Route path="/receive/lightning" exact component={ReceiveLightning} />
             <Route path="/addresses/:address" component={BitcoinAddressInfo} />
             <Route path="/addresses" component={Addresses} />
@@ -63,6 +64,8 @@ export default function LoadedApp() {
             <Route path="/claimables/:hash" component={ClaimableInfo} />
             <Route path="/lightning-invoice/:hash" component={LightningInvoice} />
             <Route path="/hookins" component={Hookins} />
+            <Route path="/invoices" component={Invoices} />
+            <Route path="/payments" component={Payments} />
             <Route path="/hookouts" component={Hookouts} />
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />

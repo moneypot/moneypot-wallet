@@ -29,19 +29,20 @@ export default function LightningPayment(props: LightningInvoiceProps) {
   >(Object);
   const [paymentPreimage, setpaymentPreimage] = useState("");
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
-  //   let description;
-  //   for (const tag of pro.tags) {
-  //     if (tag.tagName === 'description') {
-  //       description = tag.data;
-  //     }
-  //   }
+     let description;
+     for (const tag of pro.tags) {
+       if (tag.tagName === 'description') {
+         description = tag.data;
+       }
+     }
   let payment_hash;
   for (const tag of pro.tags) {
     if (tag.tagName === "payment_hash") {
       payment_hash = tag.data;
     }
   }
-
+  
+  let memo = description != null ? description : "";
   let hash = payment_hash != null ? payment_hash : "";
 
   useEffect(() => {
@@ -59,8 +60,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
           }
         } else if (statuses.length <= 1) {
           // get statuses...
-          const data = await getNewStatuses(props.claimableHash);
-          console.log(data)// fetch this todo
+          await getNewStatuses(props.claimableHash);
         }
       }
     };
@@ -229,14 +229,14 @@ export default function LightningPayment(props: LightningInvoiceProps) {
             </div>
           </Col>
         </Row>
-        {/* <Row>
+         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Memo: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">{description}</div>
+            <div className="claimable-text-container">{memo}</div>
           </Col>
-        </Row> */}
+        </Row> 
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Created: </p>
