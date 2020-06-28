@@ -7,7 +7,7 @@ export default function Support() {
       <div className="inner-container">
         <p>
           You might find the support you need in our website's{' '}
-          <a href="https://www.moneypot.com/faq/" target="_blank">
+          <a href="https://www.moneypot.com/faq/" target="_blank" rel="noreferrer">
             Frequently Asked Questions
           </a>
           .
@@ -15,6 +15,7 @@ export default function Support() {
         <p>
           If you still need support, please e-mail us at <a href="mailto:riperk@protonmail.com?Subject=Support%20Request">riperk@protonmail.com</a>
         </p>
+
       </div>
     </div>
   );

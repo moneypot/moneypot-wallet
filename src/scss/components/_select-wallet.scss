@@ -17,10 +17,16 @@
   letter-spacing: 0.1rem;
 }
 
+//TODO: decide which layout is better
 .select-wallet-table {
-  margin: 2rem 25vw;
+   margin: 2rem 15vw;
+  // margin: 2rem;
   padding: 1rem;
   font-weight: 600;
   text-align: left;
   word-break: break-word;
+}
+
+.select-wallet-button { 
+  padding: 10px
 }

@@ -21,53 +21,51 @@ type Props = { history: { push: (path: string) => void } };
 //   confirmed?: boolean;
 // }
 
+export interface Prevout {
+  scriptpubkey: string;
+  scriptpubkey_asm: string;
+  scriptpubkey_type: string;
+  scriptpubkey_address: string;
+  value: number;
+}
 
+export interface Vin {
+  txid: string;
+  vout: number;
+  prevout: Prevout;
+  scriptsig: string;
+  scriptsig_asm: string;
+  witness: string[];
+  is_coinbase: boolean;
+  sequence: any;
+}
 
-  export interface Prevout {
-      scriptpubkey: string;
-      scriptpubkey_asm: string;
-      scriptpubkey_type: string;
-      scriptpubkey_address: string;
-      value: number;
-  }
+export interface Vout {
+  scriptpubkey: string;
+  scriptpubkey_asm: string;
+  scriptpubkey_type: string;
+  scriptpubkey_address: string;
+  value: number;
+}
 
-  export interface Vin {
-      txid: string;
-      vout: number;
-      prevout: Prevout;
-      scriptsig: string;
-      scriptsig_asm: string;
-      witness: string[];
-      is_coinbase: boolean;
-      sequence: any;
-  }
+export interface Status {
+  confirmed: boolean;
+  block_height: number;
+  block_hash: string;
+  block_time: number;
+}
 
-  export interface Vout {
-      scriptpubkey: string;
-      scriptpubkey_asm: string;
-      scriptpubkey_type: string;
-      scriptpubkey_address: string;
-      value: number;
-  }
-
-  export interface Status {
-      confirmed: boolean;
-      block_height: number;
-      block_hash: string;
-      block_time: number;
-  }
-
-  export interface Tx {
-      txid: string;
-      version: number;
-      locktime: number;
-      vin: Vin[];
-      vout: Vout[];
-      size: number;
-      weight: number;
-      fee: number;
-      status: Status;
-  }
+export interface Tx {
+  txid: string;
+  version: number;
+  locktime: number;
+  vin: Vin[];
+  vout: Vout[];
+  size: number;
+  weight: number;
+  fee: number;
+  status: Status;
+}
 
 // Should probably actually ask the custodian...?
 function getTxData<T>(decodedTxid: string): Promise<T> {
@@ -83,11 +81,22 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
   const [toText, setToText] = useState('');
   const balance = useBalance();
   const [fee, setFee] = useState(Number);
+  const [inputs, setInputs] = useState(Number);
+  const [outputs, setOutputs] = useState(Number);
   useEffect(() => {
     if (props.history.location.state != undefined) {
       setToText(props.history.location.state.txid.CurrentTxid);
     }
   }, []);
+
+  // we should check bytes rather than inputs/outputs, but this'll do somewhat.
+  function checkInputs() {
+    if (inputs != 0) {
+      if (inputs > 2 || outputs > 2) {
+        return <Label>Please note: You will most likely pay a disproportionate amount of money for this feebump.</Label>;
+      } else return <Label>It seems like this tx has a limited amount of inputs/outputs. You'll likely pay a fair share!</Label>;
+    }
+  }
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'txid' } => {
     if (toText === '') {
@@ -102,24 +111,28 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
 
   async function calculateFee(): Promise<number> {
     const myVal: Tx = await getTxData(toText);
+    const obj: Status = myVal.status;
+    if (obj.confirmed === true || obj.confirmed === undefined) {
+      throw 'Invalid TX | TXID already confirmed';
+    }
     if (myVal.status === undefined || myVal.vin == undefined) {
       throw myVal;
     }
+    setOutputs(myVal.vout.length);
+    setInputs(myVal.vin.length);
+
     for (let index = 0; index < myVal.vin.length; index++) {
       const sequence = myVal.vin[index];
       if (sequence.sequence === undefined) {
         throw 'invalid txid';
       }
+
       // needs to be lower than 0xfffffffe
       if (!(sequence.sequence < parseInt('0xfffffffe', 16))) {
         throw 'Not flagging for RBF';
       }
     }
     const feeRate = (await getFeeSchedule(wallet.config)).immediateFeeRate;
-    const obj: Status = myVal.status;
-    if (obj.confirmed === true || obj.confirmed === undefined) {
-      throw 'Invalid TX | TXID already confirmed';
-    }
     // get the current fee
     if (myVal.fee === undefined || myVal.weight === undefined) {
       throw myVal;
@@ -137,7 +150,7 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
     setToText(event.target.value);
     // reset fee, makes everything a bit cleaner
-    setFee(0) 
+    setFee(0);
   }
   async function expectedFee(): Promise<void> {
     setFee(await calculateFee());
@@ -147,12 +160,14 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
     expectedFee();
   }
 
-
   async function send(): Promise<void> {
     const amount = await calculateFee();
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('invalid amount');
       return;
+    }
+    if (balance < amount) {
+      throw new Error('trying to send a larger amount than we actually have coins for, will not work');
     }
 
     const txid = hi.Buffutils.fromHex(toText, 32);
@@ -210,7 +225,7 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
               </Button>
             </Col>
           </FormGroup>
-          <Label>Please note: You will most likely pay a disproportionate amount of money for this feebump.</Label>
+          {checkInputs()}
         </Form>
       </div>
     </div>

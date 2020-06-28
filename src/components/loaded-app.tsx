@@ -17,7 +17,7 @@ import Page from './page';
 import useWindowSize from '../window-size';
 import Transactions from './transactions/transactions';
 import ClaimableInfo from './claimable-info';
-import LightningInvoice from './lightning-invoice';
+import LightningInvoice from './statuses/lightning-invoice-statuses';
 import Support from './support';
 import ReceiveLightning from './receive/lightning';
 import FeebumpSend from './send/feebump-send';

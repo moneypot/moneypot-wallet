@@ -6,6 +6,7 @@ import { useClaimableStatuses } from '../state/wallet';
 
 import * as Docs from '../wallet/docs';
 import { notError } from '../util';
+import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 
 export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable & hi.POD.LightningInvoice)[] }) {
   return (
@@ -16,7 +17,7 @@ export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable 
           <th>invoice</th>
           <th>amount</th>
           <th>expired?</th>
-           {/* <th>ackd</th>  */}
+          {/* <th>ackd</th>  */}
           <th>paid?</th>
         </tr>
       </thead>
@@ -31,34 +32,31 @@ export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable 
 
 function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.LightningInvoice }) {
   const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
- // invoice will always be acknowledged so this is pretty useless. 
+  // invoice will always be acknowledged so this is pretty useless.
   function renderPaymentStatus() {
-   const statuses = useClaimableStatuses(invoiceDoc.hash)
-   if (statuses != undefined) {
-    if (statuses.length > 1) {
-      for (var i = statuses.length; i--; ) {
-        const element = statuses[i];
-        // rPreimage === invoice paid
-        if ("rPreimage" in element) { 
-          return "true"
+    const statuses = useClaimableStatuses(invoiceDoc.hash);
+    if (statuses != undefined) {
+      if (statuses.length > 1) {
+        for (const s of statuses) {
+          if (s instanceof InvoiceSettled) {
+            return s.rPreimage != null && true;
+          }
         }
       }
     }
+    return false;
   }
-  return "false"
-  }
-  
+
   function isExpired() {
     const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
-    const currentTime = new Date().getTime()
-    const expiryTime = new Date(pro.timeExpireDateString).getTime()
-    if(currentTime > expiryTime) { 
-     return "Invoice has expired"
+    const currentTime = new Date().getTime();
+    const expiryTime = new Date(pro.timeExpireDateString).getTime();
+    if (currentTime > expiryTime) {
+      return 'Invoice has expired';
+    } else if (currentTime < expiryTime) {
+      return 'Invoice is stil valid';
     }
-    else if(currentTime < expiryTime) { 
-     return "Invoice is stil valid"
-    }
-    return " ???"
+    return '???';
   }
 
   // function renderAckStatus() {
@@ -83,15 +81,11 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
       <td>
         <Link to={`/claimables/${invoiceDoc.hash}`}>{invoiceDoc.hash.substring(0, 32)}...</Link>
       </td>
-      <td>
-       {invoiceDoc.paymentRequest.substring(0, 32)}...
-      </td>
-      <td>
-        {pro.satoshis} sat
-      </td>
-  <td>{isExpired()}</td>
-      
-      <td>{renderPaymentStatus()}</td> 
+      <td>{invoiceDoc.paymentRequest.substring(0, 32)}...</td>
+      <td>{pro.satoshis} sat</td>
+      <td>{isExpired()}</td>
+
+      <td>{renderPaymentStatus()}</td>
     </tr>
   );
 }

@@ -31,7 +31,6 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
   return hi.Acknowledged.claimableFromPOD(resp);
 }
 
-
 export async function getLightingData(config: Config) {
   const url = `${config.custodianUrl}/lighting-identity-pubkey/`;
   return await makeRequest<any>(url);

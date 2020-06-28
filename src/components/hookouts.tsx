@@ -41,7 +41,7 @@ function Hookout({ hookoutDoc }: { hookoutDoc: Docs.Claimable & hi.POD.Hookout }
       </td>
       <td>
         {' '}
-        <a href={`https://blockstream.info/testnet/address/${hookoutDoc.bitcoinAddress}`} target="_blank">
+        <a href={`https://blockstream.info/testnet/address/${hookoutDoc.bitcoinAddress}`} target="_blank" rel="noreferrer">
           {hookoutDoc.bitcoinAddress}
         </a>
       </td>

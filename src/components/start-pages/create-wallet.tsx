@@ -75,6 +75,7 @@ export default function CreateWallet(props: any) {
               </Button>
             </Col>
           </FormGroup>
+
           <small className="text-secondary">
             By creating a wallet submit you are agreeing to moneypot's <a href="">Terms and Conditions</a>, <a href="">Cookies</a> and{' '}
             <a href="">Privacy Policy</a>.

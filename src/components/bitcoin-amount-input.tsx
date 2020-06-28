@@ -6,6 +6,7 @@ import useUniqueId from '../util/use-unique-id';
 
 type Props = {
   max?: number;
+  currentFee?: number;
   defaultAmount?: number;
   amount?: number;
   prefix?: string;
@@ -16,6 +17,8 @@ export default function BitcoinAmountInput(props: Props) {
   const [unit, setUnit] = useState<'sat' | 'btc'>('sat');
   const [text, setText] = useState(props.defaultAmount === undefined ? '' : `${props.defaultAmount}`);
   const [error, setError] = useState('');
+
+  const fee = props.currentFee != undefined ? props.currentFee : 0;
 
   const formName = useUniqueId();
   const btcId = useUniqueId();
@@ -51,7 +54,7 @@ export default function BitcoinAmountInput(props: Props) {
 
     toast('Max amount selected');
     let divisor = unit === 'sat' ? 1 : 1e8;
-    displayText = `${props.max / divisor}`;
+    displayText = `${props.max - fee / divisor}`;
     setText(displayText);
     syncAmount(displayText, unit);
   }

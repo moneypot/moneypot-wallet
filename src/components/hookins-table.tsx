@@ -1,5 +1,4 @@
 import React from 'react';
-import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import * as hi from 'moneypot-lib';
 
@@ -57,9 +56,12 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
       </td>
       <td>{hookinDoc.amount} sat</td>
       <td>
-        <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank">
-          {hookinDoc.txid.substring(0, 8)}...
-        </a>
+        {/* don't think this is necessary anymore */}
+        {hookinDoc.txid != undefined && (
+          <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank" rel="noreferrer">
+            {hookinDoc.txid.substring(0, 8)}...
+          </a>
+        )}
       </td>
       <td>{renderAckStatus()}</td>
     </tr>

@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Form, Label, Input } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Form, Label, Input, Col, InputGroup, InputGroupAddon } from 'reactstrap';
 import { wallet } from '../state/wallet';
 
-export default function Settings(props: any) {
+export default function Settings() {
   const [Setting1, setSetting1] = useState(false);
   const updateOne = () => setSetting1(!Setting1);
-  // we will add a setting 2 if necessary later on.
+
+  const [Setting2, setSetting2] = useState(false);
+  const [amountInput, setAmountInput] = useState(wallet.config.gapLimit);
+  const updateTwo = () => setSetting2(!Setting2);
+
   const [Setting3, setSetting3] = useState(false);
   const updateThree = () => setSetting3(!Setting3);
+
+  const [Setting4, setSetting4] = useState(false);
+  const updateFour = () => setSetting4(!Setting4);
+
   useEffect(() => {
     const hasSettings = () => {
       if (localStorage.getItem(`${wallet.db.name}-setting1-hasNested`) != null) {
@@ -15,10 +23,27 @@ export default function Settings(props: any) {
           setSetting1(true);
         } else setSetting1(false);
       }
+      if (localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`) != null) {
+        if (localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`) === 'true') {
+          const amount = localStorage.getItem(`${wallet.db.name}-setting2-CustomGapLimit`);
+          if (amount != null) {
+            setAmountInput(Number(amount));
+            setSetting2(true);
+          }
+        } else {
+          setSetting2(false);
+          // user's responsibility to reset gaplimit, or we can do it here? != 10 === reset?
+        }
+      }
       if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) != null) {
         if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) === 'true') {
           setSetting3(true);
         } else setSetting3(false);
+      }
+      if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) != null) {
+        if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) === 'true') {
+          setSetting4(true);
+        } else setSetting4(false);
       }
     };
     hasSettings();
@@ -27,7 +52,7 @@ export default function Settings(props: any) {
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
 
-  const applysettings = () => {
+  const applysettings = async () => {
     if (Setting1 === true) {
       localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'true');
       wallet.resetAddresses();
@@ -35,10 +60,36 @@ export default function Settings(props: any) {
       localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'false');
       wallet.resetAddresses();
     }
+    if (Setting2 == true) {
+      // inputField doesn't allow for non-numbers, still, to prevent people from somehow bricking their wallets..
+      if (!Number.isFinite(amountInput)) {
+        throw `${amountInput} is not a valid number`;
+      }
+
+      localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'true');
+      localStorage.setItem(`${wallet.db.name}-setting2-CustomGapLimit`, amountInput.toString());
+
+      // change config for current session
+      wallet.config.gapLimit = Number(amountInput);
+      // change config indexeddb
+      const walletConfig = await wallet.db.get('config', 1);
+      if (walletConfig === undefined) {
+        return new Error('Invalid config?');
+      }
+      walletConfig.gapLimit = Number(amountInput);
+      wallet.db.put('config', walletConfig);
+    } else if (Setting2 === false) {
+      localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'false');
+    }
     if (Setting3 === true) {
       localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'true');
     } else if (Setting3 === false) {
       localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'false');
+    }
+    if (Setting4 === true) {
+      localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'true');
+    } else if (Setting4 === false) {
+      localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'false');
     }
   };
 
@@ -52,40 +103,69 @@ export default function Settings(props: any) {
             segwit (These start with bc1..), you can also use nested segwit (These start with 3...){' '}
           </p>
           <small>
-            We do recommend you use bech32 (native segwit) addresses as it greatly reduces fees!{' '}
+            We do recommend you use to use native segwit as it greatly reduces fees for both parties!{' '}
             <span role="img" aria-label="wink">
               😉
             </span>
           </small>
           <br />
           <br />
+          <hr />
           <Form>
             <FormGroup check>
               <Label check>
-                <Input id="setting1" type="checkbox" onChange={updateOne} checked={Setting1} /> Switch to P2SH-P2WPKH address format. (3...).
+                <Input id="setting1" type="checkbox" onChange={updateOne} checked={Setting1} /> Switch to P2SH-P2WPKH addresses. (3...).
                 <p>
-                  <b>Note:</b> you should only do this if you have not yet received any Ƀ in this particular wallet! 
-                 {<br/>} You can only sync 1 address type simultaneously.
+                  <b>Note:</b> you should only do this if you have not yet received any Ƀ in this particular wallet!
+                  {<br />} You can only sync 1 address type simultaneously.
                 </p>
               </Label>
               <br />
-              {/* setting 2- */}
+              <hr />
+
               <Label check>
-                <Input id="setting1" type="checkbox" onChange={updateThree} checked={Setting3} /> Disable RBF when sending immediate transactions by default.
+                <Input id="setting2" type="checkbox" onChange={updateTwo} checked={Setting2} /> Increase the gaplimit by "..." retroactively.
+                <p>
+                  <b>Note:</b> Unless you're scanning addresses for funds (merchant activity), it is not recommended to enable and or change this option, as it
+                  will just put unnecessary strain on your local resources when syncing.
+                  <br />
+                </p>
+                <InputGroup>
+                  <InputGroupAddon addonType="prepend"></InputGroupAddon>
+                  <Input placeholder={amountInput.toString()} min={0} max={-1} type="number" step="1" onChange={e => setAmountInput(Number(e.target.value))} />
+                </InputGroup>
+                <small>Default gaplimit = 10.</small>
+              </Label>
+              <br />
+              <hr />
+              <Label check>
+                <Input id="setting3" type="checkbox" onChange={updateThree} checked={Setting3} /> Disable RBF when sending immediate transactions by default.
                 <p>
                   <b>Note:</b> you will be unable to feebump it. A usecase for this would be if you wanted to use 0-conf at any exchange, shop, or casino.
                 </p>
               </Label>
+              <br />
+              <hr />
+              <Label check>
+                <Input id="setting4" type="checkbox" onChange={updateFour} checked={Setting4} /> Enable pay-to-many transactions.
+                <p>
+                  <b>Note:</b> If you want to send multiple hookouts simultaneously.
+                  <br />
+                  <small>
+                    e.g <code>2NGZrVvZG92qGYqzTLjCAewvPZ7JE8S8VxE, 10000;</code> (denominated in satoshis, priority = batched!)
+                  </small>
+                </p>
+              </Label>
+              <br />
             </FormGroup>
-            <br />
-            <br />
+            <hr />
             <Button
               className="btn btn-secondary"
               onClick={() => {
                 toggle();
               }}
             >
-              Save Changes{" "}<i className="fad fa-save"/>
+              Save Changes <i className="fad fa-save" />
             </Button>
           </Form>
         </div>
@@ -94,14 +174,17 @@ export default function Settings(props: any) {
       <Modal isOpen={modal} toggle={toggle} className="someModal">
         <ModalHeader toggle={toggle}>Applying Settings.... Brrrt.</ModalHeader>
         <ModalBody>
-          Are you sure you want to apply these settings? for example, switching to P2SH addresses will result in higher consolidation fees when hooking in!
+          Are you sure you want to apply these settings? for example, switching to P2SH-P2WPKH addresses will result in higher consolidation fees when hooking
+          in!
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" 
-              onClick={() => {
-                toggle();
-                applysettings();
-              }}>
+          <Button
+            color="primary"
+            onClick={() => {
+              toggle();
+              applysettings();
+            }}
+          >
             I understand..
           </Button>
         </ModalFooter>

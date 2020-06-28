@@ -11,7 +11,7 @@ export default function() {
   return (
     <div>
       <h1>Config</h1>
-      <p>Please note that this will show sensitive data.</p>
+      <p>Please note that this will (potentially!) show sensitive data.</p>
       <span>
         {hidden ? '' : <pre style={{ width: '85vw' }}>{JSON.stringify(wallet.config.toDoc(), null, 2)}</pre>}{' '}
         {hidden ? (

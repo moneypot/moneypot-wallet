@@ -71,10 +71,16 @@ export function useClaimableKinds(kind: string) {
   return depromise(wallet.db.getAllFromIndex('claimables', 'by-created').then(cs => cs.filter(c => c.kind === kind).reverse()));
 }
 
+// export function useHookinsOfAddress(bitcoinAddress: string) {
+//   return useQueryResult(() => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress), 'table:claimables') as
+//     | undefined
+//     | (Docs.Claimable & hi.POD.Hookin)[];
+// }
 export function useHookinsOfAddress(bitcoinAddress: string) {
-  return useQueryResult(() => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress), 'table:claimables') as
-    | undefined
-    | (Docs.Claimable & hi.POD.Hookin)[];
+  return useQueryResult(
+    () => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress).then(hihos => hihos.filter(hiho => hiho.kind === 'Hookin').reverse()),
+    'table:claimables'
+  ) as undefined | (Docs.Claimable & hi.POD.Hookin)[];
 }
 
 export function useClaimableStatuses(claimableHash: string) {
@@ -117,12 +123,23 @@ export function useCoins(): Docs.Coin[] {
 
   return claimed;
 }
-// bad typing on purpose..
-export function getAllClaimables(): any {
-  const [claimed, setClaimed] = useState<any[]>([]);
+// I don't think we've improved the speed of this function? Todo: benchmark
+// we shouldn't use this.. TODO
+export function getSpendingClaimables():
+  | (Docs.Claimable & hi.POD.FeeBump)[]
+  | (Docs.Claimable & hi.POD.LightningPayment)[]
+  | (Docs.Claimable & hi.POD.Hookout)[] {
+  const [claimed, setClaimed] = useState<
+    (Docs.Claimable & hi.POD.FeeBump)[] | (Docs.Claimable & hi.POD.LightningPayment)[] | (Docs.Claimable & hi.POD.Hookout)[]
+  >([]);
 
   async function get() {
-    const coins = await wallet.db.getAll('claimables');
+    const coins = (await wallet.db
+      .getAll('claimables')
+      .then(claimables => claimables.filter(c => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
+      | (Docs.Claimable & hi.POD.FeeBump)[]
+      | (Docs.Claimable & hi.POD.LightningPayment)[]
+      | (Docs.Claimable & hi.POD.Hookout)[];
     setClaimed(coins);
   }
   useEffect(() => {
@@ -133,6 +150,23 @@ export function getAllClaimables(): any {
 
   return claimed;
 }
+
+// // bad typing on purpose..
+// export function getAllClaimables(): any {
+//   const [claimed, setClaimed] = useState<any[]>([]);
+
+//   async function get() {
+//     const coins = await wallet.db.getAll('claimables');
+//     setClaimed(coins);
+//   }
+//   useEffect(() => {
+//     const cleanup = wallet.on('table:claimables', get);
+//     get();
+//     return cleanup;
+//   }, []);
+
+//   return claimed;
+// }
 
 export function useBalance(): number {
   const [balance, setBalance] = useState(0);

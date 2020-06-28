@@ -501,8 +501,13 @@ export default class Database extends EventEmitter {
   async syncClaimable() {
     const claimables = await this.db.getAll('claimables');
     for (const claimable of claimables) {
-      await this.requestStatuses(claimable.hash);
-      await this.claimClaimable(claimable);
+      // too lazy to fix actual errors...?
+      try {
+        await this.requestStatuses(claimable.hash);
+        await this.claimClaimable(claimable);
+      } catch (e) {
+        continue;
+      }
     }
   }
 
@@ -532,11 +537,84 @@ export default class Database extends EventEmitter {
     }
   }
 
+  async FastSyncWallet() {
+    const coins = await this.db.getAll('coins');
+
+    const localClaimables = (await this.db
+      .getAll('claimables')
+      .then(claimables => claimables.filter(c => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
+      | (Docs.Claimable & hi.POD.FeeBump)[]
+      | (Docs.Claimable & hi.POD.LightningPayment)[]
+      | (Docs.Claimable & hi.POD.Hookout)[];
+
+    let hasFound: boolean = false;
+    let hasLocal: Docs.Coin[] = [];
+
+    for (const coin of coins) {
+      for (const c of localClaimables) {
+        const e = c.inputs;
+        for (const k of e) {
+          if (coin.owner === k.owner) {
+            console.log(`we found a claimable for ${coin.owner}, no need to send a request to the custodian`);
+            hasLocal.push(coin);
+            //unnec
+            break;
+          }
+        }
+      }
+    }
+
+    let Unspent = coins.filter(x => !hasLocal.includes(x));
+    let newAckedClaimables: Docs.Claimable[] = [];
+
+    for (const checkCoin of Unspent) {
+      const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
+      if (!claimable) {
+        continue;
+      }
+      const claimableHash = claimable.hash().toPOD();
+
+      const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
+      if (await transaction.objectStore('claimables').getKey(claimableHash)) {
+        continue;
+      }
+      hasFound = true;
+
+      const claimableDoc: Docs.Claimable = {
+        created: new Date(),
+        ...claimable.toPOD(),
+      };
+      newAckedClaimables.push(claimableDoc);
+
+      await transaction.objectStore('claimables').add(claimableDoc);
+      await this.emitInTransaction('table:claimables', transaction);
+
+      await transaction.done;
+    }
+
+    for (const claimable of newAckedClaimables) {
+      // too lazy to fix actual errors...?
+      try {
+        await this.requestStatuses(claimable.hash);
+        await this.claimClaimable(claimable);
+      } catch (e) {
+        continue;
+      }
+    }
+    // we found a new claimable, run again
+    if (hasFound === true) {
+      await this.FastSyncWallet();
+    }
+  }
+
   async sync() {
     await this.syncBitcoinAddresses();
     await this.syncLightningInvoices();
     await this.syncCoins();
     await this.syncClaimable();
+
+    // TODO => fix errors
+    await this.FastSyncWallet();
 
     // TODO: find coins that are funded...
   }

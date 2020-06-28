@@ -50,7 +50,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
             </NavItem>
             <NavItem>
               <Link className="nav-link" to="/faq">
-                FAQ / General  
+                FAQ / General
               </Link>
             </NavItem>
             <NavItem>

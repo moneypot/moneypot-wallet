@@ -10,16 +10,19 @@ export default function Backup() {
     <div>
       <h5>Backup</h5>
       <div className="inner-container">
-        <p>A sufficient backup consists of your wallet seed & the custodian URL. </p>
+        <p>
+          A sufficient backup consists of your wallet mnemonic and the right custodian URL. (and optionally, if applicable, the
+          original password.){' '}
+        </p>
         <span>
           {hidden ? '' : <pre style={{ height: '4vw' }}>{JSON.stringify(wallet.config.toDoc().mnemonic, null, 2)}</pre>}{' '}
           {hidden ? (
             <Button color="secondary" onClick={() => setHidden(false)}>
-              Show me my Seed!
+              Show me my mnemonic!
             </Button>
           ) : (
             <Button color="secondary" onClick={() => setHidden(true)}>
-              Hide seed!
+              Hide my mnemonic!
             </Button>
           )}
         </span>
@@ -29,7 +32,7 @@ export default function Backup() {
           <pre>{JSON.stringify(wallet.config.toDoc().custodianUrl, null, 2)}</pre>
         </span>
         {<br />} {<br />}
-        <a href="https://www.moneypot.com/faq/" target="_blank">
+        <a href="https://www.moneypot.com/faq/" target="_blank" rel="noreferrer">
           Frequently Asked Questions
         </a>
       </div>

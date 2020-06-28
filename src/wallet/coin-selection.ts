@@ -21,7 +21,7 @@ export function findAtLeast<T extends Coin>(coins: T[], target: number): FindRes
   for (const [i, coin] of candidates.entries()) {
     amount += 2 ** coin.magnitude;
 
-    if (amount > target) {
+    if (amount >= target) {
       return {
         found: candidates.slice(0, i + 1),
         excess: amount - target,

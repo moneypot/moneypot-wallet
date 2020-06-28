@@ -1,14 +1,16 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-import LightningInvoice from './lightning-invoice';
-import LightningPayment from './lightning-payment'
+import LightningInvoice from './statuses/lightning-invoice-statuses';
+import LightningPayment from './statuses/lightning-payment-statuses';
 import DevDataDisplay from './dev-data-display';
 
 import * as hi from 'moneypot-lib';
 
 import { wallet, useClaimable, useClaimableStatuses } from '../state/wallet';
 import { notError } from '../util';
-import StatusStuff from './StatusStuff';
+import HookinStatuses from './statuses/hookin-statuses';
+import HookoutStatuses from './statuses/hookout-statuses';
+import FeeBumpStatuses from './statuses/feebump-statuses';
 
 export default function ClaimableInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;
@@ -52,39 +54,77 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
   };
 
   let kindOfClaimable = () => {
-    if (claimableDoc.kind === 'LightningInvoice') {
-      return <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="deposit" claimableHash={claimableDoc.hash} />;
-    } else if (claimableDoc.kind === "LightningPayment") { 
-      return <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash}></LightningPayment>
+    switch (claimableDoc.kind) {
+      case 'LightningInvoice':
+        return (
+          claimable instanceof hi.Acknowledged.default && (
+            <LightningInvoice
+              paymentRequest={claimableDoc.paymentRequest}
+              created={claimableDoc.created}
+              claimableHash={claimableDoc.hash}
+              claimable={claimable}
+            />
+          )
+        );
+      case 'LightningPayment':
+        return (
+          claimable instanceof hi.Acknowledged.default && (
+            <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash} />
+          )
+        );
+      case 'Hookin':
+        // this is kind of cheating.... stupid... todo
+        let Hiclaimable = claimable as hi.Hookin & Partial<hi.Acknowledged.Claimable>;
+        return <HookinStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={Hiclaimable} />;
+      case 'Hookout':
+        let HoClaimable = claimable as hi.Hookout & Partial<hi.Acknowledged.Claimable>;
+        return <HookoutStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={HoClaimable} />;
+      case 'FeeBump':
+        let FeClaimable = claimable as hi.FeeBump & Partial<hi.Acknowledged.Claimable>;
+        return <FeeBumpStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={FeClaimable} />;
+
+      default:
+        return <span>Loading...</span>;
     }
-    if (claimableDoc.kind === 'Hookout' || claimableDoc.kind === 'Hookin' || claimableDoc.kind === 'FeeBump') {
-      return (
-        <React.Fragment>
-          <StatusStuff
-            claimableHash={claimableDoc.hash}
-            amount={claimableDoc.amount}
-            created={claimableDoc.created}
-            kind={claimableDoc.kind}
-            claimable={claimable.toPOD()}
-          />
-          <button
-            onClick={() => {
-              wallet.discardClaimable(claimableDoc.hash);
-              props.history.push('/claimables');
-            }}
-          >
-            Discard!
-          </button>
-          {<br />}
-          {<br />}
-        </React.Fragment>
-      );
-    }
+    // if (claimableDoc.kind === 'LightningInvoice') {
+    //   return (
+    //     claimable instanceof hi.Acknowledged.default && <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={claimable} />
+    //   );
+    // } else if (claimableDoc.kind === 'LightningPayment') {
+    //   return <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash} />;
+    // }
+    // if (claimableDoc.kind === 'Hookout' || claimableDoc.kind === 'Hookin' || claimableDoc.kind === 'FeeBump') {
+    //   return (
+    //     <React.Fragment>
+    //       <IsClaimable
+    //         claimableHash={claimableDoc.hash}
+    //         amount={claimableDoc.amount}
+    //         created={claimableDoc.created}
+    //         kind={claimableDoc.kind}
+    //         claimable={claimable}
+    //       />
+
+    //     </React.Fragment>
+    //   );
+    // }
   };
 
   return (
     <div>
       {kindOfClaimable()}
+      {
+        <button
+          onClick={() => {
+            wallet.discardClaimable(claimableDoc.hash);
+            props.history.push('/claimables');
+          }}
+        >
+          Discard!
+        </button>
+      }
+      {<br />}
+      {<br />}
+
       {claimable instanceof hi.Acknowledged.default && <ShowStatuses claimable={claimable} claimableHash={claimableDoc.hash} />}
       <DevDataDisplay title="Raw Claimable">{claimableDoc}</DevDataDisplay>
     </div>

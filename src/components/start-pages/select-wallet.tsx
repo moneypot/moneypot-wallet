@@ -71,7 +71,7 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
       <div>
         <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="text" name="walletName" required />
       </div>
-      <div>
+      <div className="select-wallet-button">
         <Button onClick={() => load(walletName, password)} className="btn-moneypot-sm btn btn-primary">
           Load <i className="fa fa-arrow-right" />
         </Button>
