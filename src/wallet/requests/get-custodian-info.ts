@@ -3,11 +3,11 @@ import makeRequest, { RequestError } from './make-request';
 import { notError } from '../../util';
 
 export default async function(custodianUrl: string): Promise<hi.CustodianInfo | Error> {
-  const url = new URL(custodianUrl);
-
-  const ackString = url.hash.substring(1);
-
-  const res = await makeRequest<any>(custodianUrl);
+  // onion support, not tested, TODO
+  if (custodianUrl.includes('#')) {
+    var ackString = custodianUrl.split('#').shift();
+  }
+  const res = await makeRequest<hi.POD.CustodianInfo>(custodianUrl);
 
   if (res instanceof RequestError) {
     if (res.statusCode === 404) {
@@ -21,27 +21,28 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
   if (ci instanceof Error) {
     return ci;
   }
+  if (ackString) {
+    if (ackString.length > 0) {
+      const ackKeyPub = notError(hi.PublicKey.fromPOD(ackString));
+      if (ci.acknowledgementKey.toPOD() !== ackString) {
+        return new Error('custodian info was not properly acknowledged by expected key');
+      }
+      const custUrl = custodianUrl.substring(0, -1 + custodianUrl.indexOf('#'));
 
-  if (ackString.length > 0) {
-    const ackKeyPub = notError(hi.PublicKey.fromPOD(ackString));
-    if (ci.acknowledgementKey.toPOD() !== ackString) {
-      return new Error('custodian info was not properly acknowledged by expected key');
-    }
-    const custUrl = custodianUrl.substring(0, -1 + custodianUrl.indexOf('#'));
+      const message = hi.PrivateKey.fromRand().toPublicKey();
+      const newUrl = `${custUrl}/ack-custodian-info/${message.toPOD()}`;
 
-    const message = hi.PrivateKey.fromRand().toPublicKey();
-    const newUrl = `${custUrl}/ack-custodian-info/${message.toPOD()}`;
+      const aci = await makeRequest<hi.POD.Signature>(newUrl);
+      if (aci instanceof RequestError) {
+        throw "Couldn't get a signature";
+      }
+      console.log('[verify:signature] verify this signature: ', aci);
+      const sigP = notError(hi.Signature.fromPOD(aci));
 
-    const aci = await makeRequest<hi.POD.Signature>(newUrl);
-    if (aci instanceof RequestError) {
-      throw "Couldn't get a signature";
-    }
-    console.log('[verify:signature] verify this signature: ', aci);
-    const sigP = notError(hi.Signature.fromPOD(aci));
-
-    // if the custodian can't create a signature with the displayed ackKey. (a domain hijacker won't be able to.)
-    if (!sigP.verify(message.buffer, ackKeyPub)) {
-      return new Error('custodian info (signature!) was not properly acknowledged by expected key. (Is the custodian trying to cheat us?!)');
+      // if the custodian can't create a signature with the displayed ackKey. (a domain hijacker won't be able to.)
+      if (!sigP.verify(message.buffer, ackKeyPub)) {
+        return new Error('custodian info (signature!) was not properly acknowledged by expected key. (Is the custodian trying to cheat us?!)');
+      }
     }
   }
 

@@ -34,8 +34,9 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           if (props.claimable instanceof mp.Acknowledged.default) {
             !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
           }
-          
-        } else await wallet.requestStatuses(props.claimableHash);
+        } else {
+          await wallet.requestStatuses(props.claimableHash);
+        }
       }
     };
     getData();

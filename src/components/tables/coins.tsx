@@ -1,6 +1,6 @@
 import React from 'react';
-import * as Docs from '../wallet/docs';
-import { useCoins, getSpendingClaimables } from '../state/wallet';
+import * as Docs from '../../wallet/docs';
+import { useCoins, getSpendingClaimables } from '../../state/wallet';
 import { Link } from 'react-router-dom';
 import * as mp from 'moneypot-lib';
 

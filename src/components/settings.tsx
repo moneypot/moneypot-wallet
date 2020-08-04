@@ -16,8 +16,11 @@ export default function Settings() {
   const [Setting4, setSetting4] = useState(false);
   const updateFour = () => setSetting4(!Setting4);
 
+  const [Setting5, setSetting5] = useState(false);
+  const updateFive = () => setSetting5(!Setting5);
+
   useEffect(() => {
-    const hasSettings = () => {
+    const hasSettings = async () => {
       if (localStorage.getItem(`${wallet.db.name}-setting1-hasNested`) != null) {
         if (localStorage.getItem(`${wallet.db.name}-setting1-hasNested`) === 'true') {
           setSetting1(true);
@@ -32,7 +35,17 @@ export default function Settings() {
           }
         } else {
           setSetting2(false);
-          // user's responsibility to reset gaplimit, or we can do it here? != 10 === reset?
+          if (wallet.config.gapLimit != 10) {
+            // this session
+            wallet.config.gapLimit = 10;
+            // change config indexeddb
+            const walletConfig = await wallet.db.get('config', 1);
+            if (walletConfig === undefined) {
+              return new Error('Invalid config?');
+            }
+            walletConfig.gapLimit = 10;
+            wallet.db.put('config', walletConfig);
+          }
         }
       }
       if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) != null) {
@@ -44,6 +57,11 @@ export default function Settings() {
         if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) === 'true') {
           setSetting4(true);
         } else setSetting4(false);
+      }
+      if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) != null) {
+        if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) === 'true') {
+          setSetting5(true);
+        } else setSetting5(false);
       }
     };
     hasSettings();
@@ -80,6 +98,17 @@ export default function Settings() {
       wallet.db.put('config', walletConfig);
     } else if (Setting2 === false) {
       localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'false');
+      if (wallet.config.gapLimit != 10) {
+        // this session
+        wallet.config.gapLimit = 10;
+        // change config indexeddb
+        const walletConfig = await wallet.db.get('config', 1);
+        if (walletConfig === undefined) {
+          return new Error('Invalid config?');
+        }
+        walletConfig.gapLimit = 10;
+        wallet.db.put('config', walletConfig);
+      }
     }
     if (Setting3 === true) {
       localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'true');
@@ -90,6 +119,11 @@ export default function Settings() {
       localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'true');
     } else if (Setting4 === false) {
       localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'false');
+    }
+    if (Setting5 === true) {
+      localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
+    } else if (Setting5 === false) {
+      localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
     }
   };
 
@@ -154,6 +188,16 @@ export default function Settings() {
                   <small>
                     e.g <code>2NGZrVvZG92qGYqzTLjCAewvPZ7JE8S8VxE, 10000;</code> (denominated in satoshis, priority = batched!)
                   </small>
+                </p>
+              </Label>
+              <br />
+              <hr />
+              <Label check>
+                <Input id="setting5" type="checkbox" onChange={updateFive} checked={Setting5} /> Enable multi-threading for specific parts regarding syncing the
+                wallet. (Experimental!)
+                <p>
+                  <b>Note:</b> We recommend you only use this option in high-latency environments, and or in combination with large wallets (1000+ coins). It
+                  can cause your browser to crash(!). for users with a decent connection the difference might not be notable.
                 </p>
               </Label>
               <br />

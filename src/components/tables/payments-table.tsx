@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as hi from 'moneypot-lib';
 
-import { useClaimableStatuses } from '../state/wallet';
+import { useClaimableStatuses } from '../../state/wallet';
 
-import * as Docs from '../wallet/docs';
-import { notError } from '../util';
+import * as Docs from '../../wallet/docs';
+import { notError } from '../../util';
 import Failed from 'moneypot-lib/dist/status/failed';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
 
@@ -166,7 +166,10 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
       <td>
         <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.hash.substring(0, 8)}...</Link>
       </td>
-      <td>{paymentsDoc.paymentRequest.substring(0, 32)}...</td>
+      <td>
+        {' '}
+        <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.paymentRequest.substring(0, 32)}...</Link>
+      </td>
       <td>{paymentpreimage != null && paymentpreimage.toString().substring(0, 32)}</td>
       <td>{memo}</td>
       <td>{paymentsDoc.amount} sat</td>

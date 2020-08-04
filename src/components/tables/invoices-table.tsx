@@ -2,11 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import * as hi from 'moneypot-lib';
 
-import { useClaimableStatuses } from '../state/wallet';
+import { useClaimableStatuses } from '../../state/wallet';
 
-import * as Docs from '../wallet/docs';
-import { notError } from '../util';
-import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
+import * as Docs from '../../wallet/docs';
+import { notError } from '../../util';
+import InvoiceSettledStatus from 'moneypot-lib/dist/status/invoice-settled';
 
 export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable & hi.POD.LightningInvoice)[] }) {
   return (
@@ -38,14 +38,23 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
     if (statuses != undefined) {
       if (statuses.length > 1) {
         for (const s of statuses) {
-          if (s instanceof InvoiceSettled) {
-            return s.rPreimage != null && true;
+          if (s instanceof InvoiceSettledStatus) {
+            return 'true';
           }
         }
       }
     }
-    return false;
+    return 'false';
   }
+
+  // function isPaid() {
+  //   const statuses = useClaimableStatuses(invoiceDoc.hash)
+  //   if(statuses != undefined) {
+  //     statuses.some(status => status instanceof InvoiceSettledStatus)
+
+  //   } else return false
+
+  // }
 
   function isExpired() {
     const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
@@ -81,7 +90,9 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
       <td>
         <Link to={`/claimables/${invoiceDoc.hash}`}>{invoiceDoc.hash.substring(0, 32)}...</Link>
       </td>
-      <td>{invoiceDoc.paymentRequest.substring(0, 32)}...</td>
+      <td>
+        <Link to={`/claimables/${invoiceDoc.hash}`}>{invoiceDoc.paymentRequest.substring(0, 32)}...</Link>
+      </td>
       <td>{pro.satoshis} sat</td>
       <td>{isExpired()}</td>
 

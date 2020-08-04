@@ -1,0 +1,34 @@
+[{
+    "owner": "BitPay, Inc.",
+    "expirationDate": "2018-12-03T00:00:00.000Z",
+    "domains": [
+      "bitpay.com"
+    ],
+    "publicKeys": [
+      "03218884b9a42334195ec32344d487ef291fda4b6e712a7858e9836c2d326e0c08",
+      "027ffb2cc626a97bc3b449ae3b28b0acf07bc900bba8912d60ca12ad2b616cbe72",
+      "03a29de86e138106a329bc6db085f02d8e19f59249204dfd5cc797fcb36b8ed93c",
+      "022ba5469ec10a1d12911a5ca39c45bd0de24db83145507ffaf1fb6a3ca047f717",
+      "03065b167ac14111efdbf7708708ecf44d22ed0e97af3c656a183162dabf5a59bf",
+      "03dc0f18eadf553705ab87421d264204a9fcb8a7984997e07a867cbf55972908eb",
+      "02cab72d4d5d0c9ede7617562e42c485dcfb34db52fd0e6a3de62462040ac1ce90",
+      "02e184ad56dee82bbaf290144f24b7ab8e508f6c26e9181c8501c8219a7e1999b1",
+      "027b7d555a3444936ddb200ca640f41aa8c89851fbbb13521b5aaa32d75df57cc8",
+      "03c3872f9c42c1c2fca77a77727f3b180cdc811754f6b560d298f1ce63c78df484",
+      "02527a9029fbb09ec9a02471e03296932d20544d3935fa492e2f74a1f79a0c48f6",
+      "03adbd79e63b046cc25c70b2c1f428a410e1ca46f88fb6c387f2883090b9fa0367",
+      "02c9f1fbf8afa5a9b6a22a6c442b184e7e72a8b173c4a06beb11a5b700f024b06e",
+      "0386126eaa4f7bc816ea0c5841cdd1086704167c126e03c17dbd5fc899469091bb",
+      "03271e4ea488ed0d1294dce6f3554c5d6f9cb068a847f500f2ea392148402499f1"
+    ]
+  },
+  {
+    "owner": "Moneypot, Inc.",
+    "expirationDate": "2018-12-03T00:00:00.000Z",
+    "domains": [
+      "moneypot***.com"
+    ],
+    "publicKeys": [
+      "0272a9b188a84f1ba184792e6e1315ed0f6788cd02ed57ed3deffe39e67fc346b1"
+    ]
+  }]

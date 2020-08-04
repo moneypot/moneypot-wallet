@@ -10,10 +10,7 @@ export default function Backup() {
     <div>
       <h5>Backup</h5>
       <div className="inner-container">
-        <p>
-          A sufficient backup consists of your wallet mnemonic and the right custodian URL. (and optionally, if applicable, the
-          original password.){' '}
-        </p>
+        <p>A sufficient backup consists of your wallet mnemonic and the right custodian URL. (and optionally, if applicable, the original password.) </p>
         <span>
           {hidden ? '' : <pre style={{ height: '4vw' }}>{JSON.stringify(wallet.config.toDoc().mnemonic, null, 2)}</pre>}{' '}
           {hidden ? (

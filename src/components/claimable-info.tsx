@@ -69,20 +69,39 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
       case 'LightningPayment':
         return (
           claimable instanceof hi.Acknowledged.default && (
-            <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash} />
+            <LightningPayment
+              paymentRequest={claimableDoc.paymentRequest}
+              created={claimableDoc.created}
+              memo=""
+              claimableHash={claimableDoc.hash}
+              claimable={claimable as hi.LightningPayment & Partial<hi.Acknowledged.Claimable>}
+            />
           )
         );
       case 'Hookin':
-        // this is kind of cheating.... stupid... todo
-        let Hiclaimable = claimable as hi.Hookin & Partial<hi.Acknowledged.Claimable>;
-        return <HookinStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={Hiclaimable} />;
+        return (
+          <HookinStatuses
+            created={claimableDoc.created}
+            claimableHash={claimableDoc.hash}
+            claimable={claimable as hi.Hookin & Partial<hi.Acknowledged.Claimable>}
+          />
+        );
       case 'Hookout':
-        let HoClaimable = claimable as hi.Hookout & Partial<hi.Acknowledged.Claimable>;
-        return <HookoutStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={HoClaimable} />;
+        return (
+          <HookoutStatuses
+            created={claimableDoc.created}
+            claimableHash={claimableDoc.hash}
+            claimable={claimable as hi.Hookout & Partial<hi.Acknowledged.Claimable>}
+          />
+        );
       case 'FeeBump':
-        let FeClaimable = claimable as hi.FeeBump & Partial<hi.Acknowledged.Claimable>;
-        return <FeeBumpStatuses created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={FeClaimable} />;
-
+        return (
+          <FeeBumpStatuses
+            created={claimableDoc.created}
+            claimableHash={claimableDoc.hash}
+            claimable={claimable as hi.FeeBump & Partial<hi.Acknowledged.Claimable>}
+          />
+        );
       default:
         return <span>Loading...</span>;
     }

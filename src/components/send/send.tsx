@@ -23,6 +23,8 @@ import {
 import { decodeBitcoinAddress } from 'moneypot-lib';
 import { notError } from '../../util';
 
+import { BInvoice, GeneralizedPaymentDetails, decodeBitcoinBip21, bip21 } from './bip70paymentprotocol';
+
 interface PTMaddress {
   toAddress: string;
   amount: number;
@@ -35,7 +37,21 @@ export default function Send({ history }: Props) {
   const feeSchedule = useFeeSchedule();
   const recommendedFees = useEstimateCustomFee();
 
+  const [LocalMemo, setLocalMemo] = useState<string | undefined>(undefined);
+
   const [toText, setToText] = useState('');
+
+  const [bip21Invoice, setbip21Invoice] = useState<bip21 | undefined>(undefined);
+  const [BitcoinInvoice, setBitcoinInvoice] = useState<GeneralizedPaymentDetails | undefined>(undefined);
+  // const [sendType, setSendType] = useState<{ kind: 'empty'; } | { kind: 'error'; message: string; } | { kind: 'lightning'; amount: number; } | { kind: 'bitcoin'; } | { kind: 'bitcoinInvoice'; }>({kind: "empty"});
+  const [sendType, setSendType] = useState<
+    | { kind: 'empty' }
+    | { kind: 'error'; message: string }
+    | { kind: 'lightning'; amount: number }
+    | { kind: 'bitcoin' }
+    | { kind: 'bitcoinInvoice' }
+    | { kind: 'bitcoinbip21Invoice' }
+  >({ kind: 'empty' });
 
   const [toPTM, setToPTM] = useState('');
   const [ptm, setPTM] = useState(false);
@@ -60,30 +76,66 @@ export default function Send({ history }: Props) {
     }
   }, []);
 
-  let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'lightning'; amount: number } | { kind: 'bitcoin' } => {
-    if (toText === '') {
-      return { kind: 'empty' };
-    }
+  useEffect(() => {
+    async function getSendType() {
+      if (toText === '') {
+        setSendType({ kind: 'empty' });
+      } else if (toText != '') {
+        let decodedBolt11 = hi.decodeBolt11(toText);
+        if (!(decodedBolt11 instanceof Error)) {
+          if (decodedBolt11.timeExpireDate * 1000 <= Date.now()) {
+            setSendType({ kind: 'error', message: `lightning invoice has already expired (${decodedBolt11.timeExpireDateString} )` });
+          }
 
-    let decodedBolt11 = hi.decodeBolt11(toText);
-    if (!(decodedBolt11 instanceof Error)) {
-      if (decodedBolt11.timeExpireDate * 1000 <= Date.now()) {
-        return { kind: 'error', message: `lightning invoice has already expired (${decodedBolt11.timeExpireDateString} )` };
+          setSendType({ kind: 'lightning', amount: decodedBolt11.satoshis || 0 });
+        }
+
+        let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
+        if (!(decodedBitcoinAddress instanceof Error)) {
+          setSendType({ kind: 'bitcoin' });
+          return;
+        }
+
+        let decodeBitcoinBip20;
+        if (!toText.startsWith('bitcoin:?') && toText.startsWith('bitcoin:')) {
+          decodeBitcoinBip20 = decodeBitcoinBip21(toText);
+          if (!(decodeBitcoinBip20 instanceof Error)) {
+            setbip21Invoice(decodeBitcoinBip20);
+            setSendType({ kind: 'bitcoinbip21Invoice' });
+            return;
+          }
+        }
+
+        let decodeBitcoinInvoice;
+        if (toText.startsWith('bitcoin:?')) {
+          decodeBitcoinInvoice = await BInvoice(toText);
+          if (!(decodeBitcoinInvoice instanceof Error)) {
+            setBitcoinInvoice(decodeBitcoinInvoice);
+            setSendType({ kind: 'bitcoinInvoice' });
+            setPrioritySelection('CUSTOM');
+            return;
+          }
+        }
+        if (
+          decodeBitcoinInvoice instanceof Error &&
+          decodedBitcoinAddress instanceof Error &&
+          decodedBolt11 instanceof Error &&
+          decodeBitcoinBip20 instanceof Error &&
+          toText != ''
+        ) {
+          setSendType({ kind: 'error', message: 'not a valid invoice or bitcoin address' });
+        }
       }
-
-      return { kind: 'lightning', amount: decodedBolt11.satoshis || 0 };
     }
-
-    let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
-    if (!(decodedBitcoinAddress instanceof Error)) {
-      return { kind: 'bitcoin' };
-    }
-
-    return { kind: 'error', message: 'not a valid invoice or bitcoin address' };
-  })();
+    getSendType();
+  }, [toText]);
 
   function handleToTextChange(event: React.ChangeEvent<HTMLInputElement>) {
     setToText(event.target.value);
+    setSendType({ kind: 'empty' });
+  }
+  function handleMemoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setLocalMemo(event.target.value);
   }
   function handleToPTMChange(event: React.ChangeEvent<HTMLInputElement>) {
     setToPTM(event.target.value);
@@ -115,10 +167,35 @@ export default function Send({ history }: Props) {
     if (sendType.kind === 'lightning') {
       return feeLimit;
     }
+    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined) {
+      prioritySelection = 'CUSTOM';
+
+      if (BitcoinInvoice.requiredFeeRate != undefined) {
+        setFeeText(Math.ceil(BitcoinInvoice.requiredFeeRate).toString()); // we never want to send less than required
+      } else {
+        if (feeSchedule) {
+          setFeeText(Math.ceil(feeSchedule.immediateFeeRate * 4).toString());
+        } else {
+          toast.error("Feeschedule hasn't loaded yet!");
+          return 0;
+        }
+      }
+    }
+
     let isType;
     if (PTMaddress != undefined) {
       isType = decodeBitcoinAddress(PTMaddress);
-    } else isType = decodeBitcoinAddress(toText);
+    }
+    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined && PTMaddress === undefined) {
+      // this doesn't matter when we have multiple outputs, we recalculate for each address type
+      isType = decodeBitcoinAddress(BitcoinInvoice.outputs[0].address);
+      // isType = decodeBitcoinAddress(BitcoinInvoice.outputs[0].address);
+    }
+    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined && PTMaddress === undefined) {
+      isType = decodeBitcoinAddress(bip21Invoice.address);
+    } else if (sendType.kind != 'bitcoinInvoice' && sendType.kind != 'bitcoinbip21Invoice' && PTMaddress === undefined) {
+      isType = decodeBitcoinAddress(toText);
+    }
 
     if (isType === undefined) {
       throw isType;
@@ -184,6 +261,24 @@ export default function Send({ history }: Props) {
     if (sendType.kind === 'lightning' && sendType.amount) {
       return sendType.amount;
     }
+    // this may seem dangerous
+    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined) {
+      let amount = [];
+      let total = 0;
+      for (const output of BitcoinInvoice.outputs) {
+        amount.push(output.amount);
+      }
+      for (var i in amount) {
+        total += amount[i];
+      }
+
+      return total;
+    }
+    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined) {
+      if (bip21Invoice.options.amount != undefined) {
+        return bip21Invoice.options.amount;
+      }
+    }
     return amountInput;
   }
 
@@ -206,19 +301,32 @@ export default function Send({ history }: Props) {
     if (toText.startsWith('ln')) {
       console.log('sending lightning payment: ', toText, amount, calcFee());
       transferHash = await wallet.sendLightningPayment(toText, amount, calcFee());
-    }
-    if (toText != '' && toPTM != '') {
-      toast.error('Please send either transaction.'); // This might be really confusing for users and it really is kind of a half-assed solution
-    }
-    if (toText != '' && toPTM === '') {
-      transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee(), disableRBF());
-
       if (typeof transferHash === 'string') {
         toast.error('Oops! ' + transferHash);
         return;
       }
       history.push(`/claimables/${transferHash.toPOD()}`);
     }
+
+    if (toText != '' && toPTM != '') {
+      toast.error('Please send either transaction.'); // This might be really confusing for users and it really is kind of a half-assed solution
+    }
+
+    // this is DEFAULT
+    if (toText != '' && toPTM === '' && !toText.startsWith('ln') && !toText.startsWith('bitcoin:')) {
+      transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee(), disableRBF());
+
+      if (typeof transferHash === 'string') {
+        toast.error('Oops! ' + transferHash);
+        return;
+      }
+      if (LocalMemo != undefined) {
+        localStorage.setItem(transferHash.toPOD(), LocalMemo);
+      }
+      history.push(`/claimables/${transferHash.toPOD()}`);
+    }
+
+    // this is PAY-TO-MANY
     if (toText === '' && toPTM != '') {
       // check if entire array is valid.
       for (let i = 0; i < ptmarray.length; i++) {
@@ -243,6 +351,94 @@ export default function Send({ history }: Props) {
           toast.error('Oops! ' + transferHash);
           return;
         }
+        if (LocalMemo != undefined) {
+          localStorage.setItem(transferHash.toPOD(), LocalMemo);
+        }
+        history.push(`/claimables/${transferHash.toPOD()}`);
+      }
+    }
+
+    // this is BIP21
+    if (toText.startsWith('bitcoin') && bip21Invoice != undefined) {
+      console.log('sending bitcoin bip21 Invoice payment: ', bip21Invoice.address, amount, calcFee());
+
+      if (bip21Invoice.options.time) {
+        if (bip21Invoice.options.exp) {
+          let timeExp = Number(bip21Invoice.options.exp) + Number(bip21Invoice.options.time);
+          if (new Date(timeExp * 1000) <= new Date(Date.now())) {
+            toast.error('Invoice has already expired! Please request a new one!');
+            return;
+          }
+        }
+      }
+
+      transferHash = await wallet.sendHookout(
+        prioritySelection,
+        bip21Invoice.address,
+        bip21Invoice.options.amount != undefined ? bip21Invoice.options.amount : amountInput,
+        calcFee(),
+        disableRBF()
+        // bip21Invoice.options.message != undefined ? bip21Invoice.options.message : undefined
+      );
+      if (typeof transferHash === 'string') {
+        toast.error('Oops! ' + transferHash);
+        return;
+      }
+      // tx done, push memo to localstorage..?
+      if (bip21Invoice.options.message != undefined) {
+        localStorage.setItem(transferHash.toPOD(), bip21Invoice.options.message);
+      }
+      history.push(`/claimables/${transferHash.toPOD()}`);
+    }
+
+    // this is BIP70/PaymentProtocol.
+    if (toText.startsWith('bitcoin') && BitcoinInvoice != undefined) {
+       console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
+      if (new Date(typeof BitcoinInvoice.expires === 'number' ? BitcoinInvoice.expires * 1000 : BitcoinInvoice.expires) <= new Date(Date.now())) {
+        toast.error('Invoice has already expired! Please request a new one!');
+        return;
+        //  throw new Error("Invoice has expired in the meantime! Request a new one.")
+      }
+      // this is very inefficient
+      if (BitcoinInvoice.outputs.length > 1) {
+        for (const output of BitcoinInvoice.outputs) {
+          // we assume that the required fee rate is identical for each hookout. (This is still very costly as they're sent as individual hookouts. (Does this even work with sites such as bitpay? )
+          transferHash = await wallet.sendHookout(
+            prioritySelection,
+            output.address,
+            output.amount,
+            calcFee(output.address),
+            false
+            //  BitcoinInvoice.memo
+          );
+          if (typeof transferHash === 'string') {
+            toast.error('Oops! ' + transferHash);
+            return;
+          }
+
+          // tx done, push memo to localstorage..?
+          localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
+
+          history.push(`/claimables/${transferHash.toPOD()}`);
+        }
+      }
+      //TODO -> actually test this
+      else if (BitcoinInvoice.outputs.length === 1) { 
+        transferHash = await wallet.sendHookout(
+          prioritySelection,
+          BitcoinInvoice.outputs[0].address,
+          BitcoinInvoice.outputs[0].amount,
+          calcFee(),
+          false
+          // BitcoinInvoice.memo
+        );
+
+        if (typeof transferHash === 'string') {
+          toast.error('Oops! ' + transferHash);
+          return;
+        }
+  
+        localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
         history.push(`/claimables/${transferHash.toPOD()}`);
       }
     }
@@ -262,7 +458,15 @@ export default function Send({ history }: Props) {
         <Row style={{ justifyContent: 'center' }}>
           {feeSchedule && (
             <small className="text-muted">
-              This transaction will be sent with {prioritySelection != 'FREE' ? feeSchedule.immediateFeeRate * 4 : 1} sat/vbyte
+              This transaction will be sent with{' '}
+              {prioritySelection === 'IMMEDIATE'
+                ? feeSchedule.immediateFeeRate * 4
+                : prioritySelection === 'CUSTOM'
+                ? feeText
+                : prioritySelection === 'BATCH'
+                ? feeSchedule.immediateFeeRate * 4
+                : 1}{' '}
+              sat/vbyte
             </small>
           )}
         </Row>
@@ -297,7 +501,11 @@ export default function Send({ history }: Props) {
           </Col>
           <Col sm={{ size: 9, offset: 0 }}>
             <InputGroup>
-              <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+              {sendType.kind === 'bitcoinInvoice' ? (
+                <Input value={feeText} onChange={event => setFeeText(event.target.value)} disabled />
+              ) : (
+                <Input value={feeText} onChange={event => setFeeText(event.target.value)} />
+              )}
               <div className="input-group-append">
                 <span className="input-group-text">sat/vbyte</span>
               </div>
@@ -334,20 +542,39 @@ export default function Send({ history }: Props) {
       </FormGroup>
     );
   }
+
   function showLightningDescription() {
-    const pro = notError(hi.decodeBolt11(toText));
     let description;
-    for (const tag of pro.tags) {
-      if (tag.tagName === 'description') {
-        description = tag.data;
+
+    if (sendType.kind === 'lightning') {
+      const pro = notError(hi.decodeBolt11(toText));
+      for (const tag of pro.tags) {
+        if (tag.tagName === 'description') {
+          description = tag.data;
+        }
+      }
+    } else if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined) {
+      description = BitcoinInvoice.memo;
+    } else if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined) {
+      if (bip21Invoice.options.message != undefined) {
+        description = bip21Invoice.options.message;
       }
     }
+
     return (
       <FormGroup row className="bordered-form-group">
         <Label for="" sm={3}>
           Memo:
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>{description}</Col>
+        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined && bip21Invoice.options.label != undefined && (
+          <React.Fragment>
+            <Label for="" sm={3}>
+              Label:
+            </Label>
+           <Col sm={{ size: 8, offset: 0 }}>{bip21Invoice.options.label}</Col> 
+          </React.Fragment>
+        )}
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
           <small className="text-muted">
             This is the description that was attached to the invoice. If you expected a different memo, you might be getting scammed.
@@ -356,6 +583,7 @@ export default function Send({ history }: Props) {
       </FormGroup>
     );
   }
+
   function showBitcoinFeeSelection() {
     return (
       <FormGroup row className="bordered-form-group">
@@ -373,6 +601,59 @@ export default function Send({ history }: Props) {
         <div className="fee-wrapper">{prioritySelection === 'CUSTOM' ? showCustom() : <ShowFeeText />}</div>
       </FormGroup>
     );
+  }
+
+  function showBitcoinInvoiceFeeSelection() {
+    return (
+      <FormGroup row className="bordered-form-group">
+        <div className="fee-wrapper">{showCustom()} </div>
+
+        <div className="fee-wrapper">
+          <ShowFeeText />{' '}
+        </div>
+      </FormGroup>
+    );
+  }
+
+  function ShowBitcoinInvoiceAddresses() {
+    if (BitcoinInvoice != undefined && bip21Invoice === undefined) {
+      return BitcoinInvoice.outputs.map(output => (
+        <FormGroup row className="bordered-form-group" key={output.address}>
+          <Col xl={{ size: 1, offset: 0 }}>
+            <p>Address & Amount:</p>
+          </Col>
+          <Col xl={{ size: 6, offset: 1 }}>
+            <InputGroup>
+              <Input value={output.address} disabled />
+            </InputGroup>
+          </Col>
+          <Col xl={{ size: 3, offset: 0 }}>
+            <InputGroup>
+              <Input value={output.amount} disabled />
+            </InputGroup>
+          </Col>
+        </FormGroup>
+      ));
+    }
+    if (bip21Invoice != undefined && BitcoinInvoice === undefined) {
+      return (
+        <FormGroup row className="bordered-form-group" key={bip21Invoice.address}>
+          <Col xl={{ size: 1, offset: 0 }}>
+            <p>Address & Amount:</p>
+          </Col>
+          <Col xl={{ size: 6, offset: 1 }}>
+            <InputGroup>
+              <Input value={bip21Invoice.address} disabled />
+            </InputGroup>
+          </Col>
+          <Col xl={{ size: 3, offset: 0 }}>
+            <InputGroup>
+              <Input value={bip21Invoice.options.amount != undefined ? bip21Invoice.options.amount : 'any'} disabled />
+            </InputGroup>
+          </Col>
+        </FormGroup>
+      );
+    }
   }
 
   function ShowPayToMany() {
@@ -436,7 +717,15 @@ export default function Send({ history }: Props) {
               </Label>
               <Col sm={{ size: 9, offset: 0 }}>
                 <InputGroup>
-                  <Input value={toText} onChange={handleToTextChange} type="text" className="to-text-input" required />
+                  <Input
+                    value={toText}
+                    onChange={e => {
+                      handleToTextChange(e);
+                    }}
+                    type="text"
+                    className="to-text-input"
+                    required
+                  />
                   <QrScanner onCodeRead={setToText} />
                 </InputGroup>
               </Col>
@@ -452,7 +741,15 @@ export default function Send({ history }: Props) {
                   onAmountChange={setAmountInput}
                   max={maxAmount}
                   currentFee={isValid(toText) === true ? calcFee() : 0}
-                  amount={(sendType.kind === 'lightning' && sendType.amount) || undefined}
+                  amount={
+                    (sendType.kind === 'lightning' && sendType.amount) ||
+                    (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined && BitcoinInvoice.outputs[0].amount) ||
+                    (sendType.kind == 'bitcoinbip21Invoice' &&
+                      bip21Invoice != undefined &&
+                      bip21Invoice.options.amount != undefined &&
+                      bip21Invoice.options.amount) ||
+                    undefined
+                  }
                 />
               </Col>
             </FormGroup>
@@ -460,7 +757,7 @@ export default function Send({ history }: Props) {
 
           {ptm === true && toText === '' && ShowPayToMany()}
           {toPTM != '' && AmountOfPTM()}
-          {toPTM === '' && !toText.startsWith('ln') && (
+          {sendType.kind === 'bitcoin' || sendType.kind === 'bitcoinbip21Invoice' ? (
             <FormGroup check>
               <Label check>
                 <Input id="setting1" type="checkbox" onChange={updateRBF} checked={!isRBF} /> Disable RBF when sending immediate transactions.
@@ -469,11 +766,39 @@ export default function Send({ history }: Props) {
                 </p>
               </Label>
             </FormGroup>
+          ) : (
+            undefined
           )}
 
+          {sendType.kind === 'bitcoin' || toPTM != '' ? (
+            <FormGroup row className="bordered-form-group">
+              <Label for="localMemo" sm={3}>
+                Attach local memo to payment:
+              </Label>
+              <Col sm={{ size: 9, offset: 0 }}>
+                <InputGroup>
+                  <Input
+                    value={LocalMemo}
+                    onChange={e => {
+                      handleMemoChange(e);
+                    }}
+                    type="text"
+                    className="to-text-input"
+                  />
+                </InputGroup>
+              </Col>
+            </FormGroup>
+          ) : (
+            undefined
+          )}
+          {/* {sendType.kind === 'lightning' || sendType.kind === "bitcoinInvoice" ? showLightningFeeSelection() : undefined} */}
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
-          {sendType.kind === 'lightning' ? showLightningDescription() : undefined}
-          {toPTM === '' && sendType.kind === 'bitcoin' ? showBitcoinFeeSelection() : undefined}
+          {sendType.kind === 'bitcoinInvoice' || sendType.kind === 'bitcoinbip21Invoice' ? ShowBitcoinInvoiceAddresses() : undefined}
+          {sendType.kind === 'lightning' || sendType.kind === 'bitcoinInvoice' || sendType.kind === 'bitcoinbip21Invoice'
+            ? showLightningDescription()
+            : undefined}
+          {sendType.kind === 'bitcoinInvoice' && showBitcoinInvoiceFeeSelection()}
+          {(toPTM === '' && sendType.kind === 'bitcoin') || sendType.kind === 'bitcoinbip21Invoice' ? showBitcoinFeeSelection() : undefined}
           {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
 
           <FormGroup row>
@@ -498,6 +823,9 @@ export default function Send({ history }: Props) {
 }
 // this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
 function disableAfterClick() {
+  setTimeout(() => {
+    return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = false);
+  }, 2000);
   return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
 }
 

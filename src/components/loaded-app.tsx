@@ -5,11 +5,11 @@ import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send/send';
-import Hookins from './hookins';
+import Hookins from './tables/hookins';
 import Addresses from './addresses';
-import Coins from './coins';
+import Coins from './tables/coins';
 import Config from './config';
-import Hookouts from './hookouts';
+import Hookouts from './tables/hookouts';
 import TopBar from './navigation/top-bar';
 import Navbar from './navigation/navbar';
 import Footer from './navigation/footer';
@@ -24,8 +24,8 @@ import FeebumpSend from './send/feebump-send';
 import Backup from './backup';
 import Settings from './settings';
 import Faq from './faq';
-import Invoices from './invoices';
-import Payments from './ln-payments';
+import Invoices from './tables/invoices';
+import Payments from './tables/payments';
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -40,7 +40,7 @@ const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserR
 
 export default function LoadedApp() {
   let windowSize = useWindowSize();
-  console.log('window size is: ', windowSize);
+  // console.log('window size is: ', windowSize);
   let mobileView = windowSize.innerWidth < 576;
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
 

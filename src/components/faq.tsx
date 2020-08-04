@@ -1,53 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { wallet } from '../state/wallet';
-
-//local
-export type Node = {
-  addresses: any[];
-  last_update: number;
-  pub_key: string;
-  alias: string;
-  color: string;
-};
-
-export interface lnd {
-  channels: any[];
-  node: Node;
-  num_channels: number;
-  total_capacity: number;
-}
-
-export interface capacities {
-  localbalance: number;
-  remotebalance: number;
-  capacity: number;
-}
+import * as Docs from '../wallet/docs';
 
 export default function Faq() {
-  const [publicKey, setpublicKey] = useState('');
-  const [lightninginfo, setlightningInfo] = useState<lnd | null>(null);
-  const [lndcapacities, setlndcapacities] = useState<capacities | null>(null);
+  const [lightninginfo, setlightningInfo] = useState<Docs.LND | null>(null);
+  const [lndcapacities, setlndcapacities] = useState<Docs.LightningCapacities | null>(null);
 
   useEffect(() => {
     const getKeys = async () => {
-      await getNodeInfo(await wallet.requestLightingInfo());
+      // await getNodeInfo(await wallet.requestLightingInfo());
+      setlightningInfo(await wallet.requestLightingNodeInfo());
+
       setlndcapacities(await wallet.requestLightningCapacities());
     };
-    const getNodeInfo = async (data: string) => {
-      setlightningInfo(await wallet.requestLightingNodeInfo(data));
-      setpublicKey(data);
-    };
+
     getKeys();
   }, []);
 
-  const url = 'https://1ml.com/testnet/node/' + publicKey;
+  const url = 'https://1ml.com/testnet/node/' + (lightninginfo != null && lightninginfo.node.pub_key);
   return (
     <div>
       <h5>FAQ and General information</h5>
       <div className="inner-container">
         <h4>General information regarding our lightning capacities:</h4>
         <p>
-          Our current inbound and outbound capacity: <b>{lightninginfo === null ? '...' : lightninginfo.total_capacity} sat</b>
+          Our current inbound and outbound capacity: <b>{lndcapacities === null ? '...' : lndcapacities.capacity} sat</b>
         </p>
         <p>
           Of that capacity <b>{lndcapacities === null ? 'Loading...' : lndcapacities.localbalance} sat</b> is Outbound capacity.

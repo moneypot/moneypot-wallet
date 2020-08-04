@@ -30,7 +30,7 @@ export default function HookinStatuses(props: HookinProps) {
           }
           !statuses.some(status => status instanceof HookinAccepted) && (await wallet.requestStatuses(props.claimableHash));
           if (props.claimable instanceof mp.Acknowledged.default) {
-            !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
+            !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
           }
         } else await wallet.requestStatuses(props.claimableHash);
       }
@@ -46,7 +46,7 @@ export default function HookinStatuses(props: HookinProps) {
         if (s instanceof HookinAccepted) {
           return (
             <a href="#status" className="btn btn-outline-success status-badge">
-             Hookin received!
+              Hookin received!
             </a>
           );
         }

@@ -7,6 +7,16 @@ import { useClaimableStatuses, wallet } from '../../state/wallet';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import { Link } from 'react-router-dom';
+import {
+  legacyTransactionWeight,
+  wrappedTransactionWeight,
+  segmultiTransactionWeight,
+  templateTransactionWeight,
+  legacyOutput,
+  wrappedOutput,
+  segmultiOutput,
+  segwitOutput,
+} from '../../config';
 
 type HookoutProps = {
   created: Date;
@@ -19,6 +29,42 @@ export default function HookoutStatuses(props: HookoutProps) {
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
   const [sent, isSent] = useState(false);
+
+  const [Memo, setMemo] = useState<undefined | string>(undefined);
+
+  // we calculate this each time...
+  const addressType = mp.decodeBitcoinAddress(claimable.bitcoinAddress);
+  // deal with non-standard maybe..?
+  if (addressType instanceof Error) {
+    throw 'invalid address? Huh?';
+  }
+
+  const calcFeeRate = () => {
+    if (claimable.priority === 'IMMEDIATE' || claimable.priority === 'CUSTOM') {
+      switch (addressType.kind) {
+        case 'p2pkh':
+          return claimable.fee / legacyTransactionWeight;
+        case 'p2sh':
+          return claimable.fee / wrappedTransactionWeight;
+        case 'p2wsh':
+          return claimable.fee / segmultiTransactionWeight;
+        default:
+          return claimable.fee / templateTransactionWeight;
+      }
+    }
+    if (claimable.priority === 'BATCH') {
+      switch (addressType.kind) {
+        case 'p2pkh':
+          return claimable.fee / legacyOutput;
+        case 'p2sh':
+          return claimable.fee / wrappedOutput;
+        case 'p2wsh':
+          return claimable.fee / segmultiOutput;
+        default:
+          return claimable.fee / segwitOutput;
+      }
+    } else return 1; // free
+  };
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -35,8 +81,11 @@ export default function HookoutStatuses(props: HookoutProps) {
           if (props.claimable instanceof mp.Acknowledged.default) {
             !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
           }
-
         } else await wallet.requestStatuses(props.claimableHash);
+      }
+      const memo = localStorage.getItem(claimable.hash);
+      if (memo != undefined) {
+        setMemo(memo);
       }
     };
     getData();
@@ -126,7 +175,7 @@ export default function HookoutStatuses(props: HookoutProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {`${claimable.fee} sat`}
+              {`${claimable.fee} sat` + ' || ' + ` (${(calcFeeRate() * 4).toFixed(2)} sat/vB)`}
 
               <CopyToClipboard className="btn btn-light" style={{}} text={claimable.fee.toString()}>
                 <i className="fa fa-copy" />
@@ -142,6 +191,17 @@ export default function HookoutStatuses(props: HookoutProps) {
             <div className="claimable-text-container">{claimable.priority}</div>
           </Col>
         </Row>
+
+        {Memo != undefined && (
+          <Row>
+            <Col sm={{ size: 2, offset: 0 }}>
+              <p className="address-title">Memo: </p>
+            </Col>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <div className="claimable-text-container">{Memo}</div>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Created: </p>

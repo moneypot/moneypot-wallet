@@ -3,8 +3,8 @@ import { RouteComponentProps } from 'react-router';
 
 import * as hi from 'moneypot-lib';
 
-import * as Docs from '../wallet/docs';
-import { useClaimableKinds } from '../state/wallet';
+import * as Docs from '../../wallet/docs';
+import { useClaimableKinds } from '../../state/wallet';
 import InvoicesTable from './invoices-table';
 
 export default function(props: RouteComponentProps<{ hash: string }>) {

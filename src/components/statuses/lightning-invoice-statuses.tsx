@@ -7,7 +7,6 @@ import GetLightningPaymentRequestAmount from '../../util/get-lightning-payment-r
 import * as mp from 'moneypot-lib';
 import { useClaimableStatuses, wallet, useClaimable } from '../../state/wallet';
 import { notError } from '../../util';
-import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 import InvoiceSettledStatus from 'moneypot-lib/dist/status/invoice-settled';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 
@@ -20,17 +19,10 @@ type LightningInvoiceProps = {
   // mp.Claimable & mp.Acknowledged.Claimable; // mp.Acknowledged.Claimable
 };
 
-// export interface InvoiceSettled {
-//   kind: string;
-//   hash: string;
-//   claimableHash: string;
-//   amount: number;
-//   rPreimage: string;
-//   time: Date;
-// }
 
 export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
+  const [infiniteAmount, setFiniteAmount] = useState(0);
   const statuses = useClaimableStatuses(props.claimableHash);
 
   // this is not that interesting, just placeholders. maybe we want to call the custodian for transfer hashes
@@ -64,11 +56,16 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           for (const s of statuses) {
             if (s instanceof InvoiceSettledStatus) {
               setPreimage(mp.Buffutils.toHex(s.rPreimage));
+              if (amount === ' ') {
+                setFiniteAmount(s.amount);
+              }
             }
           }
-          !statuses.some(status => status instanceof InvoiceSettledStatus) && await wallet.requestStatuses(props.claimableHash);
-          !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
+          !statuses.some(status => status instanceof InvoiceSettledStatus) && (await wallet.requestStatuses(props.claimableHash));
 
+          if (props.claimable instanceof mp.Acknowledged.default) {
+            !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
+          }
           // if (!(statuses instanceof Claimed )) {
           //   wallet.claimClaimable(props.claimable)
           // }
@@ -147,9 +144,12 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {amount}
-              {typeof amount === 'number' ? '' : ' sat'}
-              <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
+              {amount === ' ' && infiniteAmount != 0 ? `${infiniteAmount} sat` : amount === ' ' ? 'any amount of sat' : `${amount} sat`}
+              <CopyToClipboard
+                className="btn btn-light"
+                style={{}}
+                text={amount === ' ' ? '0' : amount === ' ' && infiniteAmount != 0 ? infiniteAmount.toString() : amount.toString()}
+              >
                 <i className="fa fa-copy" />
               </CopyToClipboard>
             </div>

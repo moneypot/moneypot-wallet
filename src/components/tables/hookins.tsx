@@ -3,8 +3,8 @@ import { RouteComponentProps } from 'react-router';
 
 import * as hi from 'moneypot-lib';
 
-import * as Docs from '../wallet/docs';
-import { useClaimableKinds } from '../state/wallet';
+import * as Docs from '../../wallet/docs';
+import { useClaimableKinds } from '../../state/wallet';
 import HookinsTable from './hookins-table';
 
 export default function(props: RouteComponentProps<{ hash: string }>) {
@@ -16,7 +16,7 @@ export default function(props: RouteComponentProps<{ hash: string }>) {
 
   return (
     <div>
-      <h1>All Hookins</h1>
+      <h1>Hookins ({hookins.length})</h1>
       <HookinsTable hookins={hookins as (Docs.Claimable & hi.POD.Hookin)[]} />
     </div>
   );

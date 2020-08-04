@@ -4,6 +4,8 @@ import makeRequest, { RequestError } from './make-request';
 
 import { notError } from '../../util';
 
+import * as Docs from '../docs';
+
 export async function getStatusesByClaimable(config: Config, claimableHash: string) {
   const url = `${config.custodianUrl}/statuses-by-claimable/${claimableHash}`;
 
@@ -31,18 +33,32 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
   return hi.Acknowledged.claimableFromPOD(resp);
 }
 
-export async function getLightingData(config: Config) {
-  const url = `${config.custodianUrl}/lighting-identity-pubkey/`;
-  return await makeRequest<any>(url);
-}
-// these are kind of duplicate functions.
+// useless
+// export async function getLightingData(config: Config) {
+//   const url = `${config.custodianUrl}/lighting-identity-pubkey/`;
+//   return await makeRequest<string>(url);
+// }
 
+// moderately interesting
 export async function getLightningCapacities(config: Config) {
   const url = `${config.custodianUrl}/inbound-outbound-capacity-lightning/`;
-  return await makeRequest<any>(url);
+  const resp = await makeRequest<Docs.LightningCapacities>(url);
+
+  if (resp instanceof RequestError) {
+    console.error('got request error: ', resp);
+    return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
+  }
+  return resp;
 }
 
-export async function getLightingNodeData(config: Config, publickey: string) {
-  const url = `${config.custodianUrl}/lighting-node-information/${publickey}`;
-  return await makeRequest<any>(url);
+// mostly useless
+export async function getLightingNodeData(config: Config) {
+  const url = `${config.custodianUrl}/lightning-node-information/`;
+  const resp = await makeRequest<Docs.LND>(url);
+
+  if (resp instanceof RequestError) {
+    console.error('got request error: ', resp);
+    return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
+  }
+  return resp;
 }

@@ -2,21 +2,22 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import * as hi from 'moneypot-lib';
 
-import { wallet } from '../state/wallet';
+import { wallet } from '../../state/wallet';
 
-import * as Docs from '../wallet/docs';
-import { notError } from '../util';
+import * as Docs from '../../wallet/docs';
+import { notError } from '../../util';
 
 export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & hi.POD.Hookin)[] }) {
   return (
     <table className="table">
       <thead>
         <tr>
-          <th>hash</th>
+          <th>#</th>
           <th>address</th>
           <th>amount</th>
           <th>tx</th>
           <th>ackd</th>
+          <th>created</th>
         </tr>
       </thead>
       <tbody>
@@ -52,7 +53,7 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
         <Link to={`/claimables/${hookinDoc.hash}`}>{hookinDoc.hash.substring(0, 8)}...</Link>
       </td>
       <td>
-        <Link to={`/addresses/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress.substring(0, 8)}...</Link>
+        <Link to={`/addresses/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress}</Link>
       </td>
       <td>{hookinDoc.amount} sat</td>
       <td>
@@ -64,6 +65,7 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
         )}
       </td>
       <td>{renderAckStatus()}</td>
+      <td>{hookinDoc.created.toISOString()}</td>
     </tr>
   );
 }

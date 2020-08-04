@@ -4,17 +4,12 @@ import { RouteComponentProps } from 'react-router';
 import { wallet } from '../../state/wallet';
 import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from 'reactstrap';
 import BitcoinAmountInput from '../bitcoin-amount-input';
-
-export interface capacities {
-  localbalance: number;
-  remotebalance: number;
-  capacity: number;
-}
+import * as Docs from '../../wallet/docs';
 
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState(0);
-  const [lndcapacities, setlndcapacities] = useState<capacities>(Object);
+  const [lndcapacities, setlndcapacities] = useState<Docs.LightningCapacities>(Object);
   useEffect(() => {
     const getCapabilities = async () => {
       setlndcapacities(await wallet.requestLightningCapacities());
@@ -37,10 +32,12 @@ export default function ReceiveLightning(props: RouteComponentProps) {
 
     props.history.push(`/claimables/${res.hash}`, res);
   }
-  // if amount = 0 
+  // if amount = 0
+
+  // this is not exactly correct,,
   function isPossible() {
-    if (amount > lndcapacities.remotebalance) {
-      return 'Our node does not have enough capacity to handle such an invoice, so you can only use this invoice for internal transfers.';
+    if (amount > lndcapacities.highest_inbound) {
+      return 'Even if we were using the most optimal route, our node still does not have enough capacity to handle such an invoice, so you can only use this invoice for internal transfers.';
     }
   }
 

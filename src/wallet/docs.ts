@@ -43,3 +43,26 @@ export interface Event {
   id?: number;
   name: string;
 }
+
+export interface LightningCapacities {
+  localbalance: number;
+  remotebalance: number;
+  capacity: number;
+  highest_inbound: number;
+  highest_outbound: number;
+}
+
+export interface Node {
+  addresses: any[];
+  last_update: number;
+  pub_key: string;
+  alias: string;
+  color: string;
+}
+
+export interface LND {
+  channels: any[];
+  node: Node;
+  num_channels: number;
+  total_capacity: number;
+}

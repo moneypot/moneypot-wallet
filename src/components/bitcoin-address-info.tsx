@@ -6,7 +6,7 @@ import { wallet, useBitcoinAddress, useHookinsOfAddress } from '../state/wallet'
 
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
-import HookinsTable from './hookins-table';
+import HookinsTable from './tables/hookins-table';
 
 export default function BitcoinAddressInfo(props: RouteComponentProps<{ address: string }>) {
   const address = props.match.params.address;

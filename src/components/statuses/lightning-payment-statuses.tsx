@@ -14,10 +14,16 @@ type LightningInvoiceProps = {
   memo: string;
   created: Date;
   claimableHash: string;
+  claimable: mp.LightningPayment & Partial<mp.Acknowledged.Claimable>; // reversed typing
 };
 
 export default function LightningPayment(props: LightningInvoiceProps) {
-  const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
+  let amount = GetLightningPaymentRequestAmount(props.paymentRequest);
+
+  if (amount === ' ') {
+    amount = props.claimable.toPOD().amount;
+  }
+
   const statuses = useClaimableStatuses(props.claimableHash);
 
   const [paymentStatusFailed, setPaymentStatusFailed] = useState<Failed>(Object);
@@ -122,8 +128,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {amount}
-              {typeof amount === 'number' ? '' : ' sat'}
+              <p>{amount} sat</p>
               <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>

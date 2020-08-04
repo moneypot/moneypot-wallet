@@ -15,7 +15,6 @@ export default function Support() {
         <p>
           If you still need support, please e-mail us at <a href="mailto:riperk@protonmail.com?Subject=Support%20Request">riperk@protonmail.com</a>
         </p>
-
       </div>
     </div>
   );

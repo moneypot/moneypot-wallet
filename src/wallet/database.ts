@@ -25,6 +25,11 @@ import getInvoicesByClaimant from './requests/get-invoices-by-claimant';
 import getClaimableByInputOwner from './requests/get-claimable-by-input-owner';
 import { RequestError } from './requests/make-request';
 
+import CoinWorker from 'worker-loader!./workers/WorkerCoins';
+import ClaimableWorker from 'worker-loader!./workers/WorkerClaimable';
+
+const WorkerCoins = new CoinWorker();
+const workerClaimable = new ClaimableWorker();
 let currentVersion = 4;
 
 export default class Database extends EventEmitter {
@@ -309,14 +314,22 @@ export default class Database extends EventEmitter {
     await this.processStatuses(statuses);
   }
 
-  public async requestLightingInfo() {
-    return await requests.getLightingData(this.config);
-  }
+  // public async requestLightingInfo() {
+  //   return await requests.getLightingData(this.config);
+  // }
   public async requestLightningCapacities() {
-    return await requests.getLightningCapacities(this.config);
+    const resp = await requests.getLightningCapacities(this.config);
+    if (resp instanceof Error) {
+      throw resp;
+    }
+    return resp;
   }
-  public async requestLightingNodeInfo(publickey: string) {
-    return await requests.getLightingNodeData(this.config, publickey);
+  public async requestLightingNodeInfo() {
+    const resp = await requests.getLightingNodeData(this.config);
+    if (resp instanceof Error) {
+      throw resp;
+    }
+    return resp;
   }
   private async processStatuses(statuses: hi.Acknowledged.Status[]) {
     if (statuses.length === 0) {
@@ -511,6 +524,54 @@ export default class Database extends EventEmitter {
     }
   }
 
+  async syncMultiThreadClaimable(change: number) {
+    const claimables = await this.db.getAll('claimables');
+    var i,
+      j,
+      tparr: any[] = [],
+      chk = 10;
+
+    const isResolved: string[] = [];
+    for (const c of claimables) {
+      // we don't multithread this
+      try {
+        await this.claimClaimable(c);
+      } catch (e) {
+        continue;
+      }
+    }
+    for (i = 0, j = claimables.length; i < j; i += chk) {
+      tparr = claimables.slice(i, i + chk);
+      workerClaimable.postMessage([tparr, this.config.toDoc()]);
+      workerClaimable.onmessage = event => {};
+      workerClaimable.addEventListener('message', async (event: MessageEvent) => {
+        if (event.data[0] != 'd') {
+          const unPOD = event.data.map((s: any) => hi.Acknowledged.statusFromPOD(s));
+          await this.processStatuses(unPOD);
+        } else {
+          isResolved.push('done');
+        }
+      });
+    }
+    this.checkClaimableFlag(claimables, isResolved, change);
+    // push outside of it with a checkfunction or w/e, this doesn't seem like the way to go.
+  }
+
+  async checkClaimableFlag(claimables: any[], isResolved: string | any[] | undefined, change: number) {
+    if (Math.ceil(claimables.length / 10) === Math.sqrt(isResolved === undefined ? 1337 : isResolved.length)) {
+      if (change === 0) {
+        await this.syncMultiThreadCoins();
+      } else if (change === 1) {
+        await this.syncMultiThreadClaimable(2);
+      } else if (change === 2) {
+        await this.syncNested();
+      }
+    } else
+      setTimeout(() => {
+        this.checkClaimableFlag(claimables, isResolved, change);
+      }, 1000);
+  }
+
   async syncCoins() {
     const coins = await this.db.getAll('coins');
     for (const coin of coins) {
@@ -537,8 +598,54 @@ export default class Database extends EventEmitter {
     }
   }
 
-  async FastSyncWallet() {
+  async syncMultiThreadCoins() {
     const coins = await this.db.getAll('coins');
+    var i,j,tparr: Docs.Coin[], 
+    chk = 10;
+    let isResolved: string[] = [];
+
+    for (i = 0, j = coins.length; i < j; i += chk) {
+      tparr = coins.slice(i, i + chk);
+      // make it async => push resolves to array, if array matches amount of workers, function has ended.
+      WorkerCoins.postMessage([tparr, this.config.toDoc()]);
+      WorkerCoins.onmessage = event => {};
+      WorkerCoins.addEventListener('message', async (event: MessageEvent) => {
+        if (event.data[0] != 'd') {
+          const receivedClaimable: hi.POD.Claimable = event.data[0];
+          const claimableHash = receivedClaimable.hash;
+
+          const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
+          if (!(await transaction.objectStore('claimables').getKey(claimableHash))) {
+            const claimableDoc: Docs.Claimable = {
+              created: new Date(),
+              ...receivedClaimable,
+            };
+
+            await transaction.objectStore('claimables').add(claimableDoc);
+            await this.emitInTransaction('table:claimables', transaction);
+
+            await transaction.done;
+          }
+        } else {
+          isResolved.push('done');
+        }
+      });
+    }
+    this.checkFlag(coins, isResolved);
+  }
+
+  async checkFlag(coins: Docs.Coin[], isResolved: string | string[] | undefined) {
+    if (Math.ceil(coins.length / 10) === Math.sqrt(isResolved === undefined ? 1337 : isResolved.length)) {
+      await this.syncMultiThreadClaimable(2);
+      // await this.syncNested();
+    } else
+      setTimeout(() => {
+        this.checkFlag(coins, isResolved);
+      }, 1000);
+  }
+
+  async syncNested(emptySyncedCoinsPrevious?: Docs.Coin[]) {
+    let coins = await this.db.getAll('coins');
 
     const localClaimables = (await this.db
       .getAll('claimables')
@@ -562,14 +669,27 @@ export default class Database extends EventEmitter {
           }
         }
       }
+          // filter out empty from newCoins...
+      if (emptySyncedCoinsPrevious != undefined) {
+        for (const c of emptySyncedCoinsPrevious) {
+          if (coin.owner === c.owner) {
+            console.log(`We have already filtered ${coin.owner} before, no need to send again`);
+            hasLocal.push(coin);
+          }
+        }
+      }
     }
 
     let Unspent = coins.filter(x => !hasLocal.includes(x));
     let newAckedClaimables: Docs.Claimable[] = [];
 
+    // include the previous loop
+    let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
+
     for (const checkCoin of Unspent) {
       const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
       if (!claimable) {
+        emptySyncedCoins.push(checkCoin);
         continue;
       }
       const claimableHash = claimable.hash().toPOD();
@@ -603,20 +723,26 @@ export default class Database extends EventEmitter {
     }
     // we found a new claimable, run again
     if (hasFound === true) {
-      await this.FastSyncWallet();
+      await this.syncNested(emptySyncedCoins);
     }
   }
 
+  // sync with workers ( only useful in high latency envs) // this is ugly
+  async syncWithWorkers() {
+    await this.syncBitcoinAddresses();
+    await this.syncLightningInvoices();
+    await this.syncMultiThreadClaimable(0);
+
+    // TODO: find coins that are funded...
+  }
+
+  // sync without workers, this is the sane default.
   async sync() {
     await this.syncBitcoinAddresses();
     await this.syncLightningInvoices();
     await this.syncCoins();
     await this.syncClaimable();
-
-    // TODO => fix errors
-    await this.FastSyncWallet();
-
-    // TODO: find coins that are funded...
+    await this.syncNested();
   }
 
   // async syncHookins() {
