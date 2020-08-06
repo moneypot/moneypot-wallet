@@ -4,8 +4,9 @@ import { wallet } from '../../state/wallet';
 export default function SyncBtn() {
   const [SyncingWithWorkers, setSyncingWithWorkers] = useState(false);
   useEffect(() => {
-    if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) != null) {
-      if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) === 'true') {
+    const hasSyncWorkers = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
+    if (hasSyncWorkers) {
+      if (hasSyncWorkers === 'true') {
         setSyncingWithWorkers(true);
       } else setSyncingWithWorkers(false);
     }

@@ -16,7 +16,7 @@ export default function LnPaymentsTable({ payments }: { payments: (Docs.Claimabl
         <tr>
           <th>hash</th>
           <th>invoice</th>
-          <th>payment preimage</th>
+          {/* <th>payment preimage</th> */}
           <th>memo</th>
           <th>amount</th>
           <th>fees</th>
@@ -170,12 +170,12 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
         {' '}
         <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.paymentRequest.substring(0, 32)}...</Link>
       </td>
-      <td>{paymentpreimage != null && paymentpreimage.toString().substring(0, 32)}</td>
+      {/* <td>{paymentpreimage != null && paymentpreimage.toString().substring(0, 32)}</td> */}
       <td>{memo}</td>
       <td>{paymentsDoc.amount} sat</td>
       <td>{totalfees != null && totalfees}</td>
       <td>{rebate != null && rebate}</td>
-      <td>{failurereason != null && rebate}</td>
+      <td>{failurereason != null && failurereason}</td>
     </tr>
   );
 }

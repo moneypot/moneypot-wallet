@@ -64,13 +64,15 @@ export default function Send({ history }: Props) {
   const [feeLimit, setFeeLimit] = useState(100);
   const balance = useBalance();
   useEffect(() => {
-    if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) != null) {
-      if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) === 'true') {
+    const hasRBF = localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`);
+    if (hasRBF) {
+      if (hasRBF === 'true') {
         setRBF(false);
       }
     }
-    if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) != null) {
-      if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) === 'true') {
+    const hasPTM = localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`);
+    if (hasPTM) {
+      if (hasPTM === 'true') {
         setPTM(true);
       }
     }
@@ -100,9 +102,11 @@ export default function Send({ history }: Props) {
         if (!toText.startsWith('bitcoin:?') && toText.startsWith('bitcoin:')) {
           decodeBitcoinBip20 = decodeBitcoinBip21(toText);
           if (!(decodeBitcoinBip20 instanceof Error)) {
-            setbip21Invoice(decodeBitcoinBip20);
-            setSendType({ kind: 'bitcoinbip21Invoice' });
-            return;
+            if(!(decodeBitcoinAddress(decodeBitcoinBip20.address) instanceof Error)) {
+              setbip21Invoice(decodeBitcoinBip20);
+              setSendType({ kind: 'bitcoinbip21Invoice' });
+              return;
+            }
           }
         }
 
@@ -437,7 +441,7 @@ export default function Send({ history }: Props) {
           toast.error('Oops! ' + transferHash);
           return;
         }
-  
+
         localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
         history.push(`/claimables/${transferHash.toPOD()}`);
       }

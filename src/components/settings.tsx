@@ -21,13 +21,15 @@ export default function Settings() {
 
   useEffect(() => {
     const hasSettings = async () => {
-      if (localStorage.getItem(`${wallet.db.name}-setting1-hasNested`) != null) {
-        if (localStorage.getItem(`${wallet.db.name}-setting1-hasNested`) === 'true') {
+      const setting1 = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
+      if (setting1) {
+        if (setting1 === 'true') {
           setSetting1(true);
         } else setSetting1(false);
       }
-      if (localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`) != null) {
-        if (localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`) === 'true') {
+      const setting2 = localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`);
+      if (setting2) {
+        if (setting2 === 'true') {
           const amount = localStorage.getItem(`${wallet.db.name}-setting2-CustomGapLimit`);
           if (amount != null) {
             setAmountInput(Number(amount));
@@ -48,18 +50,21 @@ export default function Settings() {
           }
         }
       }
-      if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) != null) {
-        if (localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`) === 'true') {
+      const setting3 = localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`);
+      if (setting3) {
+        if (setting3 === 'true') {
           setSetting3(true);
         } else setSetting3(false);
       }
-      if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) != null) {
+      const setting4 = localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`);
+      if (setting4) {
         if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) === 'true') {
           setSetting4(true);
         } else setSetting4(false);
       }
-      if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) != null) {
-        if (localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`) === 'true') {
+      const setting5 = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
+      if (setting5) {
+        if (setting5 === 'true') {
           setSetting5(true);
         } else setSetting5(false);
       }

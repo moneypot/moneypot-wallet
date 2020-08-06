@@ -1,12 +1,23 @@
 import React from 'react';
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
-import { Button, Row, Col } from 'reactstrap';
+import { Button, Row, Col, UncontrolledCollapse, InputGroup, Input } from 'reactstrap';
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 import CopyToClipboard from '../../util/copy-to-clipboard';
 
 function show(addressDoc: Docs.BitcoinAddress) {
+  let memo: string | undefined;
+  const fetchedMemo = localStorage.getItem(addressDoc.address);
+  if (fetchedMemo) {
+    memo = fetchedMemo;
+  }
+  function PushMemo(memo: string | undefined) {
+    if (memo) {
+      localStorage.setItem(addressDoc.address, memo);
+    }
+  }
+
   return (
     <div>
       <h5 className="main-header">Receive</h5>
@@ -31,7 +42,6 @@ function show(addressDoc: Docs.BitcoinAddress) {
             </div>
           </Col>
         </Row>
-
         <div className="text-container">
           <p className="text-muted">
             <span>
@@ -42,7 +52,35 @@ function show(addressDoc: Docs.BitcoinAddress) {
         </div>
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
+        </Button>{' '}
+        <Button color="secondary" id="addMemo">
+          Add local memo
         </Button>
+        <UncontrolledCollapse toggler="addMemo">
+          <br />
+          <Row>
+            <Col sm={{ size: 2, offset: 0 }}>
+              <p className="address-title">Add local memo to deposit address:</p>
+            </Col>
+
+            <Col sm={{ size: 9, offset: 0 }}>
+              <InputGroup>
+                <Input
+                  defaultValue={memo}
+                  onChange={e => {
+                    memo = e.target.value;
+                  }}
+                  type="text"
+                  className="to-text-input"
+                />
+              </InputGroup>
+              <br />
+              <Button color="primary" onClick={() => PushMemo(memo)}>
+                Save!
+              </Button>
+            </Col>
+          </Row>
+        </UncontrolledCollapse>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ export default function Addresses(props: any) {
       <div className="address-table">
         <div>
           <div>Address</div>
+          <div>Memo</div>
           <div>Created</div>
         </div>
         {allAddresses.map(address => {
@@ -18,6 +19,7 @@ export default function Addresses(props: any) {
               <div>
                 <Link to={`/addresses/${address.address}`}>{address.address}</Link>
               </div>
+              <div>{localStorage.getItem(address.address)}</div>
               <div>{address.created.toISOString()}</div>
             </div>
           );

@@ -18,6 +18,7 @@ export default function HookinStatuses(props: HookinProps) {
   const claimable = props.claimable.toPOD();
 
   const statuses = useClaimableStatuses(props.claimableHash);
+  const [Memo, setMemo] = useState<undefined | string>(undefined);
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -35,6 +36,10 @@ export default function HookinStatuses(props: HookinProps) {
         } else await wallet.requestStatuses(props.claimableHash);
       }
     };
+    const memo = localStorage.getItem(claimable.bitcoinAddress);
+    if (memo != undefined) {
+      setMemo(memo);
+    }
     getData();
   });
 
@@ -130,6 +135,16 @@ export default function HookinStatuses(props: HookinProps) {
             </div>
           </Col>
         </Row>
+        {Memo != undefined && (
+          <Row>
+            <Col sm={{ size: 2, offset: 0 }}>
+              <p className="address-title">Memo: </p>
+            </Col>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <div className="claimable-text-container">{Memo}</div>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Created: </p>

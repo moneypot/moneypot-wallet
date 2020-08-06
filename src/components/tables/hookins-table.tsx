@@ -17,6 +17,7 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
           <th>amount</th>
           <th>tx</th>
           <th>ackd</th>
+          <th>memo</th>
           <th>created</th>
         </tr>
       </thead>
@@ -30,6 +31,8 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
 }
 
 function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
+  const memo = localStorage.getItem(hookinDoc.bitcoinAddress);
+
   function renderAckStatus() {
     if (hookinDoc.acknowledgement) {
       return <span>Acknowledged</span>;
@@ -65,6 +68,8 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
         )}
       </td>
       <td>{renderAckStatus()}</td>
+      <td>{memo != undefined && memo}</td>
+
       <td>{hookinDoc.created.toISOString()}</td>
     </tr>
   );

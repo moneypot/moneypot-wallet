@@ -1003,9 +1003,9 @@ export default class Database extends EventEmitter {
 
     const tweakPubkey = tweak.toPublicKey();
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
-
-    if (localStorage.getItem(`${this.db.name}-setting1-hasNested`) !== null) {
-      if (localStorage.getItem(`${this.db.name}-setting1-hasNested`) === 'true') {
+    const usesNested = localStorage.getItem(`${this.db.name}-setting1-hasNested`);
+    if (usesNested) {
+      if (usesNested === 'true') {
         return pubkey.toNestedBitcoinAddress();
       }
     }
