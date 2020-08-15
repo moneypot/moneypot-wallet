@@ -7,6 +7,7 @@ import { useClaimableStatuses, wallet } from '../../state/wallet';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import { Link } from 'react-router-dom';
+import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 
 type FeeBumpProps = {
   created: Date;
@@ -18,7 +19,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
   const [CurrentTxid, setCurrentTxid] = useState('');
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
-  const [sent, isSent] = useState(false);
+  const [IsConfirmed, hasConfirmed] = useState(true) // prevent false positives when loading
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -27,7 +28,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {
               setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              isSent(true);
+              getConfirmationStatus(mp.Buffutils.toHex(s.txid)) // have to do the operation twice....
             }
           }
           !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
@@ -40,6 +41,10 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       }
     };
     getData();
+    async function getConfirmationStatus(txid: string)  { 
+      const request = await fetchTxReceives(txid)
+      hasConfirmed(request.status.confirmed)
+    }
   });
 
   const GetStatuses = () => {
@@ -152,7 +157,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {sent === true && (
+        {IsConfirmed === false && (
           <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
             <button className="btn btn-secondary">Feebump this transaction!</button>
           </Link>

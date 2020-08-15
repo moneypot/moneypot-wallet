@@ -600,8 +600,10 @@ export default class Database extends EventEmitter {
 
   async syncMultiThreadCoins() {
     const coins = await this.db.getAll('coins');
-    var i,j,tparr: Docs.Coin[], 
-    chk = 10;
+    var i,
+      j,
+      tparr: Docs.Coin[],
+      chk = 10;
     let isResolved: string[] = [];
 
     for (i = 0, j = coins.length; i < j; i += chk) {
@@ -669,7 +671,7 @@ export default class Database extends EventEmitter {
           }
         }
       }
-          // filter out empty from newCoins...
+      // filter out empty from newCoins...
       if (emptySyncedCoinsPrevious != undefined) {
         for (const c of emptySyncedCoinsPrevious) {
           if (coin.owner === c.owner) {

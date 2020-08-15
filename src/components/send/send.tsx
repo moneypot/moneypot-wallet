@@ -9,7 +9,7 @@ import getEstimatedCustomFee, { BitcoinFees } from '../../wallet/requests/estima
 
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
-import BitcoinAmountInput from '../bitcoin-amount-input';
+import BitcoinAmountInput from '../../util/bitcoin-amount-input';
 import {
   templateTransactionWeight,
   legacyTransactionWeight,
@@ -102,7 +102,7 @@ export default function Send({ history }: Props) {
         if (!toText.startsWith('bitcoin:?') && toText.startsWith('bitcoin:')) {
           decodeBitcoinBip20 = decodeBitcoinBip21(toText);
           if (!(decodeBitcoinBip20 instanceof Error)) {
-            if(!(decodeBitcoinAddress(decodeBitcoinBip20.address) instanceof Error)) {
+            if (!(decodeBitcoinAddress(decodeBitcoinBip20.address) instanceof Error)) {
               setbip21Invoice(decodeBitcoinBip20);
               setSendType({ kind: 'bitcoinbip21Invoice' });
               return;
@@ -397,7 +397,7 @@ export default function Send({ history }: Props) {
 
     // this is BIP70/PaymentProtocol.
     if (toText.startsWith('bitcoin') && BitcoinInvoice != undefined) {
-       console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
+      console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
       if (new Date(typeof BitcoinInvoice.expires === 'number' ? BitcoinInvoice.expires * 1000 : BitcoinInvoice.expires) <= new Date(Date.now())) {
         toast.error('Invoice has already expired! Please request a new one!');
         return;
@@ -427,7 +427,7 @@ export default function Send({ history }: Props) {
         }
       }
       //TODO -> actually test this
-      else if (BitcoinInvoice.outputs.length === 1) { 
+      else if (BitcoinInvoice.outputs.length === 1) {
         transferHash = await wallet.sendHookout(
           prioritySelection,
           BitcoinInvoice.outputs[0].address,
@@ -484,19 +484,20 @@ export default function Send({ history }: Props) {
 
   // request against the custodian to get avg confirmation times?
   const howLong = () => {
-    if (recommendedFees === undefined) {
+    if (!recommendedFees) {
       return undefined;
     }
     if (recommendedFees.fastestFee <= Number(feeText)) {
       return `10 minutes, within 1 block. (recommended fee to get confirmed within 10 minutes is ${recommendedFees.fastestFee} sat/vbyte)`;
     } else if (recommendedFees.halfHourFee <= Number(feeText)) {
-      return `half an hour, within 3 blocks. ( recommended fees to get confirmed within half an hour are ${recommendedFees.halfHourFee} sat/vbyte)`;
+      return `half an hour, within 3 blocks. (recommended fees to get confirmed within half an hour are ${recommendedFees.halfHourFee} sat/vbyte)`;
     } else if (recommendedFees.hourFee <= Number(feeText)) {
-      return `probably an hour or more, most likely around 6 blocks. (recommend fees to get confirmed within the hour are ${recommendedFees.hourFee} sa/vbyte)`;
-    } else return '???';
+      return `probably an hour or more, most likely around 6 blocks. (recommend fees to get confirmed within the hour are ${recommendedFees.hourFee} sat/vbyte)`;
+    }
   };
 
   function showCustom() {
+    const timeT = howLong();
     return (
       <div>
         <FormGroup row>
@@ -518,8 +519,7 @@ export default function Send({ history }: Props) {
         </FormGroup>
         <Row style={{ justifyContent: 'center' }}>
           <small className="text-muted">
-            This transaction will be sent with {feeText} sat/vbyte and has an ETA of confirming within{' '}
-            {howLong() != undefined ? howLong() : "...can't load feerates"}
+            This transaction will be sent with {feeText} sat/vbyte and has an ETA of confirming within {timeT != undefined ? timeT : "...can't load feerates"}
           </small>
         </Row>
       </div>
@@ -576,7 +576,7 @@ export default function Send({ history }: Props) {
             <Label for="" sm={3}>
               Label:
             </Label>
-           <Col sm={{ size: 8, offset: 0 }}>{bip21Invoice.options.label}</Col> 
+            <Col sm={{ size: 8, offset: 0 }}>{bip21Invoice.options.label}</Col>
           </React.Fragment>
         )}
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
@@ -761,18 +761,6 @@ export default function Send({ history }: Props) {
 
           {ptm === true && toText === '' && ShowPayToMany()}
           {toPTM != '' && AmountOfPTM()}
-          {sendType.kind === 'bitcoin' || sendType.kind === 'bitcoinbip21Invoice' ? (
-            <FormGroup check>
-              <Label check>
-                <Input id="setting1" type="checkbox" onChange={updateRBF} checked={!isRBF} /> Disable RBF when sending immediate transactions.
-                <p>
-                  <b>Note:</b> you will be unable to feebump it. A usecase for this would be if you wanted to use 0-conf at any exchange, shop, or casino.
-                </p>
-              </Label>
-            </FormGroup>
-          ) : (
-            undefined
-          )}
 
           {sendType.kind === 'bitcoin' || toPTM != '' ? (
             <FormGroup row className="bordered-form-group">
@@ -782,7 +770,6 @@ export default function Send({ history }: Props) {
               <Col sm={{ size: 9, offset: 0 }}>
                 <InputGroup>
                   <Input
-                    value={LocalMemo}
                     onChange={e => {
                       handleMemoChange(e);
                     }}
@@ -803,6 +790,19 @@ export default function Send({ history }: Props) {
             : undefined}
           {sendType.kind === 'bitcoinInvoice' && showBitcoinInvoiceFeeSelection()}
           {(toPTM === '' && sendType.kind === 'bitcoin') || sendType.kind === 'bitcoinbip21Invoice' ? showBitcoinFeeSelection() : undefined}
+          {(sendType.kind === 'bitcoin' && (prioritySelection === "CUSTOM" || prioritySelection === "IMMEDIATE") ) || (sendType.kind === 'bitcoinbip21Invoice' && (prioritySelection === "CUSTOM" || prioritySelection === "IMMEDIATE" ))? (
+            <FormGroup check>
+              <Label check>
+                <Input id="setting1" type="checkbox" onChange={updateRBF} checked={!isRBF} /> Disable Replace-By-Fee.
+                <p>
+                  <b>Note:</b> you will be unable to feebump it. A usecase for this would be if you wanted to use 0-conf at any exchange, shop, or casino.
+                </p>
+              </Label>
+            </FormGroup>
+          ) : (
+            undefined
+          )}
+
           {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
 
           <FormGroup row>

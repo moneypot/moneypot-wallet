@@ -33,13 +33,6 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
   return hi.Acknowledged.claimableFromPOD(resp);
 }
 
-// useless
-// export async function getLightingData(config: Config) {
-//   const url = `${config.custodianUrl}/lighting-identity-pubkey/`;
-//   return await makeRequest<string>(url);
-// }
-
-// moderately interesting
 export async function getLightningCapacities(config: Config) {
   const url = `${config.custodianUrl}/inbound-outbound-capacity-lightning/`;
   const resp = await makeRequest<Docs.LightningCapacities>(url);
@@ -51,7 +44,6 @@ export async function getLightningCapacities(config: Config) {
   return resp;
 }
 
-// mostly useless
 export async function getLightingNodeData(config: Config) {
   const url = `${config.custodianUrl}/lightning-node-information/`;
   const resp = await makeRequest<Docs.LND>(url);

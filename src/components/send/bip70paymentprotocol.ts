@@ -1,4 +1,4 @@
-// This is mostly for  BIP70 invoices (or) bitpay invoices. Moneypot will only securely decode them. We do not natively support refund addresses or the likes.
+// This is mostly for BIP70 invoices (or) bitpay invoices. Moneypot will only securely decode them. We do not natively support refund addresses or the likes.
 // (I do not own some of the code, (Thanks to BIP70-JS).)
 import * as hi from 'moneypot-lib';
 import keys from './keys.json';
@@ -17,11 +17,7 @@ const root = protobuf.Root.fromJSON(jsonDescriptor);
 
 const PaymentRequest = root.lookupType('PaymentRequest');
 const PaymentDetails = root.lookupType('PaymentDetails');
-// const Payment = root.lookupType("Payment");
-// const PaymentACK = root.lookupType('PaymentACK');
 const X509Certificates = root.lookupType('X509Certificates');
-// const Output = root.lookupType('Output');
-// const Address = root.lookupType('Address');
 
 export interface bip21 {
   address: string;
@@ -71,7 +67,6 @@ interface MerchantDataX509 {
 interface certificateX509 {
   certificate: Uint8Array[];
 }
-
 interface PaymentRequest {
   chain: string;
   currency: string;
@@ -96,11 +91,11 @@ export interface Outputs {
 }
 
 interface identities {
-  x_identity: string, // address
-  x_public: string, // hi.POD.publickey, but not really
+  x_identity: string; // address
+  x_public: string; // hi.POD.publickey, but not really
 }
 
-let identities: identities[] = []; 
+let identities: identities[] = [];
 
 for (let i = 0; i < keys.length; i++) {
   for (const k of keys[i].publicKeys) {
@@ -174,9 +169,9 @@ export async function BInvoice(pRequest: string) {
       }
     };
 
-    const PublicId = isPub()
-    if (PublicId === undefined) { 
-      throw new Error("We did not recognize the provided identity")
+    const PublicId = isPub();
+    if (!PublicId) {
+      throw new Error('We did not recognize the provided identity');
     }
     const actSig = hi.Signature.fromBytes(Buffer.from(signature, 'hex'));
     if (actSig instanceof Error) {
@@ -406,7 +401,7 @@ export function decodeBitcoinBip21(text: string) {
   let address = text.slice(split != undefined ? split + 1 : undefined, splitSub != undefined ? splitSub : undefined);
   let otherVariables = splitSub != undefined ? text.slice(splitSub + 1) : '';
 
-  const options = (qs.parse(otherVariables) as unknown) as bip21Options;
+  const options = qs.parse(otherVariables) as bip21Options;
 
   if (options.amount) {
     options.amount = Number(options.amount) * 1e8; // we use satoshis

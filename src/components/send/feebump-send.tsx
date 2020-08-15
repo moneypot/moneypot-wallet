@@ -3,81 +3,20 @@ import * as hi from 'moneypot-lib';
 import { wallet, useBalance } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
-import getFeeSchedule from '../../wallet/requests/get-fee-schedule';
+import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
+import FetchTx, { AddressInfoTx } from '../../wallet/requests/bitcoin-txs';
+import { RouteComponentProps } from 'react-router-dom';
 type Props = { history: { push: (path: string) => void } };
 
-// interface Options {
-//   fee?: number;
-//   weight?: number;
-//   size?: number;
-//   status?: Object;
-//   vin?: Array<Object>;
-// }
-// interface sequence {
-//   sequence?: number;
-// }
-// interface Status {
-//   block_hash?: any;
-//   confirmed?: boolean;
-// }
-
-export interface Prevout {
-  scriptpubkey: string;
-  scriptpubkey_asm: string;
-  scriptpubkey_type: string;
-  scriptpubkey_address: string;
-  value: number;
-}
-
-export interface Vin {
-  txid: string;
-  vout: number;
-  prevout: Prevout;
-  scriptsig: string;
-  scriptsig_asm: string;
-  witness: string[];
-  is_coinbase: boolean;
-  sequence: any;
-}
-
-export interface Vout {
-  scriptpubkey: string;
-  scriptpubkey_asm: string;
-  scriptpubkey_type: string;
-  scriptpubkey_address: string;
-  value: number;
-}
-
-export interface Status {
-  confirmed: boolean;
-  block_height: number;
-  block_hash: string;
-  block_time: number;
-}
-
-export interface Tx {
-  txid: string;
-  version: number;
-  locktime: number;
-  vin: Vin[];
-  vout: Vout[];
-  size: number;
-  weight: number;
-  fee: number;
-  status: Status;
-}
-
 // Should probably actually ask the custodian...?
-function getTxData<T>(decodedTxid: string): Promise<T> {
-  return fetch('https://blockstream.info/testnet/api/tx/' + decodedTxid).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json().then(data => data as T);
+function getTxData(decodedTxid: string): Promise<AddressInfoTx> {
+  return FetchTx(decodedTxid).then(response => {
+    return response
   });
 }
 
-export default function FeebumpSend(props: any, { history }: Props): JSX.Element {
+export default function FeebumpSend(props: RouteComponentProps, { history }: Props): JSX.Element {
+  const feeSchedule = useFeeSchedule()
   const [toText, setToText] = useState('');
   const balance = useBalance();
   const [fee, setFee] = useState(Number);
@@ -110,19 +49,19 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
   })();
 
   async function calculateFee(): Promise<number> {
-    const myVal: Tx = await getTxData(toText);
-    const obj: Status = myVal.status;
-    if (obj.confirmed === true || obj.confirmed === undefined) {
+    const Response = await getTxData(toText)
+    
+    if (Response.status.confirmed === true) {
       throw 'Invalid TX | TXID already confirmed';
     }
-    if (myVal.status === undefined || myVal.vin == undefined) {
-      throw myVal;
+    if (!Response.status === undefined || !Response.vin) {
+      throw Response;
     }
-    setOutputs(myVal.vout.length);
-    setInputs(myVal.vin.length);
+    setOutputs(Response.vout.length);
+    setInputs(Response.vin.length);
 
-    for (let index = 0; index < myVal.vin.length; index++) {
-      const sequence = myVal.vin[index];
+    for (let index = 0; index < Response.vin.length; index++) {
+      const sequence = Response.vin[index];
       if (sequence.sequence === undefined) {
         throw 'invalid txid';
       }
@@ -132,15 +71,17 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
         throw 'Not flagging for RBF';
       }
     }
-    const feeRate = (await getFeeSchedule(wallet.config)).immediateFeeRate;
     // get the current fee
-    if (myVal.fee === undefined || myVal.weight === undefined) {
-      throw myVal;
+    if (!Response.fee || !Response.weight) {
+      throw Response;
     }
 
-    const amount = feeRate * myVal.weight - myVal.fee;
+    if (!feeSchedule)  {
+      throw new Error("Fetching feeschedules is hard!")
+    }
+    const amount = feeSchedule.immediateFeeRate * Response.weight - Response.fee;
     // It seems like feebump increase is by default 5 sat/b ? todo: check this
-    const minFee = (myVal.weight / 4) * 5;
+    const minFee = (Response.weight / 4) * 5;
     if (amount < minFee) {
       return Math.round(minFee);
     }
@@ -184,7 +125,7 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
       return;
     }
 
-    history.push(`/claimables/${transferHash.toPOD()}`);
+    props.history.push(`/claimables/${transferHash.toPOD()}`);
   }
 
   // const maxAmount = balance; // TODO: Reduce the tx fee
@@ -234,4 +175,15 @@ export default function FeebumpSend(props: any, { history }: Props): JSX.Element
 // this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
 function disableAfterClick() {
   return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
+}
+
+
+function useFeeSchedule() {
+  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);
+
+  useEffect(() => {
+    getFeeSchedule(wallet.config).then(setFeeSchedule);
+  }, []);
+
+  return feeSchedule;
 }

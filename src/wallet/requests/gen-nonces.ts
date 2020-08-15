@@ -25,7 +25,7 @@ export default async function genNonces(config: Config, count: number, seenNonce
 
   const ret: hi.PublicKey[] = [];
   for (const nonce of nonces) {
-    if (seenNonces.has(name)) {
+    if (seenNonces.has(nonce)) {
       throw new Error('seen nonce: ' + nonce + ' multiple times?!');
     }
     seenNonces.add(nonce);

@@ -19,7 +19,6 @@ type LightningInvoiceProps = {
   // mp.Claimable & mp.Acknowledged.Claimable; // mp.Acknowledged.Claimable
 };
 
-
 export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
   const [infiniteAmount, setFiniteAmount] = useState(0);
@@ -174,18 +173,20 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {isExpired() === false && (
-          <Row>
-            <Col sm={{ size: 8, offset: 0 }}>
-              <div className="claimable-text-container">
-                {' '}
-                <a href="#status" className="btn btn-outline-danger status-badge">
-                  This invoice has expired!
-                </a>
-              </div>
-            </Col>
-          </Row>
-        )}
+        {isExpired() === false && statuses != undefined
+          ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
+              <Row>
+                <Col sm={{ size: 8, offset: 0 }}>
+                  <div className="claimable-text-container">
+                    {' '}
+                    <a href="#status" className="btn btn-outline-danger status-badge">
+                      This invoice has expired!
+                    </a>
+                  </div>
+                </Col>
+              </Row>
+            )
+          : undefined}
       </div>
     </div>
   );

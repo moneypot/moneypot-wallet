@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { Input, InputGroup, Button } from 'reactstrap';
 import { toast } from 'react-toastify';
-import useUniqueId from '../util/use-unique-id';
+import useUniqueId from './use-unique-id';
 
 type Props = {
   max?: number;

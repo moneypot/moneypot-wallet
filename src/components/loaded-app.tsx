@@ -1,12 +1,12 @@
 import React from 'react';
 
-import BitcoinAddressInfo from './bitcoin-address-info';
+import BitcoinAddressInfo from './tables/bitcoin-address-info';
 import ReceiveBitcoin from './receive/receive';
 import { BrowserRouter, HashRouter, Route, Switch, RouteComponentProps, Redirect } from 'react-router-dom';
 
 import Send from './send/send';
 import Hookins from './tables/hookins';
-import Addresses from './addresses';
+import Addresses from './tables/addresses';
 import Coins from './tables/coins';
 import Config from './config';
 import Hookouts from './tables/hookouts';
@@ -16,7 +16,7 @@ import Footer from './navigation/footer';
 import Page from './page';
 import useWindowSize from '../window-size';
 import Transactions from './transactions/transactions';
-import ClaimableInfo from './claimable-info';
+import ClaimableInfo from './statuses/claimable-info';
 import LightningInvoice from './statuses/lightning-invoice-statuses';
 import Support from './support';
 import ReceiveLightning from './receive/lightning';

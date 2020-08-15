@@ -17,6 +17,7 @@ import {
   segmultiOutput,
   segwitOutput,
 } from '../../config';
+import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 
 type HookoutProps = {
   created: Date;
@@ -28,13 +29,12 @@ export default function HookoutStatuses(props: HookoutProps) {
   const [CurrentTxid, setCurrentTxid] = useState('');
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
-  const [sent, isSent] = useState(false);
+  const [IsConfirmed, hasConfirmed] = useState(true) // prevent false positives when loading
 
   const [Memo, setMemo] = useState<undefined | string>(undefined);
 
   // we calculate this each time...
   const addressType = mp.decodeBitcoinAddress(claimable.bitcoinAddress);
-  // deal with non-standard maybe..?
   if (addressType instanceof Error) {
     throw 'invalid address? Huh?';
   }
@@ -73,7 +73,7 @@ export default function HookoutStatuses(props: HookoutProps) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {
               setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              isSent(true);
+              getConfirmationStatus(mp.Buffutils.toHex(s.txid)) // have to do the operation twice....
             }
           }
           !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
@@ -89,6 +89,10 @@ export default function HookoutStatuses(props: HookoutProps) {
       }
     };
     getData();
+    async function getConfirmationStatus(txid: string)  { 
+      const request = await fetchTxReceives(txid)
+      hasConfirmed(request.status.confirmed)
+    }
   });
 
   const GetStatuses = () => {
@@ -210,7 +214,7 @@ export default function HookoutStatuses(props: HookoutProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {sent === true && (
+        {IsConfirmed === false && (
           <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
             <button className="btn btn-secondary">Feebump this transaction!</button>
           </Link>

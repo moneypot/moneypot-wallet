@@ -1,16 +1,16 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router';
-import LightningInvoice from './statuses/lightning-invoice-statuses';
-import LightningPayment from './statuses/lightning-payment-statuses';
+import LightningInvoice from './lightning-invoice-statuses';
+import LightningPayment from './lightning-payment-statuses';
 import DevDataDisplay from './dev-data-display';
 
 import * as hi from 'moneypot-lib';
 
-import { wallet, useClaimable, useClaimableStatuses } from '../state/wallet';
-import { notError } from '../util';
-import HookinStatuses from './statuses/hookin-statuses';
-import HookoutStatuses from './statuses/hookout-statuses';
-import FeeBumpStatuses from './statuses/feebump-statuses';
+import { wallet, useClaimable, useClaimableStatuses } from '../../state/wallet';
+import { notError } from '../../util';
+import HookinStatuses from './hookin-statuses';
+import HookoutStatuses from './hookout-statuses';
+import FeeBumpStatuses from './feebump-statuses';
 
 export default function ClaimableInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;
@@ -105,27 +105,6 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
       default:
         return <span>Loading...</span>;
     }
-    // if (claimableDoc.kind === 'LightningInvoice') {
-    //   return (
-    //     claimable instanceof hi.Acknowledged.default && <LightningInvoice paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} claimableHash={claimableDoc.hash} claimable={claimable} />
-    //   );
-    // } else if (claimableDoc.kind === 'LightningPayment') {
-    //   return <LightningPayment paymentRequest={claimableDoc.paymentRequest} created={claimableDoc.created} memo="" claimableHash={claimableDoc.hash} />;
-    // }
-    // if (claimableDoc.kind === 'Hookout' || claimableDoc.kind === 'Hookin' || claimableDoc.kind === 'FeeBump') {
-    //   return (
-    //     <React.Fragment>
-    //       <IsClaimable
-    //         claimableHash={claimableDoc.hash}
-    //         amount={claimableDoc.amount}
-    //         created={claimableDoc.created}
-    //         kind={claimableDoc.kind}
-    //         claimable={claimable}
-    //       />
-
-    //     </React.Fragment>
-    //   );
-    // }
   };
 
   return (
@@ -150,6 +129,7 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
   );
 }
 
+// TODO: I think showing this dev-data isn't such a bad idea.
 function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged.Claimable; claimableHash: string }) {
   const statuses = useClaimableStatuses(claimableHash);
   if (!statuses) {

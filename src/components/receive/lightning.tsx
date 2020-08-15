@@ -3,7 +3,7 @@ import { RouteComponentProps } from 'react-router';
 
 import { wallet } from '../../state/wallet';
 import { Button, Col, Form, FormGroup, Input, InputGroup, Label } from 'reactstrap';
-import BitcoinAmountInput from '../bitcoin-amount-input';
+import BitcoinAmountInput from '../../util/bitcoin-amount-input';
 import * as Docs from '../../wallet/docs';
 
 export default function ReceiveLightning(props: RouteComponentProps) {
