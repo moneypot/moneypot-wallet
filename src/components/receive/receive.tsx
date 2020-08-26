@@ -5,6 +5,7 @@ import { Button, Row, Col, UncontrolledCollapse, InputGroup, Input } from 'react
 import * as Docs from '../../wallet/docs';
 import { wallet, useUnusedBitcoinAddress } from '../../state/wallet';
 import CopyToClipboard from '../../util/copy-to-clipboard';
+import { toast, ToastContainer } from 'react-toastify';
 
 function show(addressDoc: Docs.BitcoinAddress) {
   let memo: string | undefined;
@@ -15,11 +16,13 @@ function show(addressDoc: Docs.BitcoinAddress) {
   function PushMemo(memo: string | undefined) {
     if (memo) {
       localStorage.setItem(addressDoc.address, memo);
+      toast.success("Memo saved!")
     }
   }
 
   return (
     <div>
+      <ToastContainer />
       <h5 className="main-header">Receive</h5>
       <div className="inner-container">
         <div className="qr-code-wrapper">

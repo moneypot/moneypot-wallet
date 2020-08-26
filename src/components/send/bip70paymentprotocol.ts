@@ -10,7 +10,7 @@ import jsonDescriptor from './paymentrequests.json';
 import protobuf from 'protobufjs';
 
 import OPS from 'bitcoin-ops';
-import { toBase58Check } from 'moneypot-lib';
+import { toBase58Check, toBech32 } from 'moneypot-lib';
 import qs from 'qs';
 
 const root = protobuf.Root.fromJSON(jsonDescriptor);
@@ -241,13 +241,41 @@ export async function BInvoice(pRequest: string) {
         if (output.script.length === 25) {
           if (hi.Buffutils.toHex(output.script.slice(0, 1)) === OPS.OP_DUP.toString(16)) {
             if (hi.Buffutils.toHex(output.script.slice(1, 2)) === OPS.OP_HASH160.toString(16)) {
+             if (hi.Buffutils.toHex(output.script.slice(2,3)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) { 
               if (hi.Buffutils.toHex(output.script.slice(23, 24)) === OPS.OP_EQUALVERIFY.toString(16)) {
                 if (hi.Buffutils.toHex(output.script.slice(24, 25)) === OPS.OP_CHECKSIG.toString(16)) {
-                  const address = toBase58Check(new Buffer(output.script.slice(3, 23)), 0);
+                  const address = toBase58Check(hi.Buffutils.concat(output.script.slice(3, 23)), 0);
                   const decode = hi.decodeBitcoinAddress(address);
                   if (!(decode instanceof Error)) {
                     Outputs.push({ amount: output.amount, address: address });
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+        // this is P2WPKH
+        if (output.script.length === 22) {
+          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === '00') { //  OPS.OP_0.toString(16) 
+            if (hi.Buffutils.toHex(output.script.slice(1, 2)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) { 
+              const address = output.script.slice(2)
+              const words = toBech32(address, 0, 'bc')
+              if (!(hi.decodeBitcoinAddress(words) instanceof Error)) { 
+                Outputs.push({amount: output.amount, address: words})
+              }
+            }
+
+          }
+        }
+        // this is P2SH
+        if (output.script.length === 23) {  
+          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === OPS.OP_HASH160.toString(16)) { 
+            if (hi.Buffutils.toHex(output.script.slice(1,2)) === hi.Buffutils.toHex(new Uint8Array([0x014]))) { 
+              if (hi.Buffutils.toHex(output.script.slice(22,23)) === OPS.OP_EQUAL.toString(16)) { 
+                const address = toBase58Check(output.script.slice(2,22), 5);
+                if (!(hi.decodeBitcoinAddress(address) instanceof Error)) {
+                   Outputs.push({amount: output.amount, address: address})
                 }
               }
             }
@@ -305,10 +333,9 @@ export async function BInvoice(pRequest: string) {
       return sig.verify(Buffer.from(request.signature).toString('hex'));
     }
 
-    // console.log(InvoicePaymentRequests, parseCertFromBase64(testobject.entityCertificate))
     const isVerified = validateSig(InvoicePaymentRequests, certFromDER(hi.Buffutils.toHex(Certificates.certificate[0])));
 
-    if (isVerified === false) {
+    if (!isVerified) {
       throw new Error("Couldn't verify payment details against certificate");
     }
 
@@ -385,7 +412,7 @@ export async function BInvoice(pRequest: string) {
       requiredFeeRate: InvoicePaymentDetails.requiredFeerate,
       merchantData: InvoicePaymentDetails.merchantData,
     } as GeneralizedPaymentDetails;
-  } else throw new Error('Remove undefined');
+  } 
 }
 
 export function decodeBitcoinBip21(text: string) {

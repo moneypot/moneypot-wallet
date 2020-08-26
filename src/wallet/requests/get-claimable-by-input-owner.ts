@@ -37,8 +37,9 @@ export default async function getClaimableByInputOwner(config: Config, inputOwne
   if (!found) {
     throw new Error('got a claimable that didnt have correct input owner');
   }
-
-  // TODO: verify auth...
-
+  
+  if (!ackdClaimable.verify(config.custodian.acknowledgementKey)) { 
+    throw new Error("Claimable is not properly acknowledged.") // awkward..?
+  }
   return ackdClaimable;
 }

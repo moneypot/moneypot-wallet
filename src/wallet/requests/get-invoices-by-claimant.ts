@@ -22,7 +22,16 @@ export default async function getInvoicesByClaimant(config: Config, claimant: hi
       throw new Error('lightning-invoices-by-claimant returned invoice with wrong claimant');
     }
   }
-  // TODO: check the ack
+
+  for (const invoice of invoices) { 
+    const invoiceFromPOD = hi.Acknowledged.claimableFromPOD(invoice)
+    if (invoiceFromPOD instanceof Error) {
+      throw invoiceFromPOD
+    }
+    if (!invoiceFromPOD.verify(config.custodian.acknowledgementKey)) {
+      throw new Error('lighnting-invoices acknowledgement did not validate, server is trying to feed invalid invoices!');
+    }
+  }
 
   return invoices.map(s => {
     const claimable = notError(hi.Acknowledged.claimableFromPOD(s));

@@ -543,7 +543,6 @@ export default class Database extends EventEmitter {
     for (i = 0, j = claimables.length; i < j; i += chk) {
       tparr = claimables.slice(i, i + chk);
       workerClaimable.postMessage([tparr, this.config.toDoc()]);
-      workerClaimable.onmessage = event => {};
       workerClaimable.addEventListener('message', async (event: MessageEvent) => {
         if (event.data[0] != 'd') {
           const unPOD = event.data.map((s: any) => hi.Acknowledged.statusFromPOD(s));
@@ -610,7 +609,6 @@ export default class Database extends EventEmitter {
       tparr = coins.slice(i, i + chk);
       // make it async => push resolves to array, if array matches amount of workers, function has ended.
       WorkerCoins.postMessage([tparr, this.config.toDoc()]);
-      WorkerCoins.onmessage = event => {};
       WorkerCoins.addEventListener('message', async (event: MessageEvent) => {
         if (event.data[0] != 'd') {
           const receivedClaimable: hi.POD.Claimable = event.data[0];
@@ -734,8 +732,6 @@ export default class Database extends EventEmitter {
     await this.syncBitcoinAddresses();
     await this.syncLightningInvoices();
     await this.syncMultiThreadClaimable(0);
-
-    // TODO: find coins that are funded...
   }
 
   // sync without workers, this is the sane default.
