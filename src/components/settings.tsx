@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Form, Label, Input, Col, InputGroup, InputGroupAddon } from 'reactstrap';
 import { wallet } from '../state/wallet';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function Settings() {
   const [Setting1, setSetting1] = useState(false);
@@ -42,7 +43,7 @@ export default function Settings() {
             wallet.config.gapLimit = 10;
             // change config indexeddb
             const walletConfig = await wallet.db.get('config', 1);
-            if (walletConfig === undefined) {
+            if (!walletConfig) {
               return new Error('Invalid config?');
             }
             walletConfig.gapLimit = 10;
@@ -96,7 +97,7 @@ export default function Settings() {
       wallet.config.gapLimit = Number(amountInput);
       // change config indexeddb
       const walletConfig = await wallet.db.get('config', 1);
-      if (walletConfig === undefined) {
+      if (!walletConfig) {
         return new Error('Invalid config?');
       }
       walletConfig.gapLimit = Number(amountInput);
@@ -108,7 +109,7 @@ export default function Settings() {
         wallet.config.gapLimit = 10;
         // change config indexeddb
         const walletConfig = await wallet.db.get('config', 1);
-        if (walletConfig === undefined) {
+        if (!walletConfig) {
           return new Error('Invalid config?');
         }
         walletConfig.gapLimit = 10;
@@ -130,11 +131,13 @@ export default function Settings() {
     } else if (Setting5 === false) {
       localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
     }
+    toast.success("Settings saved successfully!")
   };
 
   return (
     <React.Fragment>
       <div>
+      <ToastContainer />
         <h5>Settings</h5>
         <div className="inner-container">
           <p>
