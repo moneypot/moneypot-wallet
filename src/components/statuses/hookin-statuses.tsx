@@ -34,12 +34,12 @@ export default function HookinStatuses(props: HookinProps) {
             !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
           }
         } else if (statuses === undefined) {
-           await wallet.requestStatuses(props.claimableHash); 
-          }
-          // if we have no ack - we need an ack.
-          if (!(props.claimable instanceof mp.Acknowledged.default)) { 
-            wallet.acknowledgeClaimable(props.claimable)
-          }
+          await wallet.requestStatuses(props.claimableHash);
+        }
+        // if we have no ack - we need an ack.
+        if (!(props.claimable instanceof mp.Acknowledged.default)) {
+          wallet.acknowledgeClaimable(props.claimable);
+        }
       }
     };
     const memo = localStorage.getItem(claimable.bitcoinAddress);
@@ -70,18 +70,17 @@ export default function HookinStatuses(props: HookinProps) {
             Waiting for confirmations!?
           </a>
         );
-      } 
-      if (!statuses.some(status => status instanceof Claimed) && (props.claimable instanceof mp.Acknowledged.default)) {  
+      }
+      if (!statuses.some(status => status instanceof Claimed) && props.claimable instanceof mp.Acknowledged.default) {
         return (
           <a href="#status" className="btn btn-outline-warning status-badge">
             Custodian has not yet accepted the hookin!
           </a>
         );
-      }
-      else if (!(props.claimable instanceof mp.Acknowledged.default)) { 
+      } else if (!(props.claimable instanceof mp.Acknowledged.default)) {
         return (
           <a href="#status" className="btn btn-outline-danger status-badge">
-           Custodian is not aware of the hookin!
+            Custodian is not aware of the hookin!
           </a>
         );
       }

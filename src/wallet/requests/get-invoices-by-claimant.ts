@@ -23,10 +23,10 @@ export default async function getInvoicesByClaimant(config: Config, claimant: hi
     }
   }
 
-  for (const invoice of invoices) { 
-    const invoiceFromPOD = hi.Acknowledged.claimableFromPOD(invoice)
+  for (const invoice of invoices) {
+    const invoiceFromPOD = hi.Acknowledged.claimableFromPOD(invoice);
     if (invoiceFromPOD instanceof Error) {
-      throw invoiceFromPOD
+      throw invoiceFromPOD;
     }
     if (!invoiceFromPOD.verify(config.custodian.acknowledgementKey)) {
       throw new Error('lighnting-invoices acknowledgement did not validate, server is trying to feed invalid invoices!');

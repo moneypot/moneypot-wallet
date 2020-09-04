@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
-import { Collapse, Navbar, Nav, NavItem } from 'reactstrap';
-import { Link, withRouter } from 'react-router-dom';
+import { Collapse, Navbar, Nav, NavItem, Button } from 'reactstrap';
+import { Link, withRouter, useLocation } from 'react-router-dom';
 import { wallet, useBalance } from '../../state/wallet';
 import SyncBtn from './sync-btn';
 
@@ -16,6 +16,24 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
   );
 
   const balance = useBalance();
+  let location = useLocation();
+  let TDifference: number | undefined;
+  if (wallet.config.custodian.wipeDate) {
+    TDifference = +new Date(wallet.config.custodian.wipeDate) - +new Date();
+  }
+
+  function show() {
+    return props.isMobile ? (
+      <Button color="danger">
+        <Link to="/faq">Warning!</Link>
+      </Button>
+    ) : (
+      <Button color="danger">
+        {' '}
+        Warning! <Link to="/faq">It seems that </Link> this custodian will wipe in {'>'}7D!{' '}
+      </Button>
+    );
+  }
 
   return (
     <div className="top-bar">
@@ -31,6 +49,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
           <b style={{ fontWeight: 'bold' }}>{props.isMobile ? '' : wallet.db.name} </b> {balance + ' sat'}
         </span>
         <div className="nav-item-right">
+          {TDifference != undefined && Math.floor(TDifference / (1000 * 60 * 60 * 24)) < 7 && location.pathname === '/' && show()}{' '}
           {props.isMobile ? <SyncBtn /> : ''}
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
             <i className="fa fa-cog" />

@@ -29,7 +29,7 @@ export default function HookoutStatuses(props: HookoutProps) {
   const [CurrentTxid, setCurrentTxid] = useState('');
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
-  const [IsConfirmed, hasConfirmed] = useState(true) // prevent false positives when loading
+  const [IsConfirmed, hasConfirmed] = useState(true); // prevent false positives when loading
 
   const [Memo, setMemo] = useState<undefined | string>(undefined);
 
@@ -73,7 +73,7 @@ export default function HookoutStatuses(props: HookoutProps) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {
               setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              getConfirmationStatus(mp.Buffutils.toHex(s.txid)) // have to do the operation twice....
+              getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
             }
           }
           !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
@@ -89,9 +89,9 @@ export default function HookoutStatuses(props: HookoutProps) {
       }
     };
     getData();
-    async function getConfirmationStatus(txid: string)  { 
-      const request = await fetchTxReceives(txid)
-      hasConfirmed(request.status.confirmed)
+    async function getConfirmationStatus(txid: string) {
+      const request = await fetchTxReceives(txid);
+      hasConfirmed(request.status.confirmed);
     }
   });
 

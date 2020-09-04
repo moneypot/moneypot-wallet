@@ -11,12 +11,12 @@ type Props = { history: { push: (path: string) => void } };
 // Should probably actually ask the custodian...?
 function getTxData(decodedTxid: string): Promise<AddressInfoTx> {
   return FetchTx(decodedTxid).then(response => {
-    return response
+    return response;
   });
 }
 
 export default function FeebumpSend(props: RouteComponentProps, { history }: Props): JSX.Element {
-  const feeSchedule = useFeeSchedule()
+  const feeSchedule = useFeeSchedule();
   const [toText, setToText] = useState('');
   const balance = useBalance();
   const [fee, setFee] = useState(Number);
@@ -49,8 +49,8 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
   })();
 
   async function calculateFee(): Promise<number> {
-    const Response = await getTxData(toText)
-    
+    const Response = await getTxData(toText);
+
     if (Response.status.confirmed === true) {
       throw 'Invalid TX | TXID already confirmed';
     }
@@ -76,8 +76,8 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
       throw Response;
     }
 
-    if (!feeSchedule)  {
-      throw new Error("Fetching feeschedules is hard!")
+    if (!feeSchedule) {
+      throw new Error('Fetching feeschedules is hard!');
     }
     const amount = feeSchedule.immediateFeeRate * Response.weight - Response.fee;
     // It seems like feebump increase is by default 5 sat/b ? todo: check this
@@ -176,7 +176,6 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
 function disableAfterClick() {
   return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
 }
-
 
 function useFeeSchedule() {
   const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);

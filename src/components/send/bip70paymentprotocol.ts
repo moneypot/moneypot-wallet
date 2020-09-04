@@ -241,41 +241,41 @@ export async function BInvoice(pRequest: string) {
         if (output.script.length === 25) {
           if (hi.Buffutils.toHex(output.script.slice(0, 1)) === OPS.OP_DUP.toString(16)) {
             if (hi.Buffutils.toHex(output.script.slice(1, 2)) === OPS.OP_HASH160.toString(16)) {
-             if (hi.Buffutils.toHex(output.script.slice(2,3)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) { 
-              if (hi.Buffutils.toHex(output.script.slice(23, 24)) === OPS.OP_EQUALVERIFY.toString(16)) {
-                if (hi.Buffutils.toHex(output.script.slice(24, 25)) === OPS.OP_CHECKSIG.toString(16)) {
-                  const address = toBase58Check(output.script.slice(3, 23), 0);
-                  const decode = hi.decodeBitcoinAddress(address);
-                  if (!(decode instanceof Error)) {
-                    Outputs.push({ amount: output.amount, address: address });
+              if (hi.Buffutils.toHex(output.script.slice(2, 3)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) {
+                if (hi.Buffutils.toHex(output.script.slice(23, 24)) === OPS.OP_EQUALVERIFY.toString(16)) {
+                  if (hi.Buffutils.toHex(output.script.slice(24, 25)) === OPS.OP_CHECKSIG.toString(16)) {
+                    const address = toBase58Check(output.script.slice(3, 23), 0);
+                    const decode = hi.decodeBitcoinAddress(address);
+                    if (!(decode instanceof Error)) {
+                      Outputs.push({ amount: output.amount, address: address });
+                    }
                   }
                 }
               }
             }
           }
         }
-      }
         // this is P2WPKH
         if (output.script.length === 22) {
-          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === '00') { //  OPS.OP_0.toString(16) 
-            if (hi.Buffutils.toHex(output.script.slice(1, 2)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) { 
-              const address = output.script.slice(2)
-              const words = toBech32(address, 0, 'bc')
-              if (!(hi.decodeBitcoinAddress(words) instanceof Error)) { 
-                Outputs.push({amount: output.amount, address: words})
+          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === '00') {
+            //  OPS.OP_0.toString(16)
+            if (hi.Buffutils.toHex(output.script.slice(1, 2)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) {
+              const address = output.script.slice(2);
+              const words = toBech32(address, 0, 'bc');
+              if (!(hi.decodeBitcoinAddress(words) instanceof Error)) {
+                Outputs.push({ amount: output.amount, address: words });
               }
             }
-
           }
         }
         // this is P2SH
-        if (output.script.length === 23) {  
-          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === OPS.OP_HASH160.toString(16)) { 
-            if (hi.Buffutils.toHex(output.script.slice(1,2)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) { 
-              if (hi.Buffutils.toHex(output.script.slice(22,23)) === OPS.OP_EQUAL.toString(16)) { 
-                const address = toBase58Check(output.script.slice(2,22), 5);
+        if (output.script.length === 23) {
+          if (hi.Buffutils.toHex(output.script.slice(0, 1)) === OPS.OP_HASH160.toString(16)) {
+            if (hi.Buffutils.toHex(output.script.slice(1, 2)) === hi.Buffutils.toHex(new Uint8Array([0x14]))) {
+              if (hi.Buffutils.toHex(output.script.slice(22, 23)) === OPS.OP_EQUAL.toString(16)) {
+                const address = toBase58Check(output.script.slice(2, 22), 5);
                 if (!(hi.decodeBitcoinAddress(address) instanceof Error)) {
-                   Outputs.push({amount: output.amount, address: address})
+                  Outputs.push({ amount: output.amount, address: address });
                 }
               }
             }
@@ -412,7 +412,7 @@ export async function BInvoice(pRequest: string) {
       requiredFeeRate: InvoicePaymentDetails.requiredFeerate,
       merchantData: InvoicePaymentDetails.merchantData,
     } as GeneralizedPaymentDetails;
-  } 
+  }
 }
 
 export function decodeBitcoinBip21(text: string) {

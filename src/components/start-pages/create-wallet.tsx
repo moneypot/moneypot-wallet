@@ -50,6 +50,7 @@ export default function CreateWallet(props: any) {
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
               <Input value={custodianUrl} name="custodianUrl" onChange={e => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
+              {/* TODO: */}
               <datalist id="default=custodian-urls">
                 <option value="https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
                 <option value="http://localhost:3030" />
@@ -77,8 +78,8 @@ export default function CreateWallet(props: any) {
           </FormGroup>
 
           <small className="text-secondary">
-            By creating a wallet submit you are agreeing to moneypot's <a href="">Terms and Conditions</a>, <a href="">Cookies</a> and{' '}
-            <a href="">Privacy Policy</a>.
+            By creating a wallet submit you are agreeing to moneypot's <a href="https://moneypot.com/tos">Terms and Conditions</a>,{' '}
+            <a href="https://moneypot.com/cookies">Cookies</a> and <a href="https://moneypot.com/privacy-policy">Privacy Policy</a>.
           </small>
         </Form>
         <p>

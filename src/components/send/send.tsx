@@ -790,7 +790,8 @@ export default function Send({ history }: Props) {
             : undefined}
           {sendType.kind === 'bitcoinInvoice' && showBitcoinInvoiceFeeSelection()}
           {(toPTM === '' && sendType.kind === 'bitcoin') || sendType.kind === 'bitcoinbip21Invoice' ? showBitcoinFeeSelection() : undefined}
-          {(sendType.kind === 'bitcoin' && (prioritySelection === "CUSTOM" || prioritySelection === "IMMEDIATE") ) || (sendType.kind === 'bitcoinbip21Invoice' && (prioritySelection === "CUSTOM" || prioritySelection === "IMMEDIATE" ))? (
+          {(sendType.kind === 'bitcoin' && (prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE')) ||
+          (sendType.kind === 'bitcoinbip21Invoice' && (prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE')) ? (
             <FormGroup check>
               <Label check>
                 <Input id="setting1" type="checkbox" onChange={updateRBF} checked={!isRBF} /> Disable Replace-By-Fee.

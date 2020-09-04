@@ -18,9 +18,25 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
   }
 
   const ci = hi.CustodianInfo.fromPOD(res); // make sure it's all good..
+
   if (ci instanceof Error) {
     return ci;
   }
+
+  // if WipeData, verify
+  if (ci.wipeDate) {
+    if (ci.wipeDateSig) {
+      const sig = hi.Signature.fromPOD(ci.wipeDateSig);
+      if (sig instanceof Error) {
+        return sig;
+      }
+      const VerifyWipeDate = sig.verify(hi.Buffutils.fromString(ci.wipeDate), ci.acknowledgementKey);
+      if (!VerifyWipeDate) {
+        return new Error('Cannot verify Signature related to WipeDate');
+      }
+    } else return new Error('No Sig regarding in relation to WipeDate..');
+  }
+
   if (ackString) {
     if (ackString.length > 0) {
       const ackKeyPub = notError(hi.PublicKey.fromPOD(ackString));

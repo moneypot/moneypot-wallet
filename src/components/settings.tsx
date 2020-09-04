@@ -131,13 +131,13 @@ export default function Settings() {
     } else if (Setting5 === false) {
       localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
     }
-    toast.success("Settings saved successfully!")
+    toast.success('Settings saved successfully!');
   };
 
   return (
     <React.Fragment>
       <div>
-      <ToastContainer />
+        <ToastContainer />
         <h5>Settings</h5>
         <div className="inner-container">
           <p>

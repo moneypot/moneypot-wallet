@@ -16,7 +16,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
   function PushMemo(memo: string | undefined) {
     if (memo) {
       localStorage.setItem(addressDoc.address, memo);
-      toast.success("Memo saved!")
+      toast.success('Memo saved!');
     }
   }
 
