@@ -119,9 +119,9 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               {`${claimable.amount} sat`}
-              <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>

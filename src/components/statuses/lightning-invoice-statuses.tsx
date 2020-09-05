@@ -130,9 +130,9 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <Col sm={{ size: 8, offset: 0 }}>
               <div className="address-text-container">
                 {hasPreimage}{' '}
-                <CopyToClipboard className="btn btn-light" style={{}} text={hasPreimage}>
+                {/* <CopyToClipboard className="btn btn-light" style={{}} text={hasPreimage}>
                   <i className="fa fa-copy" />
-                </CopyToClipboard>
+                </CopyToClipboard> */}
               </div>
             </Col>
           </Row>
@@ -144,13 +144,13 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               {amount === ' ' && infiniteAmount != 0 ? `${infiniteAmount} sat` : amount === ' ' ? 'any amount of sat' : `${amount} sat`}
-              <CopyToClipboard
+              {/* <CopyToClipboard
                 className="btn btn-light"
                 style={{}}
                 text={amount === ' ' ? '0' : amount === ' ' && infiniteAmount != 0 ? infiniteAmount.toString() : amount.toString()}
               >
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>

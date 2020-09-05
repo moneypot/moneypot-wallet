@@ -32,6 +32,8 @@ interface PTMaddress {
 
 type Props = { history: { push: (path: string) => void } };
 export default function Send({ history }: Props) {
+  const [IsDisabled, setIsDisabled] = useState(false);
+
   const [isRBF, setRBF] = useState(true);
   const updateRBF = () => setRBF(!isRBF);
   const feeSchedule = useFeeSchedule();
@@ -812,9 +814,10 @@ export default function Send({ history }: Props) {
                 id="AppSendButton"
                 color="success"
                 className="btn-moneypot"
+                disabled={IsDisabled}
                 onClick={() => {
                   send();
-                  disableAfterClick();
+                  setIsDisabled(true);
                 }}
               >
                 Send
@@ -827,12 +830,11 @@ export default function Send({ history }: Props) {
   );
 }
 // this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
-function disableAfterClick() {
-  setTimeout(() => {
-    return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = false);
-  }, 2000);
-  return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
-}
+// function disableAfterClick() {
+//   setTimeout(() => {
+//     return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = false);
+//   }, 2000); // Should never click twice, in the event of an error the hookout is usually still in the system. // As a rule of thumb, any network request usually results in a transaction, whether the request errors or not.
+// }
 
 function useFeeSchedule() {
   const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);

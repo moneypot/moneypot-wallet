@@ -6,12 +6,11 @@
 @import 'vendors/custom-bootstrap';
 //Fontawesome
 @import 'vendors/fontawesome/fontawesome.scss';
-@import "vendors/fontawesome/solid.scss";
-@import "vendors/fontawesome/regular.scss";
-@import "vendors/fontawesome/light.scss";
-@import "vendors/fontawesome/brands.scss";
-@import "vendors/fontawesome/duotone.scss";
-
+@import 'vendors/fontawesome/solid.scss';
+@import 'vendors/fontawesome/regular.scss';
+@import 'vendors/fontawesome/light.scss';
+@import 'vendors/fontawesome/brands.scss';
+@import 'vendors/fontawesome/duotone.scss';
 
 //Components
 @import 'components/addresses';
@@ -23,8 +22,8 @@
 @import 'components/receive';
 @import 'components/send';
 @import 'components/top-bar';
-@import "components/lightning-invoice";
-@import "components/left-panel";
+@import 'components/lightning-invoice';
+@import 'components/left-panel';
 @import 'components/create-wallet';
 @import 'components/select-wallet';
 
@@ -32,7 +31,6 @@
 @import 'layout/buttons';
 @import 'layout/containers';
 @import 'layout/headings';
-
 
 //Fonts
 @import 'fonts/fonts';

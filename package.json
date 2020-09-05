@@ -7,8 +7,8 @@
     "schema": "ts-node src/wallet/generate-schema.ts > src/wallet/schema.ts && prettier --single-quote --trailing-comma es5 --print-width 160 --write src/wallet/schema.ts",
     "build": "webpack --config webpack.config.js",
     "build-cdn": "NODE_ENV=production USE_CDN=true webpack --config webpack.config.js",
-    "prettier": "prettier --single-quote --trailing-comma es5 --print-width 160 --write \"src/**/*.{ts,tsx}\"",
-    "publish": "npm run build-cdn && cp -r dist/* ../moneypot-wallet-dist"
+    "prettier": "prettier --single-quote --trailing-comma es5 --print-width 160 --write \"src/**/*.{ts,tsx,scss}\"",
+    "publish": "npm run build-cdn && cp -r dist/* ../moneypot-wallet-dist && cd ../moneypot-wallet-dist/ && git add -A && git commit -m \"Add built files\" && git pull --rebase && git push"
   },
   "author": "",
   "license": "UNLICENSED",

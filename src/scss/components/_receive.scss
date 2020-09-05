@@ -1,4 +1,3 @@
-
 .address-text-container {
   background: $lighter-gray;
   padding: 1rem;
@@ -8,10 +7,13 @@
   justify-content: space-between;
   align-items: center;
 }
-.claimable-text-container{
+
+
+.claimable-text-container {
   border-radius: 0.2rem;
-  display: flex;
+   display: flex;
   justify-content: space-between;
+  word-wrap: break-word;
 }
 .address-title {
   font-weight: 600;
@@ -24,9 +26,16 @@
 @include media-breakpoint-down(sm) {
   .text-container {
     margin: 2rem 0;
-
   }
 }
+
+@include media-breakpoint-between(xs, md) { 
+  .claimable-text-container { 
+    display: block
+  }
+} 
+
+
 .receive-radio-buttons-container {
   margin: 1rem;
   display: flex;
@@ -47,18 +56,18 @@
   color: $wintergreen;
   margin-right: 0.5rem;
 }
-.receive-radio-buttons-container input[type="radio"] {
-  display:none;
+.receive-radio-buttons-container input[type='radio'] {
+  display: none;
 }
 
 .receive-radio-buttons-container label {
-  display:flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 1.5rem 2rem;
   margin: 1rem 2rem;
   background-color: $white;
-  box-shadow: 0 5px 24px 0 rgba(0,0,100,.09);
+  box-shadow: 0 5px 24px 0 rgba(0, 0, 100, 0.09);
   border-radius: 0.5rem;
   flex-grow: 1;
   flex-basis: 0;
@@ -68,8 +77,8 @@
   background-color: lighten($light-blue-nav-link, 20%);
 }
 
-.receive-radio-buttons-container input[type="radio"]:checked + label {
-  background-color:$white;
+.receive-radio-buttons-container input[type='radio']:checked + label {
+  background-color: $white;
   border: 2px solid $theme-blue;
   color: $theme-blue;
 }
@@ -80,7 +89,7 @@
   color: transparent;
 }
 
-.receive-radio-buttons-container input[type="radio"]:checked + label .checked-icon {
+.receive-radio-buttons-container input[type='radio']:checked + label .checked-icon {
   color: $theme-blue;
   background: white;
 }
@@ -95,7 +104,7 @@
 }
 .qr-code-container:before {
   display: block;
-  content: "";
+  content: '';
   width: 20px;
   height: 20px;
   position: absolute;
@@ -106,7 +115,7 @@
 }
 .qr-code-container:after {
   display: block;
-  content: "";
+  content: '';
   width: 20px;
   height: 20px;
   position: absolute;
@@ -117,7 +126,7 @@
 }
 .qr-code-container span:before {
   display: block;
-  content: "";
+  content: '';
   width: 20px;
   height: 20px;
   position: absolute;
@@ -128,7 +137,7 @@
 }
 .qr-code-container span:after {
   display: block;
-  content: "";
+  content: '';
   width: 20px;
   height: 20px;
   position: absolute;

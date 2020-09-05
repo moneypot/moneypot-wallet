@@ -1,11 +1,9 @@
-
 .select-wallet-table > div {
   height: 2rem;
   display: table;
   table-layout: fixed;
   width: 100%;
   margin: 0.5rem;
-
 }
 
 .select-wallet-table > div > * {
@@ -19,14 +17,26 @@
 
 //TODO: decide which layout is better
 .select-wallet-table {
-   margin: 2rem 15vw;
+  margin: 2rem 15vw;
   // margin: 2rem;
   padding: 1rem;
   font-weight: 600;
   text-align: left;
   word-break: break-word;
+  height: 100%;
 }
 
-.select-wallet-button { 
-  padding: 10px
+@media only screen and (max-width: 576px) {
+  .select-wallet-table {
+    margin: 1rem 5vw;
+    // margin: 2rem;
+    padding: 1rem;
+    font-weight: 600;
+    text-align: left;
+    word-break: break-word;
+  }
+}
+
+.select-wallet-button {
+  padding: 10px;
 }

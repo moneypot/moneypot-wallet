@@ -33,13 +33,13 @@ export default function HookinStatuses(props: HookinProps) {
           if (props.claimable instanceof mp.Acknowledged.default) {
             !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
           }
-        } else if (statuses === undefined) {
-          await wallet.requestStatuses(props.claimableHash);
         }
-        // if we have no ack - we need an ack.
-        if (!(props.claimable instanceof mp.Acknowledged.default)) {
-          wallet.acknowledgeClaimable(props.claimable);
-        }
+      } else if (statuses === undefined) {
+        await wallet.requestStatuses(props.claimableHash);
+      }
+      // if we have no ack - we need an ack.
+      if (!(props.claimable instanceof mp.Acknowledged.default)) {
+        wallet.acknowledgeClaimable(props.claimable);
       }
     };
     const memo = localStorage.getItem(claimable.bitcoinAddress);
@@ -128,9 +128,9 @@ export default function HookinStatuses(props: HookinProps) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               {`${claimable.amount} sat`}
-              <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>
@@ -142,9 +142,9 @@ export default function HookinStatuses(props: HookinProps) {
             <div className="claimable-text-container">
               {`${CurrentConsolidationFee} sat`}
 
-              <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>

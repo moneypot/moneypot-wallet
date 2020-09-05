@@ -1,24 +1,47 @@
-.full-page-left-side {
+@media only screen and (min-width: 576px) {
+  .full-page-left-side {
     grid-area: left;
     background-color: $theme-blue;
     color: $white;
     display: flex;
     align-items: center;
-    justify-content: center;
+    margin-top: 50%;
+    // justify-content: center;
     flex-direction: column;
     padding: 2rem;
   }
+}
 
-  h1.moneypot {
-    text-transform: lowercase;
-    letter-spacing: 0.03rem;
-    font-weight: 600;
-    top: 10px;
-    position: absolute;
-    align-self: flex-start;
-    margin: 1rem 2rem;
+@media only screen and (max-width: 576px) {
+  .full-page-left-side {
+    // grid-area: 'header';
+    background-color: $theme-blue;
+    color: $white;
+    display: flex;
+    // align-items: center;
+    // justify-content: center;
+    width: 100%;
+    height: 13vh;
+  }
+}
+
+@media only screen and (max-width: 360px) {
+  .full-page-left-side {
+    height: 17vh;
   }
 
-  .full-page-left-side .secondary-text {
-      font-size: 1.2rem;
-  }
+ }
+
+h1.moneypot {
+  text-transform: lowercase;
+  letter-spacing: 0.03rem;
+  font-weight: 600;
+  top: 10px;
+  position: absolute;
+  align-self: flex-start;
+  margin: 1rem 2rem;
+}
+
+.full-page-left-side .secondary-text {
+  font-size: 1.2rem;
+}

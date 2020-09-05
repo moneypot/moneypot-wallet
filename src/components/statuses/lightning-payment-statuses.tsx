@@ -129,9 +129,9 @@ export default function LightningPayment(props: LightningInvoiceProps) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               <p>{amount} sat</p>
-              <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={amount.toString()}>
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>
@@ -142,9 +142,9 @@ export default function LightningPayment(props: LightningInvoiceProps) {
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
               {hash}
-              <CopyToClipboard className="btn btn-light" style={{}} text={hash.toString()}>
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={hash.toString()}>
                 <i className="fa fa-copy" />
-              </CopyToClipboard>
+              </CopyToClipboard> */}
             </div>
           </Col>
         </Row>

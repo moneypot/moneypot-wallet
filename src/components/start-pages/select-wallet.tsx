@@ -8,7 +8,7 @@ import LeftPanel from './left-panel';
 
 import * as dbInfo from '../../wallet/database-info';
 
-export default function SelectWallet(props: any) {
+export default function SelectWallet(props: any & { isMobile: boolean }) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
   useEffect(() => {
     dbInfo.list().then(dbNames => {
@@ -34,7 +34,7 @@ export default function SelectWallet(props: any) {
 
   return (
     <div className="full-page-container">
-      <LeftPanel />
+      <LeftPanel isMobile={props.isMobile} />
       <div className="full-page-right-side">
         <ToastContainer />
         <h2 className="main-heading">Select Wallet</h2>

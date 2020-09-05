@@ -1,53 +1,54 @@
-
 .main-container {
     grid-area: main;
     background: $bg;
     padding: 2rem;
     overflow: auto;
-}
-
-.main-header {
+  }
+  
+  .main-header {
     text-align: center;
-}
-
-.inner-container {
+  }
+  
+  .inner-container {
     background-color: $white;
-    box-shadow: 0 5px 24px 0 rgba(0,0,0,.04);
+    box-shadow: 0 5px 24px 0 rgba(0, 0, 0, 0.04);
     border-radius: 0.2rem;
     margin: 1rem 0;
-}
-// For a Mobile view
-@include media-breakpoint-down(xs) {
-    .inner-container {
-        padding: 3rem 5vw;
-    }
-}
-// For a Desktop view
-@include media-breakpoint-up(lg) {
-    .inner-container {
-        padding: 5rem 10vw;
-    }
-}
-@include media-breakpoint-between(sm, md) {
-    .inner-container {
-        padding: 5rem 5vw;
-    }
-}
-
-
-.full-page-container {
-    display: grid;
-    grid-template-rows: 100vh;
-    grid-template-areas: "left right right right";
-    width: 100vw;
-    height: 100vh;
-    background: $theme-blue;
   }
-
-
-
+  // For a Mobile view
+  @include media-breakpoint-down(xs) {
+    .inner-container {
+      padding: 3rem 5vw;
+    }
+  }
+  // For a Desktop view
+  @include media-breakpoint-up(lg) {
+    .inner-container {
+      padding: 5rem 10vw;
+    }
+  }
+  @include media-breakpoint-between(sm, md) {
+    .inner-container {
+      padding: 5rem 5vw;
+    }
+  }
+  
+  @media only screen and (min-width: 576px) {
+    .full-page-container {
+      display: grid;
+      grid-template-rows: 100vh;
+      grid-template-areas:
+        'left right right right'
+        'left right right right'
+        'left right right right';
+      // width: 100%;
+      // height: 100%;
+      background: $theme-blue;
+    }
+  }
   .full-page-right-side {
     grid-area: right;
+    height: 100%;
     background-color: $bg;
     display: flex;
     flex-direction: column;
@@ -55,3 +56,4 @@
     justify-content: center;
     padding: 2rem;
   }
+    

@@ -34,7 +34,7 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
       if (!VerifyWipeDate) {
         return new Error('Cannot verify Signature related to WipeDate');
       }
-    } else return new Error('No Sig regarding in relation to WipeDate..');
+    } else return new Error('No Sig in relation to WipeDate..');
   }
 
   if (ackString) {

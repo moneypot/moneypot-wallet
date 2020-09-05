@@ -10,7 +10,7 @@ import LeftPanel from './left-panel';
 
 const defaultCustodian = 'https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
 
-export default function CreateWallet(props: any) {
+export default function CreateWallet(props: any & { isMobile: boolean }) {
   const [walletName, setWalletName] = useState('main');
 
   const [custodianUrl, setCustodianUrl] = useState(defaultCustodian);
@@ -31,7 +31,7 @@ export default function CreateWallet(props: any) {
   return (
     <div className="full-page-container">
       <ToastContainer />
-      <LeftPanel />
+      <LeftPanel isMobile={props.isMobile} />
       <div className="full-page-right-side">
         <h2 className="main-heading">Restore your wallet</h2>
         <Form>

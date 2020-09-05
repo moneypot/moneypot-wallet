@@ -26,7 +26,6 @@ export default function FeeBumpItem({ claimable, statuses }: Props) {
       }
     }
   }
-  // claimable.txid will return a txid that is replaced... todo.
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card Hookout">
       <div className="text-muted">
