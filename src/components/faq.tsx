@@ -167,7 +167,7 @@ export default function Faq() {
         </small>
       </div>
 
-    {/* TODO (remove maybe?) */}
+      {/* TODO (remove maybe?) */}
       <div className="inner-container">
         <h4>API</h4>
         <p>
@@ -178,5 +178,4 @@ export default function Faq() {
       </div>
     </div>
   );
-}
 }

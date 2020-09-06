@@ -146,10 +146,12 @@ export default function HookoutStatuses(props: HookoutProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {claimable.bitcoinAddress} 
-              {<CopyToClipboard className="btn btn-light" style={{}} text={claimable.bitcoinAddress}>
-                <i className="fa fa-copy" />
-              </CopyToClipboard>}
+              {claimable.bitcoinAddress}
+              {
+                <CopyToClipboard className="btn btn-light" style={{}} text={claimable.bitcoinAddress}>
+                  <i className="fa fa-copy" />
+                </CopyToClipboard>
+              }
             </div>
           </Col>
         </Row>
