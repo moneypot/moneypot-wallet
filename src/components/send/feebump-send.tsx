@@ -16,17 +16,26 @@ function getTxData(decodedTxid: string): Promise<AddressInfoTx> {
 }
 
 export default function FeebumpSend(props: RouteComponentProps, { history }: Props): JSX.Element {
-  const feeSchedule = useFeeSchedule();
-  const [toText, setToText] = useState('');
+  const [toText, setToText] = useState<undefined | string>(undefined);
   const balance = useBalance();
   const [fee, setFee] = useState(Number);
   const [inputs, setInputs] = useState(Number);
   const [outputs, setOutputs] = useState(Number);
+  // const [Response, setResponse] = useState<undefined | any>(undefined)
   useEffect(() => {
     if (props.history.location.state != undefined) {
       setToText(props.history.location.state.txid.CurrentTxid);
     }
   }, []);
+
+  useEffect(() => {
+    async function getResponse() {
+      if (toText) {
+        setFee(await calculateFee(await getTxData(toText)));
+      }
+    }
+    getResponse();
+  }, [toText]);
 
   // we should check bytes rather than inputs/outputs, but this'll do somewhat.
   function checkInputs() {
@@ -38,7 +47,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
   }
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'txid' } => {
-    if (toText === '') {
+    if (toText === undefined) {
       return { kind: 'empty' };
     }
 
@@ -48,9 +57,8 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     } else return { kind: 'error', message: 'not a valid txid.' };
   })();
 
-  async function calculateFee(): Promise<number> {
-    const Response = await getTxData(toText);
-
+  async function calculateFee(Response: any): Promise<number> {
+    const feeSchedule = await getFeeSchedule(wallet.config);
     if (Response.status.confirmed === true) {
       throw 'Invalid TX | TXID already confirmed';
     }
@@ -85,6 +93,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     if (amount < minFee) {
       return Math.round(minFee);
     }
+    console.log(amount, 'anything?');
     return Math.round(amount);
   }
 
@@ -93,16 +102,9 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     // reset fee, makes everything a bit cleaner
     setFee(0);
   }
-  async function expectedFee(): Promise<void> {
-    setFee(await calculateFee());
-  }
-  //makeshifty-y-y-
-  if (toText.length == 64) {
-    expectedFee();
-  }
 
   async function send(): Promise<void> {
-    const amount = await calculateFee();
+    const amount = fee;
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('invalid amount');
       return;
@@ -142,7 +144,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input value={toText} onChange={handleToTextChange} type="text" className="to-text-input" required />
+                <Input value={toText == undefined ? '' : toText} onChange={handleToTextChange} type="text" className="to-text-input" required disabled />
               </InputGroup>
             </Col>
           </FormGroup>
@@ -175,14 +177,4 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
 // this should prevent accidental double clicks. Not sure if this is most ideal. (Will be gone on refresh.)
 function disableAfterClick() {
   return ((document.getElementById('AppSendButton') as HTMLInputElement).disabled = true);
-}
-
-function useFeeSchedule() {
-  const [feeSchedule, setFeeSchedule] = useState<FeeScheduleResult | undefined>(undefined);
-
-  useEffect(() => {
-    getFeeSchedule(wallet.config).then(setFeeSchedule);
-  }, []);
-
-  return feeSchedule;
 }

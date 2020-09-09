@@ -21,13 +21,21 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
   const statuses = useClaimableStatuses(props.claimableHash);
   const [IsConfirmed, hasConfirmed] = useState(true); // prevent false positives when loading
 
+  async function getConfirmationStatus(txid: string) {
+    const request = await fetchTxReceives(txid);
+    if (request) {
+      hasConfirmed(request.status.confirmed);
+      setCurrentTxid(txid);
+    }
+  }
+
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses != undefined) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {
-              setCurrentTxid(mp.Buffutils.toHex(s.txid));
+              // setCurrentTxid(mp.Buffutils.toHex(s.txid));
               getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
             }
           }
@@ -41,11 +49,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       }
     };
     getData();
-    async function getConfirmationStatus(txid: string) {
-      const request = await fetchTxReceives(txid);
-      hasConfirmed(request.status.confirmed);
-    }
-  });
+  }, [statuses]);
 
   const GetStatuses = () => {
     if (!statuses) {

@@ -28,7 +28,6 @@ interface TimeLeft {
 }
 
 export default function LightningInvoice(props: LightningInvoiceProps) {
-
   const calculateTimeLeft = (year: Date) => {
     if (!year) {
       return;
@@ -50,7 +49,6 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
   const [infiniteAmount, setFiniteAmount] = useState(0);
   const statuses = useClaimableStatuses(props.claimableHash);
-
 
   // this is not that interesting, just placeholders. maybe we want to call the custodian for transfer hashes
   const [hasPreimage, setPreimage] = useState<string | undefined>(undefined);
@@ -85,7 +83,6 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
       }
     }
   });
-
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -142,13 +139,13 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           {value} {key}{' '}
         </span>
       );
-      }}
-      let Tcolor: string | undefined;
-      if (timeLeft) {
-        Tcolor = timeLeft.minutes < 10 && timeLeft.hours === 0 ? 'danger' : 'info' ;
-      } 
-  
-      
+    }
+  }
+  let Tcolor: string | undefined;
+  if (timeLeft) {
+    Tcolor = timeLeft.minutes < 10 && timeLeft.hours === 0 ? 'danger' : 'info';
+  }
+
   return (
     <div>
       <h5>
@@ -241,14 +238,18 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </Row>
             )
           : undefined}
-          {isExpired() === true && statuses != undefined
-          ? !statuses.some(status => status instanceof InvoiceSettledStatus) && <Button color={Tcolor}>
-          {' '}
-          {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" /> || timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
-            (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
-            (timeLeft.days <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
-          { timerComponents }
-        </Button>  : undefined}
+        {isExpired() === true && statuses != undefined
+          ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
+              <Button color={Tcolor}>
+                {' '}
+                {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" />) ||
+                  (timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
+                  (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
+                  (timeLeft.days <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
+                {timerComponents}
+              </Button>
+            )
+          : undefined}
       </div>
     </div>
   );

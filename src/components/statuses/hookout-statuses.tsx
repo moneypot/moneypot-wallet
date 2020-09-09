@@ -33,6 +33,14 @@ export default function HookoutStatuses(props: HookoutProps) {
 
   const [Memo, setMemo] = useState<undefined | string>(undefined);
 
+  async function getConfirmationStatus(txid: string) {
+    const request = await fetchTxReceives(txid);
+    if (request) {
+      hasConfirmed(request.status.confirmed);
+      setCurrentTxid(txid);
+    }
+  }
+
   // we calculate this each time...
   const addressType = mp.decodeBitcoinAddress(claimable.bitcoinAddress);
   if (addressType instanceof Error) {
@@ -72,8 +80,8 @@ export default function HookoutStatuses(props: HookoutProps) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {
-              setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
+              // setCurrentTxid(mp.Buffutils.toHex(s.txid));
+              getConfirmationStatus(mp.Buffutils.toHex(s.txid));
             }
           }
           !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
@@ -95,11 +103,7 @@ export default function HookoutStatuses(props: HookoutProps) {
       }
     };
     getData();
-    async function getConfirmationStatus(txid: string) {
-      const request = await fetchTxReceives(txid);
-      hasConfirmed(request.status.confirmed);
-    }
-  });
+  }, [statuses]);
 
   const GetStatuses = () => {
     if (!statuses) {
