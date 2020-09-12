@@ -16,9 +16,9 @@ export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable 
           <th>hash</th>
           <th>invoice</th>
           <th>amount</th>
-          <th>expired?</th>
+          <th>expired</th>
           {/* <th>ackd</th>  */}
-          <th>paid?</th>
+          <th>paid</th>
         </tr>
       </thead>
       <tbody>

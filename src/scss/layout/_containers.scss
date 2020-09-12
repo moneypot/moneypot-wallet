@@ -5,6 +5,12 @@
   overflow: auto;
 }
 
+@include media-breakpoint-down(xs) { 
+  .main-container {
+    padding: 1rem;
+  }
+}
+
 .main-header {
   text-align: center;
 }

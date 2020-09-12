@@ -95,18 +95,17 @@
   border-top: 0;
   padding: 0.5rem 2rem;
 }
-@media only screen and (max-width: 576px) {
-  .history-table {
-    margin: 0rem;
-    background: #f5f5f5;
-    padding: 0rem;
-  }
-}
-
 .history-table {
   margin: 1rem;
   background: #f5f5f5;
   padding: 1rem;
+}
+
+@include media-breakpoint-up(xs) { 
+  .history-table {
+    margin: 0rem;
+    padding: 0rem;
+  }
 }
 
 .history-table > a > div:nth-child(3),

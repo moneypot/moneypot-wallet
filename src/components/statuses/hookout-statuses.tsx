@@ -18,6 +18,7 @@ import {
   segwitOutput,
 } from '../../config';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
+import { RequestError } from '../../wallet/requests/make-request';
 
 type HookoutProps = {
   created: Date;
@@ -35,9 +36,13 @@ export default function HookoutStatuses(props: HookoutProps) {
 
   async function getConfirmationStatus(txid: string) {
     const request = await fetchTxReceives(txid);
-    if (request) {
+    if (!(request instanceof RequestError)) {
       hasConfirmed(request.status.confirmed);
       setCurrentTxid(txid);
+    } else if (request instanceof RequestError) { 
+      if (statuses && (statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1)) { 
+        setCurrentTxid(txid)
+      }
     }
   }
 
@@ -103,7 +108,7 @@ export default function HookoutStatuses(props: HookoutProps) {
       }
     };
     getData();
-  }, [statuses]);
+  }, [statuses]); // this usually triggers double requests w/ new transfers, but we cannot render upon loading. 
 
   const GetStatuses = () => {
     if (!statuses) {

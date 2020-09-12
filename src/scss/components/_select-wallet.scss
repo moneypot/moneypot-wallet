@@ -26,14 +26,9 @@
   height: 100%;
 }
 
-@media only screen and (max-width: 576px) {
+@include media-breakpoint-up(xs) { 
   .select-wallet-table {
     margin: 1rem 5vw;
-    // margin: 2rem;
-    padding: 1rem;
-    font-weight: 600;
-    text-align: left;
-    word-break: break-word;
   }
 }
 

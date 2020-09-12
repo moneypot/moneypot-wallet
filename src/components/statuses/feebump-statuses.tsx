@@ -8,6 +8,7 @@ import Claimed from 'moneypot-lib/dist/status/claimed';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import { Link } from 'react-router-dom';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
+import { RequestError } from '../../wallet/requests/make-request';
 
 type FeeBumpProps = {
   created: Date;
@@ -23,7 +24,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
 
   async function getConfirmationStatus(txid: string) {
     const request = await fetchTxReceives(txid);
-    if (request) {
+    if (!(request instanceof RequestError)) {
       hasConfirmed(request.status.confirmed);
       setCurrentTxid(txid);
     }

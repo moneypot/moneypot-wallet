@@ -20,6 +20,9 @@ export default function Settings() {
   const [Setting5, setSetting5] = useState(false);
   const updateFive = () => setSetting5(!Setting5);
 
+  const [Setting6, setSetting6] = useState(false);
+  const updateSix = () => setSetting6(!Setting6);
+
   useEffect(() => {
     const hasSettings = async () => {
       const setting1 = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
@@ -68,6 +71,12 @@ export default function Settings() {
         if (setting5 === 'true') {
           setSetting5(true);
         } else setSetting5(false);
+      }
+      const setting6 = localStorage.getItem(`${wallet.db.name}-setting6-enable0conf`);
+      if (setting6) {
+        if (setting6 === 'true') {
+          setSetting6(true);
+        } else setSetting6(false);
       }
     };
     hasSettings();
@@ -130,6 +139,11 @@ export default function Settings() {
       localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
     } else if (Setting5 === false) {
       localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
+    }
+    if (Setting6 === true) {
+      localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'true');
+    } else if (Setting6 === false) {
+      localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'false');
     }
     toast.success('Settings saved successfully!');
   };
@@ -206,6 +220,15 @@ export default function Settings() {
                 <p>
                   <b>Note:</b> We recommend you only use this option in high-latency environments, and or in combination with large wallets (1000+ coins). It
                   can cause your browser to crash(!). for users with a decent connection the difference might not be notable.
+                </p>
+              </Label>
+              <br />
+              <hr />
+              <Label check>
+                <Input id="setting6" type="checkbox" onChange={updateSix} checked={Setting6} /> Enable 0-Conf Hookins against a small fee.
+                <p>
+                  <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting non-RBF transactions, transactions within a certain fee-range, and only up to a certain amount.
+                  Custodians may charge a hookin fee that differs from the standard fees to prevent cheating attempts.
                 </p>
               </Label>
               <br />

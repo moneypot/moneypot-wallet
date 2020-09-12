@@ -47,7 +47,7 @@ export default function HookinStatuses(props: HookinProps) {
       setMemo(memo);
     }
     getData();
-  });
+  }, [statuses]);
 
   const GetStatuses = () => {
     if (!statuses) {

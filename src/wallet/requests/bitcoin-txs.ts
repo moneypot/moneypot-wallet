@@ -15,10 +15,10 @@ export interface AddressInfoTx {
   status: { confirmed: boolean; block_height: number | null };
 }
 
-export default async function(txid: string): Promise<AddressInfoTx> {
+export default async function(txid: string): Promise<AddressInfoTx | RequestError> {
   const txs = await makeRequest<AddressInfoTx>(`https://www.moneypot.com/api/testnet/tx/${txid}`);
   if (txs instanceof RequestError) {
-    throw txs;
+    return txs;
   }
   return txs;
 }

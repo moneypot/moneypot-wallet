@@ -10,7 +10,7 @@ $desktop-top-bar-height: 56px;
     display: grid;
     grid-template-rows: $mobile-top-bar-height auto $mobile-navbar-height;
     grid-template-areas: 'topbar topbar topbar topbar topbar' 'main main main main main' 'navbar navbar navbar navbar navbar';
-    width: 100vw;
+    width: 100vw; // viewport bug is driving nuts -> TODO: check emulator
     height: 100vh;
     background: $theme-blue;
   }

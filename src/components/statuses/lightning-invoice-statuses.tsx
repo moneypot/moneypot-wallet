@@ -108,7 +108,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
       }
     };
     getData();
-  });
+  }, [statuses]);
 
   const GetStatuses = () => {
     if (!statuses) {

@@ -21,6 +21,11 @@ export default async function makeRequest<T>(url: string, body?: any): Promise<T
     return new RequestError(err, 0);
   }
 
+  // there is no JSON -- 
+  if (fetchResult.status === 404)  {
+    return new RequestError("404ph", fetchResult.status)
+  }
+  
   let json = await fetchResult.json();
 
   if (fetchResult.status !== 200) {

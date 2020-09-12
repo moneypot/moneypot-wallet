@@ -6,10 +6,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
 import FetchTx, { AddressInfoTx } from '../../wallet/requests/bitcoin-txs';
 import { RouteComponentProps } from 'react-router-dom';
+import { RequestError } from '../../wallet/requests/make-request';
 type Props = { history: { push: (path: string) => void } };
 
 // Should probably actually ask the custodian...?
-function getTxData(decodedTxid: string): Promise<AddressInfoTx> {
+function getTxData(decodedTxid: string): Promise<AddressInfoTx | RequestError> {
   return FetchTx(decodedTxid).then(response => {
     return response;
   });
@@ -93,7 +94,6 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     if (amount < minFee) {
       return Math.round(minFee);
     }
-    console.log(amount, 'anything?');
     return Math.round(amount);
   }
 

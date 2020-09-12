@@ -64,7 +64,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
       }
     };
     getData();
-  });
+  }, [statuses]);
 
   const GetStatuses = () => {
     if (!statuses) {

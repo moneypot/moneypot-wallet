@@ -866,7 +866,7 @@ export default class Database extends EventEmitter {
   }
 
   public async addHookins(bitcoinAddressDoc: Docs.BitcoinAddress, receives: BitcoinReceiveInfo[]) {
-    const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
+    const transaction = this.db.transaction(['claimables', 'events', 'counters'], 'readwrite');
 
     const toAck: hi.Hookin[] = [];
     let toEmit = false;
@@ -874,11 +874,31 @@ export default class Database extends EventEmitter {
     for (const receive of receives) {
       const claimant = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
 
+      // reconstruct private key to sign hookin, if you want to use 0conf
       if (this.deriveBitcoinAddressFromClaimant(claimant) !== bitcoinAddressDoc.address) {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
-
-      let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
+  
+      
+      const enable0conf = localStorage.getItem(`${this.db.name}-setting6-enable0conf`);
+      let conf: boolean | undefined; 
+      let confSig: hi.POD.Signature | undefined;
+      if (enable0conf) {
+        if (enable0conf === 'true') {
+          const counter = await transaction.objectStore("counters").index('by-value').get(claimant.toPOD())
+          let key: hi.PrivateKey | undefined;
+          if (counter) { 
+            key = this.deriveClaimableClaimant(counter.index, counter.purpose) 
+          }    
+          if (key) { 
+            confSig = hi.Signature.compute(hi.Buffutils.fromString(enable0conf), key).toPOD()
+          }
+          conf = true;
+        } else if (enable0conf === 'false') { 
+          conf = false;
+        }
+      }
+    let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address, conf, confSig);
 
       let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
 
