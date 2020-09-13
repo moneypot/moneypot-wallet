@@ -15,6 +15,8 @@ type HookinProps = {
 
 export default function HookinStatuses(props: HookinProps) {
   const [CurrentConsolidationFee, setCurrentConsolidationFee] = useState(0);
+  const [CurrentFee, setCurrentFee] = useState(0); // we can merge this with consolidation fee, but might be nice for people to know the difference?
+
   const claimable = props.claimable.toPOD();
 
   const statuses = useClaimableStatuses(props.claimableHash);
@@ -22,11 +24,14 @@ export default function HookinStatuses(props: HookinProps) {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      if (statuses != undefined) {
+      if (statuses) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof HookinAccepted) {
               setCurrentConsolidationFee(s.consolidationFee);
+            }
+            if (s instanceof Claimed) {  
+              setCurrentFee(s.claimRequest.fee)
             }
           }
           !statuses.some(status => status instanceof HookinAccepted) && (await wallet.requestStatuses(props.claimableHash));
@@ -127,7 +132,7 @@ export default function HookinStatuses(props: HookinProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {`${claimable.amount} sat`}
+              {`${(claimable.amount - CurrentFee)} sat`}
               {/* <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard> */}
@@ -136,7 +141,7 @@ export default function HookinStatuses(props: HookinProps) {
         </Row>
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Fee: </p>
+            <p className="address-title">ConsolidationFee: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
@@ -148,6 +153,20 @@ export default function HookinStatuses(props: HookinProps) {
             </div>
           </Col>
         </Row>
+       {statuses && statuses.some(status => status instanceof Claimed && status.claimRequest.fee != 0) && <Row>
+          <Col sm={{ size: 2, offset: 0 }}>
+            <p className="address-title">Anti-Cheating Fee: </p>
+          </Col>
+          <Col sm={{ size: 8, offset: 0 }}>
+            <div className="claimable-text-container">
+              {`${CurrentFee} sat`}
+
+              {/* <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
+                <i className="fa fa-copy" />
+              </CopyToClipboard> */}
+            </div>
+          </Col>
+        </Row>}
         {Memo != undefined && (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>

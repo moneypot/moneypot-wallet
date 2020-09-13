@@ -17,8 +17,8 @@ export default function Settings() {
   const [Setting4, setSetting4] = useState(false);
   const updateFour = () => setSetting4(!Setting4);
 
-  const [Setting5, setSetting5] = useState(false);
-  const updateFive = () => setSetting5(!Setting5);
+  // const [Setting5, setSetting5] = useState(false);
+  // const updateFive = () => setSetting5(!Setting5);
 
   const [Setting6, setSetting6] = useState(false);
   const updateSix = () => setSetting6(!Setting6);
@@ -66,12 +66,12 @@ export default function Settings() {
           setSetting4(true);
         } else setSetting4(false);
       }
-      const setting5 = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
-      if (setting5) {
-        if (setting5 === 'true') {
-          setSetting5(true);
-        } else setSetting5(false);
-      }
+      // const setting5 = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
+      // if (setting5) {
+      //   if (setting5 === 'true') {
+      //     setSetting5(true);
+      //   } else setSetting5(false);
+      // }
       const setting6 = localStorage.getItem(`${wallet.db.name}-setting6-enable0conf`);
       if (setting6) {
         if (setting6 === 'true') {
@@ -86,14 +86,25 @@ export default function Settings() {
   const toggle = () => setModal(!modal);
 
   const applysettings = async () => {
-    if (Setting1 === true) {
+    if (Setting1) {
       localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'true');
-      wallet.resetAddresses();
-    } else if (Setting1 === false) {
+      const prev = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
+      if (prev) { 
+        if (prev != 'true') { 
+          wallet.resetAddresses();
+        }
+      }
+    } else if (!Setting1) {
       localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'false');
-      wallet.resetAddresses();
+
+      const prev = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
+      if (prev) { 
+        if (prev != 'false') { 
+          wallet.resetAddresses();
+        }
+      }
     }
-    if (Setting2 == true) {
+    if (Setting2) {
       // inputField doesn't allow for non-numbers, still, to prevent people from somehow bricking their wallets..
       if (!Number.isFinite(amountInput)) {
         throw `${amountInput} is not a valid number`;
@@ -111,7 +122,7 @@ export default function Settings() {
       }
       walletConfig.gapLimit = Number(amountInput);
       wallet.db.put('config', walletConfig);
-    } else if (Setting2 === false) {
+    } else if (!Setting2) {
       localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'false');
       if (wallet.config.gapLimit != 10) {
         // this session
@@ -125,24 +136,24 @@ export default function Settings() {
         wallet.db.put('config', walletConfig);
       }
     }
-    if (Setting3 === true) {
+    if (Setting3) {
       localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'true');
-    } else if (Setting3 === false) {
+    } else if (!Setting3) {
       localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'false');
     }
-    if (Setting4 === true) {
+    if (Setting4) {
       localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'true');
-    } else if (Setting4 === false) {
+    } else if (!Setting4) {
       localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'false');
     }
-    if (Setting5 === true) {
-      localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
-    } else if (Setting5 === false) {
-      localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
-    }
-    if (Setting6 === true) {
+    // if (Setting5) {
+    //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
+    // } else if (!Setting5) {
+    //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
+    // }
+    if (Setting6) {
       localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'true');
-    } else if (Setting6 === false) {
+    } else if (!Setting6) {
       localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'false');
     }
     toast.success('Settings saved successfully!');
@@ -214,7 +225,7 @@ export default function Settings() {
               </Label>
               <br />
               <hr />
-              <Label check>
+              {/* <Label check>
                 <Input id="setting5" type="checkbox" onChange={updateFive} checked={Setting5} /> Enable multi-threading for specific parts regarding syncing the
                 wallet. (Experimental!)
                 <p>
@@ -223,11 +234,11 @@ export default function Settings() {
                 </p>
               </Label>
               <br />
-              <hr />
+              <hr /> */}
               <Label check>
                 <Input id="setting6" type="checkbox" onChange={updateSix} checked={Setting6} /> Enable 0-Conf Hookins against a small fee.
                 <p>
-                  <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting non-RBF transactions, transactions within a certain fee-range, and only up to a certain amount.
+                  <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting non-RBF transactions, transactions with a certain fee, and up to a certain amount.
                   Custodians may charge a hookin fee that differs from the standard fees to prevent cheating attempts.
                 </p>
               </Label>

@@ -61,7 +61,7 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
   const statuses = useClaimableStatuses(paymentsDoc.hash);
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      if (statuses != undefined) {
+      if (statuses) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof LightningPaymentSent) {
@@ -173,9 +173,9 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
       {/* <td>{paymentpreimage != null && paymentpreimage.toString().substring(0, 32)}</td> */}
       <td>{memo}</td>
       <td>{paymentsDoc.amount} sat</td>
-      <td>{totalfees != null && totalfees}</td>
-      <td>{rebate != null && rebate}</td>
-      <td>{failurereason != null && failurereason}</td>
+      <td>{totalfees && totalfees}</td>
+      <td>{rebate && rebate}</td>
+      <td>{failurereason && failurereason}</td>
     </tr>
   );
 }

@@ -6,7 +6,7 @@ import genNonces from './gen-nonces';
 import Config from '../config';
 import { notError } from '../../util';
 
-export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claimable: hi.Claimable, coinsMagnitudes: hi.Magnitude[]) {
+export default async function makeClaim(config: Config, claimant: hi.PrivateKey, claimable: hi.Claimable, coinsMagnitudes: hi.Magnitude[], fee: number) {
   // We are using the hash of the private key as the blinding secret, in case we need to reveal it
   // we can do so without revealing out private key
 
@@ -21,7 +21,7 @@ export default async function makeClaim(config: Config, claimant: hi.PrivateKey,
 
     const coinsRequest = config.deriveCoinsRequest(claimHash, nonces, coinsMagnitudes);
 
-    const claimReq = hi.ClaimRequest.newAuthorized(claimHash, coinsRequest, claimant);
+    const claimReq = hi.ClaimRequest.newAuthorized(claimHash, coinsRequest, claimant, fee);
 
     let claimResp = await makeRequest<any>(config.custodianUrl + '/claim', claimReq.toPOD());
 

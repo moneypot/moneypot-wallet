@@ -55,6 +55,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
   const [year] = useState<Date | undefined>(pro.timeExpireDateString === undefined ? undefined : new Date(pro.timeExpireDateString));
   const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
+  const [expired] = useState<boolean>(isExpired())
 
   let description;
   for (const tag of pro.tags) {
@@ -66,12 +67,11 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
     const pro = notError(mp.decodeBolt11(props.paymentRequest));
     const currentTime = new Date().getTime();
     const expiryTime = new Date(pro.timeExpireDateString).getTime();
-    if (currentTime > expiryTime) {
-      return false;
-    } else if (currentTime < expiryTime) {
+    if (currentTime >= expiryTime) {
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      if (statuses != undefined) {
+      if (statuses) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof InvoiceSettledStatus) {
@@ -152,14 +152,14 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         <i className="far fa-bolt" /> Lightning Invoice
       </h5>
       <div className="inner-container">
-        <GetStatuses />
-        <div className="qr-code-wrapper">
+        <GetStatuses />    
+        { statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && (!expired) &&  <div className="qr-code-wrapper">
           <div className="qr-code-container">
             <span>
               <TheQr text={props.paymentRequest.toUpperCase()} />
             </span>
           </div>
-        </div>
+        </div>}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Invoice:</p>
@@ -224,7 +224,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {isExpired() === false && statuses != undefined
+        {expired && statuses
           ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
               <Row>
                 <Col sm={{ size: 8, offset: 0 }}>
@@ -238,7 +238,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </Row>
             )
           : undefined}
-        {isExpired() === true && statuses != undefined
+        {!expired && statuses
           ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
               <Button color={Tcolor}>
                 {' '}

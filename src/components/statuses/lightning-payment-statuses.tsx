@@ -48,7 +48,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      if (statuses != undefined) {
+      if (statuses) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof LightningPaymentSent) {

@@ -32,7 +32,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
-      if (statuses != undefined) {
+      if (statuses) {
         if (statuses.length > 0) {
           for (const s of statuses) {
             if (s instanceof BitcoinTransactionSent) {

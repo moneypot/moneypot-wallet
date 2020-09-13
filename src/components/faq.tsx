@@ -123,7 +123,7 @@ export default function Faq() {
           which shows the date of the next wipe, as well as the days remaining. If your custodian does not wipe, you can ignore this section completely.{' '}
         </p>
         <div>
-          {wallet.config.custodian.wipeDate != undefined ? (
+          {wallet.config.custodian.wipeDate ? (
             <p>
               Days until wipe:{' '}
               <Button color={Tcolor}>

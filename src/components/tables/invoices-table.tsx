@@ -35,7 +35,7 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
   // invoice will always be acknowledged so this is pretty useless.
   function renderPaymentStatus() {
     const statuses = useClaimableStatuses(invoiceDoc.hash);
-    if (statuses != undefined) {
+    if (statuses) {
       if (statuses.length > 1) {
         for (const s of statuses) {
           if (s instanceof InvoiceSettledStatus) {

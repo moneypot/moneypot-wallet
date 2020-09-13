@@ -14,7 +14,7 @@ export default function SyncBtn() {
 
   function handleClick() {
     if (SyncingWithWorkers) {
-      wallet.syncWithWorkers();
+      wallet.sync();
     } else {
       wallet.sync();
     }

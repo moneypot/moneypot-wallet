@@ -189,15 +189,15 @@ export default function Send({ history }: Props) {
     }
 
     let isType;
-    if (PTMaddress != undefined) {
+    if (PTMaddress) {
       isType = decodeBitcoinAddress(PTMaddress);
     }
-    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined && PTMaddress === undefined) {
+    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice && PTMaddress === undefined) {
       // this doesn't matter when we have multiple outputs, we recalculate for each address type
       isType = decodeBitcoinAddress(BitcoinInvoice.outputs[0].address);
       // isType = decodeBitcoinAddress(BitcoinInvoice.outputs[0].address);
     }
-    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined && PTMaddress === undefined) {
+    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice && PTMaddress === undefined) {
       isType = decodeBitcoinAddress(bip21Invoice.address);
     } else if (sendType.kind != 'bitcoinInvoice' && sendType.kind != 'bitcoinbip21Invoice' && PTMaddress === undefined) {
       isType = decodeBitcoinAddress(toText);
@@ -213,7 +213,7 @@ export default function Send({ history }: Props) {
     if (!feeSchedule) {
       return 0;
     }
-    if (PTMaddress != undefined) {
+    if (PTMaddress) {
       prioritySelection = 'BATCH';
     }
     // check p2wsh sizes, also check if this holds up with dynamic feerates against the custodian (testnet is dull.).
@@ -268,7 +268,7 @@ export default function Send({ history }: Props) {
       return sendType.amount;
     }
     // this may seem dangerous
-    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined) {
+    if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice) {
       let amount = [];
       let total = 0;
       for (const output of BitcoinInvoice.outputs) {
@@ -280,8 +280,8 @@ export default function Send({ history }: Props) {
 
       return total;
     }
-    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined) {
-      if (bip21Invoice.options.amount != undefined) {
+    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice ) {
+      if (bip21Invoice.options.amount) {
         return bip21Invoice.options.amount;
       }
     }
@@ -326,7 +326,7 @@ export default function Send({ history }: Props) {
         toast.error('Oops! ' + transferHash);
         return;
       }
-      if (LocalMemo != undefined) {
+      if (LocalMemo) {
         localStorage.setItem(transferHash.toPOD(), LocalMemo);
       }
       history.push(`/claimables/${transferHash.toPOD()}`);
@@ -357,7 +357,7 @@ export default function Send({ history }: Props) {
           toast.error('Oops! ' + transferHash);
           return;
         }
-        if (LocalMemo != undefined) {
+        if (LocalMemo) {
           localStorage.setItem(transferHash.toPOD(), LocalMemo);
         }
         history.push(`/claimables/${transferHash.toPOD()}`);
@@ -365,7 +365,7 @@ export default function Send({ history }: Props) {
     }
 
     // this is BIP21
-    if (toText.startsWith('bitcoin') && bip21Invoice != undefined) {
+    if (toText.startsWith('bitcoin') && bip21Invoice) {
       console.log('sending bitcoin bip21 Invoice payment: ', bip21Invoice.address, amount, calcFee());
 
       if (bip21Invoice.options.time) {
@@ -381,7 +381,7 @@ export default function Send({ history }: Props) {
       transferHash = await wallet.sendHookout(
         prioritySelection,
         bip21Invoice.address,
-        bip21Invoice.options.amount != undefined ? bip21Invoice.options.amount : amountInput,
+        bip21Invoice.options.amount ? bip21Invoice.options.amount : amountInput,
         calcFee(),
         disableRBF()
         // bip21Invoice.options.message != undefined ? bip21Invoice.options.message : undefined
@@ -391,14 +391,14 @@ export default function Send({ history }: Props) {
         return;
       }
       // tx done, push memo to localstorage..?
-      if (bip21Invoice.options.message != undefined) {
+      if (bip21Invoice.options.message) {
         localStorage.setItem(transferHash.toPOD(), bip21Invoice.options.message);
       }
       history.push(`/claimables/${transferHash.toPOD()}`);
     }
 
     // this is BIP70/PaymentProtocol.
-    if (toText.startsWith('bitcoin') && BitcoinInvoice != undefined) {
+    if (toText.startsWith('bitcoin') && BitcoinInvoice) {
       console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
       if (new Date(typeof BitcoinInvoice.expires === 'number' ? BitcoinInvoice.expires * 1000 : BitcoinInvoice.expires) <= new Date(Date.now())) {
         toast.error('Invoice has already expired! Please request a new one!');
@@ -521,7 +521,7 @@ export default function Send({ history }: Props) {
         </FormGroup>
         <Row style={{ justifyContent: 'center' }}>
           <small className="text-muted">
-            This transaction will be sent with {feeText} sat/vbyte and has an ETA of confirming within {timeT != undefined ? timeT : "...can't load feerates"}
+            This transaction will be sent with {feeText} sat/vbyte and has an ETA of confirming within {timeT ? timeT : "...can't load feerates"}
           </small>
         </Row>
       </div>
@@ -559,10 +559,10 @@ export default function Send({ history }: Props) {
           description = tag.data;
         }
       }
-    } else if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined) {
+    } else if (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice) {
       description = BitcoinInvoice.memo;
-    } else if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined) {
-      if (bip21Invoice.options.message != undefined) {
+    } else if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice) {
+      if (bip21Invoice.options.message) {
         description = bip21Invoice.options.message;
       }
     }
@@ -573,7 +573,7 @@ export default function Send({ history }: Props) {
           Memo:
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>{description}</Col>
-        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice != undefined && bip21Invoice.options.label != undefined && (
+        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice  && bip21Invoice.options.label && (
           <React.Fragment>
             <Label for="" sm={3}>
               Label:
@@ -622,7 +622,7 @@ export default function Send({ history }: Props) {
   }
 
   function ShowBitcoinInvoiceAddresses() {
-    if (BitcoinInvoice != undefined && bip21Invoice === undefined) {
+    if (BitcoinInvoice  && !bip21Invoice) {
       return BitcoinInvoice.outputs.map(output => (
         <FormGroup row className="bordered-form-group" key={output.address}>
           <Col xl={{ size: 1, offset: 0 }}>
@@ -641,7 +641,7 @@ export default function Send({ history }: Props) {
         </FormGroup>
       ));
     }
-    if (bip21Invoice != undefined && BitcoinInvoice === undefined) {
+    if (bip21Invoice && !BitcoinInvoice) {
       return (
         <FormGroup row className="bordered-form-group" key={bip21Invoice.address}>
           <Col xl={{ size: 1, offset: 0 }}>
@@ -654,7 +654,7 @@ export default function Send({ history }: Props) {
           </Col>
           <Col xl={{ size: 3, offset: 0 }}>
             <InputGroup>
-              <Input value={bip21Invoice.options.amount != undefined ? bip21Invoice.options.amount : 'any'} disabled />
+              <Input value={bip21Invoice.options.amount ? bip21Invoice.options.amount : 'any'} disabled />
             </InputGroup>
           </Col>
         </FormGroup>
@@ -749,10 +749,10 @@ export default function Send({ history }: Props) {
                   currentFee={isValid(toText) === true ? calcFee() : 0}
                   amount={
                     (sendType.kind === 'lightning' && sendType.amount) ||
-                    (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice != undefined && BitcoinInvoice.outputs[0].amount) ||
+                    (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice && BitcoinInvoice.outputs[0].amount) ||
                     (sendType.kind == 'bitcoinbip21Invoice' &&
-                      bip21Invoice != undefined &&
-                      bip21Invoice.options.amount != undefined &&
+                      bip21Invoice &&
+                      bip21Invoice.options.amount &&
                       bip21Invoice.options.amount) ||
                     undefined
                   }
