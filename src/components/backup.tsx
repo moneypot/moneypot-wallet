@@ -63,20 +63,20 @@ export default function Backup() {
         </span>
         <span>
           <p>
-            Download a backup which contains all the wallet-specific user-specified data, which you can use to recover your memos and settings in the event of
-            data loss or other failure.
+            Download a backup which contains all the wallet-specific user-specified data, which you can use to recover your memos in the event of data loss or
+            other failure.
           </p>
           <Button
             color="secondary"
             href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(keypairs))}`}
-            download={`moneypot_memosandsettings_${new Date()}.json`}
+            download={`moneypot_memos_${new Date()}.json`}
           >
-            Download my Memos & Settings.
+            Download my Memos.
           </Button>
           {<br />} {<br />}
           <p>
             <b>Note:</b> A single backup is sufficient for all the wallets used <b>only</b> on this particular browser. Unlike a seed, you will need to
-            continuously back up new memos and settings.
+            continuously back up new memos.
           </p>
         </span>
         <span>

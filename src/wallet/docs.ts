@@ -7,6 +7,17 @@ export interface Config {
   custodian: hi.POD.CustodianInfo;
   mnemonic: string;
   gapLimit: number;
+  sig?: string;
+}
+
+export interface Settings {
+  one: 1;
+  setting1_hasNested?: boolean;
+  setting2_hasCustomGapLimit?: boolean;
+  setting3_hasDisabledRBF?: boolean;
+  setting4_hasPTM?: boolean;
+  setting5_has0conf?: boolean;
+  setting6_has0conf?: boolean;
 }
 
 export interface Counter {

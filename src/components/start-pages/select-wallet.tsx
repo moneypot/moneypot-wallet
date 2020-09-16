@@ -22,7 +22,7 @@ export default function SelectWallet(props: any & { isMobile: boolean }) {
 
   async function loadWallet(walletName: string, password: string) {
     const db = await WalletDatabase.open(walletName, password);
-    if (typeof db === 'string') {
+    if (typeof db === 'string' || db instanceof Error) {
       toast.error('Oops! ' + db);
       console.error(db);
       return;

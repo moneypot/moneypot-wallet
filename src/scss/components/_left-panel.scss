@@ -12,8 +12,7 @@
   }
 }
 
-
-@include media-breakpoint-up(xs) { 
+@include media-breakpoint-up(xs) {
   .full-page-left-side {
     // grid-area: 'header';
     background-color: $theme-blue;

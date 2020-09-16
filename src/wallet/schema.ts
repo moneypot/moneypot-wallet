@@ -36,6 +36,12 @@ export default interface Schema extends idb.DBSchema {
     value: Docs.Config;
     indexes: {};
   };
+  settings: {
+    key: number;
+    keyPath: 'one';
+    value: Docs.Settings;
+    indexes: {};
+  };
   coins: {
     key: string;
     keyPath: 'hash';
@@ -65,7 +71,7 @@ export default interface Schema extends idb.DBSchema {
   };
 }
 
-export type StoreName = 'events' | 'counters' | 'bitcoinAddresses' | 'config' | 'coins' | 'claimables' | 'statuses';
+export type StoreName = 'events' | 'counters' | 'bitcoinAddresses' | 'config' | 'settings' | 'coins' | 'claimables' | 'statuses';
 
 interface StoreInfo {
   store: StoreName;
@@ -120,6 +126,12 @@ export const schemaPOD: StoreInfo[] = [
   },
   {
     store: 'config',
+    keyPath: 'one',
+    autoIncrement: false,
+    indexes: [],
+  },
+  {
+    store: 'settings',
     keyPath: 'one',
     autoIncrement: false,
     indexes: [],

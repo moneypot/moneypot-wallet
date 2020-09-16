@@ -5,7 +5,7 @@
   overflow: auto;
 }
 
-@include media-breakpoint-down(xs) { 
+@include media-breakpoint-down(xs) {
   .main-container {
     padding: 1rem;
   }

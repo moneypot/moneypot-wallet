@@ -31,6 +31,11 @@ const schema = `{
     keyPath: 'one',
     value: Docs.Config
   },
+  settings: {
+    key: number,
+    keyPath: 'one',
+    value: Docs.Settings
+  },
   coins: {
     key: string,
     keyPath: 'hash',

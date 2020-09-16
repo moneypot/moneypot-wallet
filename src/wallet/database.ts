@@ -25,7 +25,8 @@ import getInvoicesByClaimant from './requests/get-invoices-by-claimant';
 import getClaimableByInputOwner from './requests/get-claimable-by-input-owner';
 import { RequestError } from './requests/make-request';
 
-import txs from '../wallet/requests/bitcoin-txs'
+import txs from '../wallet/requests/bitcoin-txs';
+import Settings from './settings';
 
 // import CoinWorker from 'worker-loader!./workers/WorkerCoins';
 // import ClaimableWorker from 'worker-loader!./workers/WorkerClaimable';
@@ -37,13 +38,15 @@ let currentVersion = 4;
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
   config: Config; // if not set, wallet is locked.
+  settings: Settings;
   bestEventId?: number;
   pollId: any; // number? can't type this for now
 
-  constructor(db: idb.IDBPDatabase<Schema>, config: Config) {
+  constructor(db: idb.IDBPDatabase<Schema>, config: Config, settings: Settings) {
     super();
     this.db = db;
     this.config = config;
+    this.settings = settings;
 
     this.pollForEvents(); // fire off immediately
     this.pollId = setInterval(() => this.pollForEvents(), 5000);
@@ -138,7 +141,17 @@ export default class Database extends EventEmitter {
       return config;
     }
 
-    return new Database(db, config);
+    const settingsDoc = await db.get('settings', 1);
+    if (!settingsDoc) {
+      return 'NO_DEFAULT_SETTINGS_FOUND';
+    }
+
+    const settings = await Settings.fromDoc(settingsDoc);
+    if (settings instanceof Error) {
+      return settings;
+    }
+
+    return new Database(db, config, settings);
   }
 
   public static async create(name: string, custodianUrl: string, mnemonic: string, password: string): Promise<Database | Error> {
@@ -156,15 +169,26 @@ export default class Database extends EventEmitter {
     // If the custodianUrl has a # for verification, we want to strip it now
     const n = custodianUrl.indexOf('#');
     if (n !== -1) {
-      custodianUrl = custodianUrl.substring(0, n);
+      custodianUrl = custodianUrl.substring(0, n - 1);
     }
 
-    const config = await Config.fromData(mnemonic, gapLimit, custodianUrl, custodian, password);
-
+    const config = await Config.fromData(
+      mnemonic,
+      gapLimit,
+      custodianUrl,
+      custodian instanceof hi.CustodianInfo ? custodian : custodian.ci,
+      password,
+      custodian instanceof hi.CustodianInfo ? undefined : custodian.sigP
+    );
     if (config instanceof Error) {
       return config;
     }
 
+    // backwards compatibility this way?
+    const settings = await Settings.fromData();
+    if (settings instanceof Error) {
+      return settings;
+    }
     // new db
     const res = await idb.openDB<Schema>(name, currentVersion, {
       upgrade(database, oldVersion, newVersion, transaction) {
@@ -180,9 +204,12 @@ export default class Database extends EventEmitter {
     });
 
     await res.add('config', config.toDoc());
+
+    await res.add('settings', settings.toDoc());
+
     await dbInfo.add(name);
 
-    return new Database(res, config);
+    return new Database(res, config, settings);
   }
 
   private async processClaimResponseT<S extends StoreName>(
@@ -284,24 +311,26 @@ export default class Database extends EventEmitter {
     }
 
     let amountToClaim = hi.computeClaimableRemaining(claimable, await this.getStatuses(claimableHash, transaction));
-   // placeholder?
-    let fee = 0
-    if (claimable instanceof hi.Hookin) { 
-      const enable0conf = localStorage.getItem(`${this.db.name}-setting6-enable0conf`);
-      if (enable0conf) { 
-        if (enable0conf === 'true') { 
-          const is0conf = await txs(claimable.toPOD().txid)
-          if (is0conf instanceof RequestError) { 
-            return RequestError
+    let fee = 0;
+    const enable0conf = this.settings.setting5_has0conf;
+
+    while (amountToClaim > 0) {
+      if (claimable instanceof hi.Hookin) {
+        if (enable0conf != undefined) {
+          if (enable0conf) {
+            const is0conf = await txs(claimable.toPOD().txid);
+            if (is0conf instanceof RequestError) {
+              return RequestError;
+            }
+            if (!is0conf.status.confirmed) {
+              if (fee === 0) {
+                fee = claimable.amount * (1 / 100);
+              }
+            }
           }
-          if (!is0conf.status.confirmed) { 
-            fee = (claimable.amount / 100) // *0.01 / 1% we can make this dynamic between custodians?..? TODO.
-          } 
         }
       }
-    }
-  
-    while (amountToClaim > 0) {
+
       const magnitudes = hi.amountToMagnitudes(amountToClaim - fee);
       const claimResponse = await makeClaim(this.config, claimant, claimable, magnitudes, fee);
       if (claimResponse instanceof RequestError) {
@@ -320,8 +349,22 @@ export default class Database extends EventEmitter {
           continue;
         }
 
+
+        if ((claimResponse.message as string).includes('MORE_CONFIDENCE_REQUIRED_ADD_ATLEAST:')) {
+          // a bit unorthodox maybe? // TODO?
+          if (enable0conf === undefined || enable0conf === false) {
+            break;
+          }
+          const neededFee = (claimResponse.message as string).match(/\d+/g);
+          if (neededFee) {
+            fee = fee + neededFee.map(Number)[0];
+          }
+          continue;
+        }
+
         throw claimResponse;
       }
+
       await this.processStatuses([claimResponse]);
       break;
     }
@@ -896,23 +939,22 @@ export default class Database extends EventEmitter {
       if (this.deriveBitcoinAddressFromClaimant(claimant) !== bitcoinAddressDoc.address) {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
-  
-      
+
       // const enable0conf = localStorage.getItem(`${this.db.name}-setting6-enable0conf`);
       // let confSig: hi.POD.Signature | undefined;
       // if (enable0conf) {
       //   if (enable0conf === 'true') {
       //     const counter = await transaction.objectStore("counters").index('by-value').get(claimant.toPOD())
       //     let key: hi.PrivateKey | undefined;
-      //     if (counter) { 
-      //       key = this.deriveClaimableClaimant(counter.index, counter.purpose) 
-      //     }    
-      //     if (key) { 
+      //     if (counter) {
+      //       key = this.deriveClaimableClaimant(counter.index, counter.purpose)
+      //     }
+      //     if (key) {
       //       confSig = hi.Signature.compute(hi.Buffutils.fromString(enable0conf), key).toPOD()
       //     }
-      //   } 
+      //   }
       // }
-    let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
+      let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
 
       let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
 
@@ -1035,9 +1077,9 @@ export default class Database extends EventEmitter {
 
     const tweakPubkey = tweak.toPublicKey();
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
-    const usesNested = localStorage.getItem(`${this.db.name}-setting1-hasNested`);
-    if (usesNested) {
-      if (usesNested === 'true') {
+    const usesNested = this.settings.setting1_hasNested;
+    if (usesNested != undefined) {
+      if (usesNested) {
         return pubkey.toNestedBitcoinAddress();
       }
     }

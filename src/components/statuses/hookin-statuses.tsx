@@ -30,8 +30,8 @@ export default function HookinStatuses(props: HookinProps) {
             if (s instanceof HookinAccepted) {
               setCurrentConsolidationFee(s.consolidationFee);
             }
-            if (s instanceof Claimed) {  
-              setCurrentFee(s.claimRequest.fee)
+            if (s instanceof Claimed) {
+              setCurrentFee(s.claimRequest.fee);
             }
           }
           !statuses.some(status => status instanceof HookinAccepted) && (await wallet.requestStatuses(props.claimableHash));
@@ -132,7 +132,7 @@ export default function HookinStatuses(props: HookinProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {`${(claimable.amount - CurrentFee)} sat`}
+              {`${claimable.amount - CurrentFee} sat`}
               {/* <CopyToClipboard className="btn btn-light" style={{}} text={claimable.amount.toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard> */}
@@ -153,20 +153,22 @@ export default function HookinStatuses(props: HookinProps) {
             </div>
           </Col>
         </Row>
-       {statuses && statuses.some(status => status instanceof Claimed && status.claimRequest.fee != 0) && <Row>
-          <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Anti-Cheating Fee: </p>
-          </Col>
-          <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">
-              {`${CurrentFee} sat`}
+        {statuses && statuses.some(status => status instanceof Claimed && status.claimRequest.fee != 0) && (
+          <Row>
+            <Col sm={{ size: 2, offset: 0 }}>
+              <p className="address-title">Anti-Cheating Fee: </p>
+            </Col>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <div className="claimable-text-container">
+                {`${CurrentFee} sat`}
 
-              {/* <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
+                {/* <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
                 <i className="fa fa-copy" />
               </CopyToClipboard> */}
-            </div>
-          </Col>
-        </Row>}
+              </div>
+            </Col>
+          </Row>
+        )}
         {Memo != undefined && (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>

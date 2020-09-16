@@ -2,10 +2,19 @@ import * as hi from 'moneypot-lib';
 import makeRequest, { RequestError } from './make-request';
 import { notError } from '../../util';
 
-export default async function(custodianUrl: string): Promise<hi.CustodianInfo | Error> {
+export default async function(
+  custodianUrl: string
+): Promise<
+  | Error
+  | hi.CustodianInfo
+  | {
+      ci: hi.CustodianInfo;
+      sigP: hi.Signature;
+    }
+> {
   // onion support, not tested, TODO
   if (custodianUrl.includes('#')) {
-    var ackString = custodianUrl.split('#').shift();
+    var ackString = custodianUrl.split('#').pop();
   }
   const res = await makeRequest<hi.POD.CustodianInfo>(custodianUrl);
 
@@ -24,18 +33,18 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
   }
 
   // if WipeData, verify
-  if (ci.wipeDate) {
-    if (ci.wipeDateSig) {
-      const sig = hi.Signature.fromPOD(ci.wipeDateSig);
-      if (sig instanceof Error) {
-        return sig;
-      }
-      const VerifyWipeDate = sig.verify(hi.Buffutils.fromString(ci.wipeDate), ci.acknowledgementKey);
-      if (!VerifyWipeDate) {
-        return new Error('Cannot verify Signature related to WipeDate');
-      }
-    } else return new Error('No Sig in relation to WipeDate..');
-  }
+  // if (ci.wipeDate) {
+  //   if (ci.wipeDateSig) {
+  //     const sig = hi.Signature.fromPOD(ci.wipeDateSig);
+  //     if (sig instanceof Error) {
+  //       return sig;
+  //     }
+  //     const VerifyWipeDate = sig.verify(hi.Buffutils.fromString(ci.wipeDate), ci.acknowledgementKey);
+  //     if (!VerifyWipeDate) {
+  //       return new Error('Cannot verify Signature related to WipeDate');
+  //     }
+  //   } else return new Error('No Sig in relation to WipeDate..');
+  // }
 
   if (ackString) {
     if (ackString.length > 0) {
@@ -45,7 +54,7 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
       }
       const custUrl = custodianUrl.substring(0, -1 + custodianUrl.indexOf('#'));
 
-      const message = hi.PrivateKey.fromRand().toPublicKey();
+      const message = ci.hash();
       const newUrl = `${custUrl}/ack-custodian-info/${message.toPOD()}`;
 
       const aci = await makeRequest<hi.POD.Signature>(newUrl);
@@ -55,10 +64,10 @@ export default async function(custodianUrl: string): Promise<hi.CustodianInfo | 
       console.log('[verify:signature] verify this signature: ', aci);
       const sigP = notError(hi.Signature.fromPOD(aci));
 
-      // if the custodian can't create a signature with the displayed ackKey. (a domain hijacker won't be able to.)
       if (!sigP.verify(message.buffer, ackKeyPub)) {
         return new Error('custodian info (signature!) was not properly acknowledged by expected key. (Is the custodian trying to cheat us?!)');
       }
+      return { ci, sigP };
     }
   }
 

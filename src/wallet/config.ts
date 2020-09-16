@@ -3,8 +3,6 @@ import * as bip39 from '../bip39';
 import * as util from '../util';
 import * as Docs from './docs';
 
-import { templateTransactionWeight } from '../config';
-
 export default class Config {
   static async fromDoc(d: any, password: string): Promise<Config | 'INVALID_PASSWORD'> {
     if (typeof d !== 'object') {
@@ -43,7 +41,14 @@ export default class Config {
     return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian);
   }
 
-  static async fromData(mnemonic: string, gapLimit: number, custodianUrl: string, custodian: hi.CustodianInfo, password: string): Promise<Error | Config> {
+  static async fromData(
+    mnemonic: string,
+    gapLimit: number,
+    custodianUrl: string,
+    custodian: hi.CustodianInfo,
+    password: string,
+    sig?: hi.Signature
+  ): Promise<Error | Config> {
     if (!bip39.validateMnemonic(mnemonic)) {
       return new Error('invalid mnemonic');
     }
@@ -54,9 +59,10 @@ export default class Config {
 
     const seed = await bip39.mnemonicToSeed(mnemonic, password);
 
-    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian);
+    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian, sig ? sig.toPOD() : undefined);
   }
 
+  sig?: string;
   mnemonic: string;
   gapLimit: number;
   seed: Uint8Array;
@@ -64,14 +70,14 @@ export default class Config {
 
   custodian: hi.CustodianInfo;
 
-  constructor(mnemonic: string, gapLimit: number, seed: Uint8Array, custodianUrl: string, custodian: hi.CustodianInfo) {
+  constructor(mnemonic: string, gapLimit: number, seed: Uint8Array, custodianUrl: string, custodian: hi.CustodianInfo, sig?: string) {
     this.mnemonic = mnemonic;
     this.gapLimit = gapLimit;
     this.seed = seed;
 
     this.custodianUrl = custodianUrl;
     this.custodian = custodian;
-
+    this.sig = sig;
     console.log('debug: custodian: ', custodian);
   }
 
@@ -85,6 +91,7 @@ export default class Config {
         .toPOD(),
       custodianUrl: this.custodianUrl,
       custodian: this.custodian.toPOD(),
+      sig: this.sig,
     };
   }
 

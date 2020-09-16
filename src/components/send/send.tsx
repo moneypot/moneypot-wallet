@@ -66,15 +66,15 @@ export default function Send({ history }: Props) {
   const [feeLimit, setFeeLimit] = useState(100);
   const balance = useBalance();
   useEffect(() => {
-    const hasRBF = localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`);
-    if (hasRBF) {
-      if (hasRBF === 'true') {
+    const hasRBF = wallet.settings.setting3_hasDisabledRBF;
+    if (hasRBF != undefined) {
+      if (hasRBF) {
         setRBF(false);
       }
     }
-    const hasPTM = localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`);
-    if (hasPTM) {
-      if (hasPTM === 'true') {
+    const hasPTM = wallet.settings.setting4_hasPTM;
+    if (hasPTM != undefined) {
+      if (hasPTM) {
         setPTM(true);
       }
     }
@@ -280,7 +280,7 @@ export default function Send({ history }: Props) {
 
       return total;
     }
-    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice ) {
+    if (sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice) {
       if (bip21Invoice.options.amount) {
         return bip21Invoice.options.amount;
       }
@@ -573,7 +573,7 @@ export default function Send({ history }: Props) {
           Memo:
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>{description}</Col>
-        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice  && bip21Invoice.options.label && (
+        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.label && (
           <React.Fragment>
             <Label for="" sm={3}>
               Label:
@@ -622,7 +622,7 @@ export default function Send({ history }: Props) {
   }
 
   function ShowBitcoinInvoiceAddresses() {
-    if (BitcoinInvoice  && !bip21Invoice) {
+    if (BitcoinInvoice && !bip21Invoice) {
       return BitcoinInvoice.outputs.map(output => (
         <FormGroup row className="bordered-form-group" key={output.address}>
           <Col xl={{ size: 1, offset: 0 }}>
@@ -750,10 +750,7 @@ export default function Send({ history }: Props) {
                   amount={
                     (sendType.kind === 'lightning' && sendType.amount) ||
                     (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice && BitcoinInvoice.outputs[0].amount) ||
-                    (sendType.kind == 'bitcoinbip21Invoice' &&
-                      bip21Invoice &&
-                      bip21Invoice.options.amount &&
-                      bip21Invoice.options.amount) ||
+                    (sendType.kind == 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.amount && bip21Invoice.options.amount) ||
                     undefined
                   }
                 />

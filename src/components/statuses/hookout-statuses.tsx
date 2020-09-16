@@ -39,9 +39,9 @@ export default function HookoutStatuses(props: HookoutProps) {
     if (!(request instanceof RequestError)) {
       hasConfirmed(request.status.confirmed);
       setCurrentTxid(txid);
-    } else if (request instanceof RequestError) { 
-      if (statuses && (statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1)) { 
-        setCurrentTxid(txid)
+    } else if (request instanceof RequestError) {
+      if (statuses && statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1) {
+        setCurrentTxid(txid);
       }
     }
   }
@@ -108,7 +108,7 @@ export default function HookoutStatuses(props: HookoutProps) {
       }
     };
     getData();
-  }, [statuses]); // this usually triggers double requests w/ new transfers, but we cannot render upon loading. 
+  }, [statuses]); // this usually triggers double requests w/ new transfers, but we cannot render upon loading.
 
   const GetStatuses = () => {
     if (!statuses) {

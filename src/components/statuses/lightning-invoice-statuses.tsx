@@ -55,7 +55,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
   const [year] = useState<Date | undefined>(pro.timeExpireDateString === undefined ? undefined : new Date(pro.timeExpireDateString));
   const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
-  const [expired] = useState<boolean>(isExpired())
+  const [expired] = useState<boolean>(isExpired());
 
   let description;
   for (const tag of pro.tags) {
@@ -152,14 +152,16 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         <i className="far fa-bolt" /> Lightning Invoice
       </h5>
       <div className="inner-container">
-        <GetStatuses />    
-        { statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && (!expired) &&  <div className="qr-code-wrapper">
-          <div className="qr-code-container">
-            <span>
-              <TheQr text={props.paymentRequest.toUpperCase()} />
-            </span>
+        <GetStatuses />
+        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired && (
+          <div className="qr-code-wrapper">
+            <div className="qr-code-container">
+              <span>
+                <TheQr text={props.paymentRequest.toUpperCase()} />
+              </span>
+            </div>
           </div>
-        </div>}
+        )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Invoice:</p>

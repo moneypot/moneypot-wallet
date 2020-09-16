@@ -25,26 +25,25 @@ export default function Settings() {
 
   useEffect(() => {
     const hasSettings = async () => {
-      const setting1 = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
-      if (setting1) {
-        if (setting1 === 'true') {
+      if (wallet.settings.setting1_hasNested != undefined) {
+        if (wallet.settings.setting1_hasNested) {
           setSetting1(true);
-        } else setSetting1(false);
+        } else {
+          setSetting1(false);
+        }
       }
-      const setting2 = localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`);
-      if (setting2) {
-        if (setting2 === 'true') {
-          const amount = localStorage.getItem(`${wallet.db.name}-setting2-CustomGapLimit`);
+      if (wallet.settings.setting2_hasCustomGapLimit != undefined) {
+        if (wallet.settings.setting2_hasCustomGapLimit) {
+          const amount = wallet.config.gapLimit;
           if (amount != null) {
-            setAmountInput(Number(amount));
+            setAmountInput(amount);
             setSetting2(true);
           }
         } else {
           setSetting2(false);
           if (wallet.config.gapLimit != 10) {
-            // this session
             wallet.config.gapLimit = 10;
-            // change config indexeddb
+
             const walletConfig = await wallet.db.get('config', 1);
             if (!walletConfig) {
               return new Error('Invalid config?');
@@ -54,17 +53,50 @@ export default function Settings() {
           }
         }
       }
-      const setting3 = localStorage.getItem(`${wallet.db.name}-setting3-hasRBF`);
-      if (setting3) {
-        if (setting3 === 'true') {
-          setSetting3(true);
-        } else setSetting3(false);
+      // const setting2 = localStorage.getItem(`${wallet.db.name}-setting2-hasCustomGapLimit`);
+      // if (setting2) {
+      //   if (setting2 === 'true') {
+      //     const amount = localStorage.getItem(`${wallet.db.name}-setting2-CustomGapLimit`);
+      //     if (amount != null) {
+      //       setAmountInput(Number(amount));
+      //       setSetting2(true);
+      //     }
+      //   } else {
+      //     setSetting2(false);
+      //     if (wallet.config.gapLimit != 10) {
+      //       // this session
+      //       wallet.config.gapLimit = 10;
+      //       // change config indexeddb
+      //       const walletConfig = await wallet.db.get('config', 1);
+      //       if (!walletConfig) {
+      //         return new Error('Invalid config?');
+      //       }
+      //       walletConfig.gapLimit = 10;
+      //       wallet.db.put('config', walletConfig);
+      //     }
+      //   }
+      // }
+
+      if (wallet.settings.setting3_hasDisabledRBF != undefined) {
+        if (wallet.settings.setting3_hasDisabledRBF) {
+          setSetting1(true);
+        } else {
+          setSetting1(false);
+        }
       }
-      const setting4 = localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`);
-      if (setting4) {
-        if (localStorage.getItem(`${wallet.db.name}-setting4-hasPTM`) === 'true') {
-          setSetting4(true);
-        } else setSetting4(false);
+      if (wallet.settings.setting4_hasPTM != undefined) {
+        if (wallet.settings.setting4_hasPTM) {
+          setSetting1(true);
+        } else {
+          setSetting1(false);
+        }
+      }
+      if (wallet.settings.setting5_has0conf != undefined) {
+        if (wallet.settings.setting5_has0conf) {
+          setSetting1(true);
+        } else {
+          setSetting1(false);
+        }
       }
       // const setting5 = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
       // if (setting5) {
@@ -72,12 +104,6 @@ export default function Settings() {
       //     setSetting5(true);
       //   } else setSetting5(false);
       // }
-      const setting6 = localStorage.getItem(`${wallet.db.name}-setting6-enable0conf`);
-      if (setting6) {
-        if (setting6 === 'true') {
-          setSetting6(true);
-        } else setSetting6(false);
-      }
     };
     hasSettings();
   }, []);
@@ -86,76 +112,110 @@ export default function Settings() {
   const toggle = () => setModal(!modal);
 
   const applysettings = async () => {
-    if (Setting1) {
-      localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'true');
-      const prev = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
-      if (prev) { 
-        if (prev != 'true') { 
-          wallet.resetAddresses();
-        }
-      }
-    } else if (!Setting1) {
-      localStorage.setItem(`${wallet.db.name}-setting1-hasNested`, 'false');
+    // if (Setting1) {
+    //   const prev = wallet.settings.setting1_hasNested;
+    //   if (prev != undefined) {
+    //     if (prev != true) {
+    //       wallet.resetAddresses();
+    //     }
+    //   }
+    // } else if (!Setting1) {
+    //   const prev = wallet.settings.setting1_hasNested;
+    //   if (prev != undefined) {
+    //     if (prev != false) {
+    //       wallet.resetAddresses();
+    //     }
+    //   }
+    // }
+    // if (Setting2) {
+    //   // inputField doesn't allow for non-numbers, still, to prevent people from somehow bricking their wallets..
+    //   if (!Number.isFinite(amountInput)) {
+    //     throw `${amountInput} is not a valid number`;
+    //   }
 
-      const prev = localStorage.getItem(`${wallet.db.name}-setting1-hasNested`);
-      if (prev) { 
-        if (prev != 'false') { 
-          wallet.resetAddresses();
-        }
+    //   localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'true');
+    //   localStorage.setItem(`${wallet.db.name}-setting2-CustomGapLimit`, amountInput.toString());
+
+    //   // change config for current session
+    //   wallet.config.gapLimit = Number(amountInput);
+    //   // change config indexeddb
+    //   const walletConfig = await wallet.db.get('config', 1);
+    //   if (!walletConfig) {
+    //     return new Error('Invalid config?');
+    //   }
+    //   walletConfig.gapLimit = Number(amountInput);
+    //   wallet.db.put('config', walletConfig);
+    // } else if (!Setting2) {
+    //   localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'false');
+    //   if (wallet.config.gapLimit != 10) {
+    //     // this session
+    //     wallet.config.gapLimit = 10;
+    //     // change config indexeddb
+    //     const walletConfig = await wallet.db.get('config', 1);
+    //     if (!walletConfig) {
+    //       return new Error('Invalid config?');
+    //     }
+    //     walletConfig.gapLimit = 10;
+    //     wallet.db.put('config', walletConfig);
+    //   }
+    // }
+    // if (Setting3) {
+    //   localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'true');
+    // } else if (!Setting3) {
+    //   localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'false');
+    // }
+    // if (Setting4) {
+    //   localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'true');
+    // } else if (!Setting4) {
+    //   localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'false');
+    // }
+    // // if (Setting5) {
+    // //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
+    // // } else if (!Setting5) {
+    // //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
+    // // }
+    // if (Setting6) {
+    //   localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'true');
+    // } else if (!Setting6) {
+    //   localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'false');
+    // }
+
+    const settings = await wallet.db.get('settings', 1);
+    if (!settings) {
+      return new Error('Invalid config?');
+    }
+
+    if (amountInput) {
+      if (!Number.isFinite(amountInput)) {
+        throw new Error('Infinite amount.');
       }
     }
-    if (Setting2) {
-      // inputField doesn't allow for non-numbers, still, to prevent people from somehow bricking their wallets..
-      if (!Number.isFinite(amountInput)) {
-        throw `${amountInput} is not a valid number`;
+    if (amountInput != wallet.config.gapLimit && Setting2 === true) {
+      wallet.config.gapLimit = amountInput;
+      const walletConfig = await wallet.db.get('config', 1);
+      if (!walletConfig) {
+        return new Error('Invalid config?');
       }
-
-      localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'true');
-      localStorage.setItem(`${wallet.db.name}-setting2-CustomGapLimit`, amountInput.toString());
-
-      // change config for current session
-      wallet.config.gapLimit = Number(amountInput);
+      walletConfig.gapLimit = amountInput;
+      wallet.db.put('config', walletConfig);
+    }
+    if (wallet.config.gapLimit != 10 && Setting2 != true) {
+      wallet.config.gapLimit = 10;
       // change config indexeddb
       const walletConfig = await wallet.db.get('config', 1);
       if (!walletConfig) {
         return new Error('Invalid config?');
       }
-      walletConfig.gapLimit = Number(amountInput);
+      walletConfig.gapLimit = 10;
       wallet.db.put('config', walletConfig);
-    } else if (!Setting2) {
-      localStorage.setItem(`${wallet.db.name}-setting2-hasCustomGapLimit`, 'false');
-      if (wallet.config.gapLimit != 10) {
-        // this session
-        wallet.config.gapLimit = 10;
-        // change config indexeddb
-        const walletConfig = await wallet.db.get('config', 1);
-        if (!walletConfig) {
-          return new Error('Invalid config?');
-        }
-        walletConfig.gapLimit = 10;
-        wallet.db.put('config', walletConfig);
-      }
     }
-    if (Setting3) {
-      localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'true');
-    } else if (!Setting3) {
-      localStorage.setItem(`${wallet.db.name}-setting3-hasRBF`, 'false');
-    }
-    if (Setting4) {
-      localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'true');
-    } else if (!Setting4) {
-      localStorage.setItem(`${wallet.db.name}-setting4-hasPTM`, 'false');
-    }
-    // if (Setting5) {
-    //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'true');
-    // } else if (!Setting5) {
-    //   localStorage.setItem(`${wallet.db.name}-setting5-hasSyncWorkers`, 'false');
-    // }
-    if (Setting6) {
-      localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'true');
-    } else if (!Setting6) {
-      localStorage.setItem(`${wallet.db.name}-setting6-enable0conf`, 'false');
-    }
+
+    (settings.setting1_hasNested = Setting1),
+      (settings.setting2_hasCustomGapLimit = Setting2),
+      (settings.setting3_hasDisabledRBF = Setting3),
+      (settings.setting4_hasPTM = Setting4),
+      (settings.setting5_has0conf = Setting6),
+      wallet.db.put('settings', settings);
     toast.success('Settings saved successfully!');
   };
 
@@ -238,8 +298,9 @@ export default function Settings() {
               <Label check>
                 <Input id="setting6" type="checkbox" onChange={updateSix} checked={Setting6} /> Enable 0-Conf Hookins against a small fee.
                 <p>
-                  <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting non-RBF transactions, transactions with a certain fee, and up to a certain amount.
-                  Custodians may charge a hookin fee that differs from the standard fees to prevent cheating attempts.
+                  <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting
+                  non-RBF transactions, transactions with a certain fee, and up to a certain amount. Custodians may charge a hookin fee that differs from the
+                  standard fees to prevent cheating attempts.
                 </p>
               </Label>
               <br />
