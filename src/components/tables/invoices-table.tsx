@@ -17,7 +17,6 @@ export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable 
           <th>invoice</th>
           <th>amount</th>
           <th>expired</th>
-          {/* <th>ackd</th>  */}
           <th>paid</th>
         </tr>
       </thead>
@@ -32,7 +31,6 @@ export default function InvoicesTable({ invoices }: { invoices: (Docs.Claimable 
 
 function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.LightningInvoice }) {
   const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
-  // invoice will always be acknowledged so this is pretty useless.
   function renderPaymentStatus() {
     const statuses = useClaimableStatuses(invoiceDoc.hash);
     if (statuses) {
@@ -47,15 +45,6 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
     return 'false';
   }
 
-  // function isPaid() {
-  //   const statuses = useClaimableStatuses(invoiceDoc.hash)
-  //   if(statuses != undefined) {
-  //     statuses.some(status => status instanceof InvoiceSettledStatus)
-
-  //   } else return false
-
-  // }
-
   function isExpired() {
     const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
     const currentTime = new Date().getTime();
@@ -67,23 +56,6 @@ function Invoice({ invoiceDoc }: { invoiceDoc: Docs.Claimable & hi.POD.Lightning
     }
     return '???';
   }
-
-  // function renderAckStatus() {
-  //   if (invoiceDoc.acknowledgement) {
-  //     return <span>Acknowledged....</span>;
-  //   }
-
-  //   return (
-  //     <button
-  //       onClick={() => {
-  //         const invoice = notError(hi.LightningInvoice.fromPOD(invoiceDoc));
-  //         wallet.acknowledgeClaimable(invoice);
-  //       }}
-  //     >
-  //       Claim
-  //     </button>
-  //   );
-  // }
 
   return (
     <tr>

@@ -10,6 +10,7 @@ export default async function(
   | {
       ci: hi.CustodianInfo;
       sigP: hi.Signature;
+      ephemeral: hi.PublicKey;
     }
 > {
   // onion support, not tested, TODO
@@ -32,30 +33,21 @@ export default async function(
     return ci;
   }
 
-  // if WipeData, verify
-  // if (ci.wipeDate) {
-  //   if (ci.wipeDateSig) {
-  //     const sig = hi.Signature.fromPOD(ci.wipeDateSig);
-  //     if (sig instanceof Error) {
-  //       return sig;
-  //     }
-  //     const VerifyWipeDate = sig.verify(hi.Buffutils.fromString(ci.wipeDate), ci.acknowledgementKey);
-  //     if (!VerifyWipeDate) {
-  //       return new Error('Cannot verify Signature related to WipeDate');
-  //     }
-  //   } else return new Error('No Sig in relation to WipeDate..');
-  // }
-
   if (ackString) {
     if (ackString.length > 0) {
       const ackKeyPub = notError(hi.PublicKey.fromPOD(ackString));
+
       if (ci.acknowledgementKey.toPOD() !== ackString) {
         return new Error('custodian info was not properly acknowledged by expected key');
       }
+
       const custUrl = custodianUrl.substring(0, -1 + custodianUrl.indexOf('#'));
 
-      const message = ci.hash();
-      const newUrl = `${custUrl}/ack-custodian-info/${message.toPOD()}`;
+      // no replayability..
+      const ephemeral = hi.PrivateKey.fromRand().toPublicKey();
+      const custodianInfoHash = ci.hash();
+      const newUrl = `${custUrl}/ack-custodian-info/${custodianInfoHash.toPOD()}/${ephemeral.toPOD()}`;
+      const message = hi.Hash.fromMessage('verify', custodianInfoHash.buffer, ephemeral.buffer);
 
       const aci = await makeRequest<hi.POD.Signature>(newUrl);
       if (aci instanceof RequestError) {
@@ -67,7 +59,7 @@ export default async function(
       if (!sigP.verify(message.buffer, ackKeyPub)) {
         return new Error('custodian info (signature!) was not properly acknowledged by expected key. (Is the custodian trying to cheat us?!)');
       }
-      return { ci, sigP };
+      return { ci, sigP, ephemeral };
     }
   }
 

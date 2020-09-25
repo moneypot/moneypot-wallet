@@ -32,9 +32,7 @@ export default function Faq() {
     return timeLeft;
   };
 
-  // TODO: add lightning pubkey to custodian info and scrap the individual requests..? maybe..
-  const [lightninginfo, setlightningInfo] = useState<Docs.LND | null>(null);
-  const [lndcapacities, setlndcapacities] = useState<Docs.LightningCapacities | null>(null);
+  const [lightninginfo, setlightningInfo] = useState<{ lnd: Docs.LND; lc: Docs.LightningCapacities } | null>(null);
   const [year] = useState<Date | undefined>(wallet.config.custodian.wipeDate === undefined ? undefined : new Date(wallet.config.custodian.wipeDate));
   const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
 
@@ -50,10 +48,7 @@ export default function Faq() {
 
   useEffect(() => {
     const getKeys = async () => {
-      // await getNodeInfo(await wallet.requestLightingInfo());
-      setlightningInfo(await wallet.requestLightingNodeInfo());
-
-      setlndcapacities(await wallet.requestLightningCapacities());
+      setlightningInfo(await wallet.requestLightningInfo());
     };
     getKeys();
   }, []);
@@ -67,53 +62,44 @@ export default function Faq() {
         </span>
       );
     }
-
-    // Object.keys(timeLeft).forEach((interval) => {
-    //   if (!timeLeft[interval]) {
-    //     return;
-    //   }
-
-    //   timerComponents.push(
-    //     <span key={useUniqueId()}>
-    //       {timeLeft[interval]} {interval}{" "}
-    //     </span>
-    //   );
-    // });
   }
 
   let Tcolor;
   if (timeLeft) {
     Tcolor = timeLeft.days > 7 ? 'info' : 'danger';
   }
-  const url = 'https://1ml.com/testnet/node/' + (lightninginfo != null && lightninginfo.node.pub_key);
+
+  const url = 'https://1ml.com/testnet/node/' + (lightninginfo != null && lightninginfo.lnd.node.pub_key);
   return (
     <div>
       <h5>FAQ and General information</h5>
-      <div className="inner-container">
-        <h4>General information regarding the LND capabilities of this Custodian.</h4>
-        <p>
-          The current inbound and outbound capacity: <b>{lndcapacities === null ? '...' : lndcapacities.capacity} sat</b>
-        </p>
-        <p>
-          Of that capacity <b>{lndcapacities === null ? 'Loading...' : lndcapacities.localbalance} sat</b> is Outbound capacity.
-        </p>
-        <p>
-          Of that capacity <b>{lndcapacities === null ? 'Loading...' : lndcapacities.remotebalance} sat</b> is Inbound capacity.
-        </p>
-        <p>
-          Currently number of open channels: <b>{lightninginfo === null ? 'Loading...' : lightninginfo.num_channels}</b>
-        </p>
-        <p>
-          For additional information, it might be possible to check external explorers{' '}
-          <a href={url} target="_blank" rel="noreferrer">
-            such as 1ML.
-          </a>
-        </p>
-        <small>
-          <b> Note:</b> This is just to give you a rough estimate of the amounts you'll be able to transact. Please be aware that actual results may differ
-          significantly!
-        </small>
-      </div>
+      {lightninginfo != null ? (
+        <div className="inner-container">
+          <h4>General information regarding the LND capabilities of this Custodian.</h4>
+          <p>
+            The current inbound and outbound capacity: <b>{lightninginfo.lc.capacity} sat</b>
+          </p>
+          <p>
+            Of that capacity <b>{lightninginfo.lc.localbalance} sat</b> is Outbound capacity.
+          </p>
+          <p>
+            Of that capacity <b>{lightninginfo.lc.remotebalance} sat</b> is Inbound capacity.
+          </p>
+          <p>
+            Currently number of open channels: <b>{lightninginfo.lnd.num_channels}</b>
+          </p>
+          <p>
+            For additional information, it might be possible to check external explorers{' '}
+            <a href={url} target="_blank" rel="noreferrer">
+              such as 1ML.
+            </a>
+          </p>
+          <small>
+            <b> Note:</b> This is just to give you a rough estimate of the amounts you'll be able to transact. Please be aware that actual results may differ
+            significantly!
+          </small>
+        </div>
+      ) : undefined}
       <div className="inner-container">
         <h4>Wipe Cycle.</h4>
         <p>

@@ -34,6 +34,8 @@ import Settings from './settings';
 // const WorkerCoins = new CoinWorker();
 // const workerClaimable = new ClaimableWorker();
 let currentVersion = 4;
+// TODO: Improve this, placeholder.
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
@@ -178,7 +180,8 @@ export default class Database extends EventEmitter {
       custodianUrl,
       custodian instanceof hi.CustodianInfo ? custodian : custodian.ci,
       password,
-      custodian instanceof hi.CustodianInfo ? undefined : custodian.sigP
+      custodian instanceof hi.CustodianInfo ? undefined : custodian.sigP,
+      custodian instanceof hi.CustodianInfo ? undefined : custodian.ephemeral
     );
     if (config instanceof Error) {
       return config;
@@ -312,7 +315,7 @@ export default class Database extends EventEmitter {
 
     let amountToClaim = hi.computeClaimableRemaining(claimable, await this.getStatuses(claimableHash, transaction));
     let fee = 0;
-    const enable0conf = this.settings.setting5_has0conf;
+    const enable0conf = this.settings.setting6_has0conf;
 
     while (amountToClaim > 0) {
       if (claimable instanceof hi.Hookin) {
@@ -349,9 +352,7 @@ export default class Database extends EventEmitter {
           continue;
         }
 
-
         if ((claimResponse.message as string).includes('MORE_CONFIDENCE_REQUIRED_ADD_ATLEAST:')) {
-          // a bit unorthodox maybe? // TODO?
           if (enable0conf === undefined || enable0conf === false) {
             break;
           }
@@ -375,18 +376,8 @@ export default class Database extends EventEmitter {
     await this.processStatuses(statuses);
   }
 
-  // public async requestLightingInfo() {
-  //   return await requests.getLightingData(this.config);
-  // }
-  public async requestLightningCapacities() {
-    const resp = await requests.getLightningCapacities(this.config);
-    if (resp instanceof Error) {
-      throw resp;
-    }
-    return resp;
-  }
-  public async requestLightingNodeInfo() {
-    const resp = await requests.getLightingNodeData(this.config);
+  public async requestLightningInfo() {
+    const resp = await requests.getLightningInfo(this.config);
     if (resp instanceof Error) {
       throw resp;
     }
@@ -514,6 +505,7 @@ export default class Database extends EventEmitter {
     return sum;
   }
 
+  // should we delay...? It'll leak blind information...?
   async syncBitcoinAddresses() {
     let gapCount = 0;
 
@@ -536,7 +528,6 @@ export default class Database extends EventEmitter {
       const purpose = 'lightningInvoice';
 
       const claimant = this.deriveClaimableClaimant(index, purpose).toPublicKey();
-
       const invoices = await getInvoicesByClaimant(this.config, claimant);
 
       if (invoices.length === 0) {
@@ -577,6 +568,9 @@ export default class Database extends EventEmitter {
     for (const claimable of claimables) {
       // too lazy to fix actual errors...?
       try {
+        if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
+          await delay(Math.random() * 10000);
+        }
         await this.requestStatuses(claimable.hash);
         await this.claimClaimable(claimable);
       } catch (e) {
@@ -635,6 +629,9 @@ export default class Database extends EventEmitter {
   async syncCoins() {
     const coins = await this.db.getAll('coins');
     for (const coin of coins) {
+      if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
+        await delay(Math.random() * 10000);
+      }
       const claimable = await getClaimableByInputOwner(this.config, coin.owner);
       if (!claimable) {
         continue;
@@ -748,6 +745,9 @@ export default class Database extends EventEmitter {
     let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
 
     for (const checkCoin of Unspent) {
+      if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
+        await delay(Math.random() * 10000);
+      }
       const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
       if (!claimable) {
         emptySyncedCoins.push(checkCoin);

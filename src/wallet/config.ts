@@ -47,7 +47,8 @@ export default class Config {
     custodianUrl: string,
     custodian: hi.CustodianInfo,
     password: string,
-    sig?: hi.Signature
+    sig?: hi.Signature,
+    pubkey?: hi.PublicKey
   ): Promise<Error | Config> {
     if (!bip39.validateMnemonic(mnemonic)) {
       return new Error('invalid mnemonic');
@@ -59,10 +60,11 @@ export default class Config {
 
     const seed = await bip39.mnemonicToSeed(mnemonic, password);
 
-    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian, sig ? sig.toPOD() : undefined);
+    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian, sig ? sig.toPOD() : undefined, pubkey ? pubkey.toPOD() : undefined);
   }
 
   sig?: string;
+  pubkey?: string;
   mnemonic: string;
   gapLimit: number;
   seed: Uint8Array;
@@ -70,7 +72,7 @@ export default class Config {
 
   custodian: hi.CustodianInfo;
 
-  constructor(mnemonic: string, gapLimit: number, seed: Uint8Array, custodianUrl: string, custodian: hi.CustodianInfo, sig?: string) {
+  constructor(mnemonic: string, gapLimit: number, seed: Uint8Array, custodianUrl: string, custodian: hi.CustodianInfo, sig?: string, pubkey?: string) {
     this.mnemonic = mnemonic;
     this.gapLimit = gapLimit;
     this.seed = seed;
@@ -78,6 +80,7 @@ export default class Config {
     this.custodianUrl = custodianUrl;
     this.custodian = custodian;
     this.sig = sig;
+    this.pubkey = pubkey;
     console.log('debug: custodian: ', custodian);
   }
 
@@ -92,6 +95,7 @@ export default class Config {
       custodianUrl: this.custodianUrl,
       custodian: this.custodian.toPOD(),
       sig: this.sig,
+      pubkey: this.pubkey,
     };
   }
 

@@ -22,7 +22,6 @@ export default function LnPaymentsTable({ payments }: { payments: (Docs.Claimabl
           <th>fees</th>
           <th>rebate?</th>
           <th>reason?</th>
-          {/* <th>ackd</th> */}
         </tr>
       </thead>
       <tbody>
@@ -40,7 +39,6 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
   const [rebate, setRebate] = useState<Number>();
   const [failurereason, setFailureReason] = useState<string>();
 
-  // invoice will always be acknowledged so this is pretty useless.
   const pro = notError(hi.decodeBolt11(paymentsDoc.paymentRequest));
   let description;
   for (const tag of pro.tags) {
@@ -48,13 +46,7 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
       description = tag.data;
     }
   }
-  // let payment_hash;
-  // for (const tag of pro.tags) {
-  // if (tag.tagName === "payment_hash") {
-  //   payment_hash = tag.data;
-  // }
-  // }
-  // let hash = payment_hash != null ? payment_hash : "";
+
   let memo = description != null ? description : '';
 
   // compare speeds, which is faster, hooks, or functions?
@@ -78,88 +70,6 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
     };
     getData();
   });
-
-  // function getTotalFees() {
-  //   if (statuses != undefined) {
-  //     if (statuses.length > 1) {
-  //       for (var i = statuses.length; i--; ) {
-  //         const element = statuses[i];
-  //         // rPreimage === invoice paid
-  //         if ('totalFees' in element) {
-  //           return element.totalFees;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return 'NOT FOUND';
-  // }
-  // // if transaction failed? //failed
-  // function hasRebate() {
-  //   if (statuses != undefined) {
-  //     if (statuses.length > 1) {
-  //       for (var i = statuses.length; i--; ) {
-  //         const element = statuses[i];
-  //         // rPreimage === invoice paid
-  //         if ('rebate' in element) {
-  //           return element.rebate + ' ' + 'sat';
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return '...';
-  // }
-
-  // // reason for failure //more failure
-  // function hasReason() {
-  //   if (statuses != undefined) {
-  //     if (statuses.length > 1) {
-  //       for (const s of statuses) {
-  //         if (s instanceof Failed) {
-  //           return s.reason
-  //         }
-
-  //       }
-  //       // for (var i = statuses.length; i--; ) {
-  //       //   const element = statuses[i];
-  //       //   // rPreimage === invoice paid
-  //       //   if ('reason' in element) {
-  //       //     return element.reason;
-  //       //   }
-  //       // }
-  //     }
-  //   }
-  //   return '...';
-  // }
-
-  // // preimage
-  // function rPreimage() {
-  //   if (statuses != undefined) {
-  //     if (statuses.length > 1) {
-  //       for (var i = statuses.length; i--; ) {
-  //         const element = statuses[i];
-  //         // rPreimage === invoice paid
-  //         if ('paymentPreimage' in element) {
-  //           return hi.Buffutils.toHex(element.paymentPreimage);
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return '...';
-  // }
-
-  // maybe if payment has failed && users want to know if the invoice is still valid?
-  //    function isExpired() {
-  //     const pro = notError(hi.decodeBolt11(invoiceDoc.paymentRequest));
-  //     const currentTime = new Date().getTime()
-  //     const expiryTime = new Date(pro.timeExpireDateString).getTime()
-  //     if(currentTime > expiryTime) {
-  //      return "Invoice has expired"
-  //     }
-  //     else if(currentTime < expiryTime) {
-  //      return "Invoice is stil valid"
-  //     }
-  //     return " ???"
-  //   }
 
   return (
     <tr>

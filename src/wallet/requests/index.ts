@@ -33,20 +33,9 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
   return hi.Acknowledged.claimableFromPOD(resp);
 }
 
-export async function getLightningCapacities(config: Config) {
+export async function getLightningInfo(config: Config) {
   const url = `${config.custodianUrl}/inbound-outbound-capacity-lightning/`;
-  const resp = await makeRequest<Docs.LightningCapacities>(url);
-
-  if (resp instanceof RequestError) {
-    console.error('got request error: ', resp);
-    return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
-  }
-  return resp;
-}
-
-export async function getLightingNodeData(config: Config) {
-  const url = `${config.custodianUrl}/lightning-node-information/`;
-  const resp = await makeRequest<Docs.LND>(url);
+  const resp = await makeRequest<{ lc: Docs.LightningCapacities; lnd: Docs.LND }>(url);
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);

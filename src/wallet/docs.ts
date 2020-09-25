@@ -8,6 +8,7 @@ export interface Config {
   mnemonic: string;
   gapLimit: number;
   sig?: string;
+  pubkey?: string;
 }
 
 export interface Settings {
@@ -16,8 +17,8 @@ export interface Settings {
   setting2_hasCustomGapLimit?: boolean;
   setting3_hasDisabledRBF?: boolean;
   setting4_hasPTM?: boolean;
-  setting5_has0conf?: boolean;
   setting6_has0conf?: boolean;
+  setting7_randomize_recovery?: boolean;
 }
 
 export interface Counter {
