@@ -6,11 +6,12 @@ import * as mp from 'moneypot-lib';
 
 export default function Coins() {
   const coins = useCoins();
-
+  // TODO: this is soo slow @ large wallets.
   return (
     <div>
       <h1>Coins ({coins.length})</h1>
-      <table style={{ borderSpacing: '3px', borderCollapse: 'separate' }}>
+      {/* <table style={{ borderSpacing: '3px', borderCollapse: 'separate' }}> */}
+      <table className="table">
         <thead>
           <tr>
             <th>Status</th>

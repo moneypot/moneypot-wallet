@@ -27,25 +27,32 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
     if (!(request instanceof RequestError)) {
       hasConfirmed(request.status.confirmed);
       setCurrentTxid(txid);
+    } else if (request instanceof RequestError) {
+      if (statuses && statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1) {
+        setCurrentTxid(txid);
+      }
     }
   }
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
-        if (statuses.length > 0) {
-          for (const s of statuses) {
-            if (s instanceof BitcoinTransactionSent) {
-              // setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
-            }
+        for (const s of statuses) {
+          if (s instanceof BitcoinTransactionSent) {
+            // setCurrentTxid(mp.Buffutils.toHex(s.txid));
+            getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
           }
-          !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
-          if (props.claimable instanceof mp.Acknowledged.default) {
-            !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
+        }
+
+        if (props.claimable instanceof mp.Acknowledged.default) {
+          if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
+            await wallet.requestStatuses(props.claimableHash);
+          }
+          if (!statuses.some(status => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
+            await wallet.claimClaimable(props.claimable);
           }
         } else {
-          await wallet.requestStatuses(props.claimableHash);
+          wallet.acknowledgeClaimable(props.claimable);
         }
       }
     };
@@ -53,30 +60,37 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
   }, [statuses]);
 
   const GetStatuses = () => {
-    if (!statuses) {
+    if (!statuses && props.claimable.contents != undefined && props.claimable.contents.claimableAmount != 0) {
       return <span> Loading Statuses...</span>;
-    } else if (statuses.length > 0) {
-      for (const s of statuses) {
-        if (s instanceof BitcoinTransactionSent) {
+    }
+    if (statuses) {
+      if (props.claimable instanceof mp.Acknowledged.default) {
+        if (statuses.some(status => status instanceof BitcoinTransactionSent)) {
+          if (statuses.some(status => status instanceof Claimed) || (props.claimable.contents != undefined && props.claimable.contents.claimableAmount === 0)) {
+            return (
+              <a href="#status" className="btn btn-outline-success status-badge">
+                Feebump sent!
+              </a>
+            );
+          }
+        }
+        if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
-            <a href="#status" className="btn btn-outline-success status-badge">
-              Feebump Sent!
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Feebump remainder not yet claimed!
+            </a>
+          );
+        } else {
+          return (
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Feebump is in queue! (PENDING!)
             </a>
           );
         }
-      }
-    }
-    if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
-      if (statuses.some(status => status instanceof Claimed)) {
+      } else {
         return (
-          <a href="#status" className="btn btn-outline-warning status-badge">
-            Feebump Pending! (In Queue!)
-          </a>
-        );
-      } else if (!statuses.some(status => status instanceof Claimed)) {
-        return (
-          <a href="#status" className="btn btn-outline-danger status-badge">
-            Feebump not in queue! Please Sync!
+          <a href="#status" className="btn btn-outline-info status-badge">
+            Custodian is not yet aware of the Hookout!
           </a>
         );
       }
@@ -130,30 +144,6 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             </div>
           </Col>
         </Row>
-        {/* <Row>
-          <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Fee: </p>
-          </Col>
-          <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">
-              {`${claimable.fee} sat`}
-
-              <CopyToClipboard className="btn btn-light" style={{}} text={claimable.fee.toString()}>
-                <i className="fa fa-copy" />
-              </CopyToClipboard>
-            </div>
-          </Col>
-        </Row> */}
-        {/* <Row>
-          <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Priority: </p>
-          </Col>
-          <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">
-           {claimable.priority}
-            </div>
-          </Col>
-        </Row> */}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Created: </p>

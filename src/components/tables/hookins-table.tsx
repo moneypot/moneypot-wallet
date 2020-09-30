@@ -53,7 +53,7 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
   return (
     <tr>
       <td>
-        <Link to={`/claimables/${hookinDoc.hash}`}>{hookinDoc.hash.substring(0, 8)}...</Link>
+        <Link to={`/claimables/${hookinDoc.hash}`}>{hookinDoc.hash.substring(0, 32)}...</Link>
       </td>
       <td>
         <Link to={`/addresses/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress}</Link>

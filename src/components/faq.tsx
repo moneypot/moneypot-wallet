@@ -99,7 +99,9 @@ export default function Faq() {
             significantly!
           </small>
         </div>
-      ) : undefined}
+      ) : (
+        undefined
+      )}
       <div className="inner-container">
         <h4>Wipe Cycle.</h4>
         <p>

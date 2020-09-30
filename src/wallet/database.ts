@@ -27,6 +27,11 @@ import { RequestError } from './requests/make-request';
 
 import txs from '../wallet/requests/bitcoin-txs';
 import Settings from './settings';
+import HookinAccepted from 'moneypot-lib/dist/status/hookin-accepted';
+import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
+import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
+import Failed from 'moneypot-lib/dist/status/failed';
+import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
 
 // import CoinWorker from 'worker-loader!./workers/WorkerCoins';
 // import ClaimableWorker from 'worker-loader!./workers/WorkerClaimable';
@@ -279,7 +284,6 @@ export default class Database extends EventEmitter {
   public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable | Docs.Claimable) {
     const claimable = ackdClaimable instanceof hi.Acknowledged.default ? ackdClaimable.contents : util.notError(hi.claimableFromPOD(ackdClaimable));
     const claimableHash = claimable.hash().toPOD();
-
     let transaction = this.db.transaction(['coins', 'counters', 'claimables', 'statuses'], 'readwrite');
 
     let claimant;
@@ -319,16 +323,14 @@ export default class Database extends EventEmitter {
 
     while (amountToClaim > 0) {
       if (claimable instanceof hi.Hookin) {
-        if (enable0conf != undefined) {
-          if (enable0conf) {
-            const is0conf = await txs(claimable.toPOD().txid);
-            if (is0conf instanceof RequestError) {
-              return RequestError;
-            }
-            if (!is0conf.status.confirmed) {
-              if (fee === 0) {
-                fee = claimable.amount * (1 / 100);
-              }
+        if (enable0conf) {
+          const is0conf = await txs(claimable.toPOD().txid);
+          if (is0conf instanceof RequestError) {
+            return RequestError;
+          }
+          if (!is0conf.status.confirmed) {
+            if (fee === 0) {
+              fee = claimable.amount * (1 / 100);
             }
           }
         }
@@ -566,15 +568,61 @@ export default class Database extends EventEmitter {
   async syncClaimable() {
     const claimables = await this.db.getAll('claimables');
     for (const claimable of claimables) {
-      // too lazy to fix actual errors...?
-      try {
-        if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
-          await delay(Math.random() * 10000);
+      const fromPODClaimable = hi.claimableFromPOD(claimable);
+      if (fromPODClaimable instanceof Error) {
+        throw fromPODClaimable;
+      }
+      let check: boolean = true;
+      const statuses = await this.db
+        .getAllFromIndex('statuses', 'by-claimable-hash', claimable.hash)
+        .then(ss => ss.map(s => util.notError(hi.statusFromPOD(s))));
+      switch (claimable.kind) {
+        case 'Hookin':
+          if (statuses.some(status => status instanceof HookinAccepted)) {
+            if (statuses.some(status => status instanceof Claimed)) {
+              check = false;
+            }
+          }
+          break;
+        case 'Hookout':
+        case 'FeeBump':
+          if (statuses.some(status => status instanceof BitcoinTransactionSent)) {
+            if (statuses.some(status => status instanceof Claimed)) {
+              check = false;
+            } else {
+              if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
+                check = false;
+              }
+            }
+          }
+          break;
+        case 'LightningInvoice':
+          if (statuses.some(status => status instanceof InvoiceSettled)) {
+            if (statuses.some(status => status instanceof Claimed)) {
+              check = false;
+            }
+          }
+          break;
+        case 'LightningPayment':
+          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof Failed)) {
+            if (statuses && statuses.filter(status => status instanceof Claimed)) {
+              if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
+                check = false;
+              }
+            }
+          }
+          break;
+      }
+      if (check) {
+        try {
+          if (this.settings.setting7_randomize_recovery) {
+            await delay(Math.random() * 10000);
+          }
+          await this.requestStatuses(claimable.hash);
+          await this.claimClaimable(claimable);
+        } catch (e) {
+          continue;
         }
-        await this.requestStatuses(claimable.hash);
-        await this.claimClaimable(claimable);
-      } catch (e) {
-        continue;
       }
     }
   }
@@ -629,7 +677,7 @@ export default class Database extends EventEmitter {
   async syncCoins() {
     const coins = await this.db.getAll('coins');
     for (const coin of coins) {
-      if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
+      if (this.settings.setting7_randomize_recovery) {
         await delay(Math.random() * 10000);
       }
       const claimable = await getClaimableByInputOwner(this.config, coin.owner);
@@ -745,8 +793,17 @@ export default class Database extends EventEmitter {
     let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
 
     for (const checkCoin of Unspent) {
-      if (this.settings.setting7_randomize_recovery != undefined && this.settings.setting7_randomize_recovery) {
+      if (this.settings.setting7_randomize_recovery) {
         await delay(Math.random() * 10000);
+        // fake a coin, 50% chance
+        if (Buffer.from(hi.random(1)).readUInt8(0) % 2 === 0) {
+          await getClaimableByInputOwner(
+            this.config,
+            hi.PrivateKey.fromRand()
+              .toPublicKey()
+              .toPOD()
+          );
+        }
       }
       const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
       if (!claimable) {
@@ -773,6 +830,7 @@ export default class Database extends EventEmitter {
       await transaction.done;
     }
 
+    // ideally we want to reduce the results of the status before submitting to querying all coins (new coins from UNSPENT)
     for (const claimable of newAckedClaimables) {
       // too lazy to fix actual errors...?
       try {
@@ -799,7 +857,6 @@ export default class Database extends EventEmitter {
   async sync() {
     await this.syncBitcoinAddresses();
     await this.syncLightningInvoices();
-    await this.syncCoins();
     await this.syncClaimable();
     await this.syncNested();
   }
@@ -986,9 +1043,27 @@ export default class Database extends EventEmitter {
 
   // makes network req
   async acknowledgeClaimable(claimable: hi.Claimable): Promise<void> {
+    // not necessarily on recovery... TODO
+    if (this.settings.setting7_randomize_recovery) {
+      await delay(Math.random() * 10000);
+    }
     const ackd = await requests.addClaimable(this.config, claimable);
     if (ackd instanceof Error) {
       throw ackd;
+    }
+    // verification.
+    if (ackd) {
+      if (ackd instanceof hi.FeeBump || ackd instanceof hi.Hookout || ackd instanceof hi.LightningPayment) {
+        if (!ackd.isAuthorized()) {
+          throw new Error('Custodian tried to ack a false claimable');
+        }
+      }
+      if (claimable.hash().toPOD() != ackd.contents.hash().toPOD()) {
+        throw new Error('Custodian send a wrong claimable back!');
+      }
+      if (!ackd.verify(this.config.custodian.acknowledgementKey)) {
+        throw new Error('Custodian did not properly acknowledge this claimable.');
+      }
     }
 
     await this.db.put('claimables', {
@@ -1014,14 +1089,14 @@ export default class Database extends EventEmitter {
   private async sendAbstractTransfer(
     cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout | hi.FeeBump,
     totalToSend: number
-  ): Promise<'NOT_ENOUGH_FUNDS' | hi.Hash> {
+  ): Promise<string | hi.Hash> {
     const transaction = this.db.transaction(['events', 'coins', 'claimables'], 'readwrite');
 
     const unspent = await this.listUnspentT(transaction);
 
     const coinsToUse = coinselection.findAtLeast(unspent, totalToSend);
-    if (!coinsToUse) {
-      return 'NOT_ENOUGH_FUNDS';
+    if (!coinsToUse || typeof coinsToUse === 'number') {
+      return `NOT_ENOUGH_FUNDS, MISSING ${coinsToUse} sat `;
     }
 
     const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
@@ -1078,10 +1153,8 @@ export default class Database extends EventEmitter {
     const tweakPubkey = tweak.toPublicKey();
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
     const usesNested = this.settings.setting1_hasNested;
-    if (usesNested != undefined) {
-      if (usesNested) {
-        return pubkey.toNestedBitcoinAddress();
-      }
+    if (usesNested) {
+      return pubkey.toNestedBitcoinAddress();
     }
     return pubkey.toBitcoinAddress();
   }

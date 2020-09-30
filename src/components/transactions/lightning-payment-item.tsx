@@ -8,6 +8,7 @@ import Timeago from '../../util/timeago';
 
 import { notError } from '../../util';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
+import Failed from 'moneypot-lib/dist/status/failed';
 
 type Props = {
   statuses: mp.Status[] | undefined;
@@ -44,6 +45,9 @@ export default function LightningPaymentItem({ claimable, statuses }: Props) {
       if (s instanceof LightningPaymentSent) {
         amount = -claimable.amount;
         status = 'paid!';
+      }
+      if (s instanceof Failed) {
+        status = 'Failed!';
       }
     }
   }

@@ -25,26 +25,25 @@ export default function HookinStatuses(props: HookinProps) {
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
-        if (statuses.length > 0) {
-          for (const s of statuses) {
-            if (s instanceof HookinAccepted) {
-              setCurrentConsolidationFee(s.consolidationFee);
-            }
-            if (s instanceof Claimed) {
-              setCurrentFee(s.claimRequest.fee);
-            }
+        for (const s of statuses) {
+          if (s instanceof HookinAccepted) {
+            setCurrentConsolidationFee(s.consolidationFee);
           }
-          !statuses.some(status => status instanceof HookinAccepted) && (await wallet.requestStatuses(props.claimableHash));
-          if (props.claimable instanceof mp.Acknowledged.default) {
-            !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
+          if (s instanceof Claimed) {
+            setCurrentFee(s.claimRequest.fee);
           }
         }
-      } else if (statuses === undefined) {
-        await wallet.requestStatuses(props.claimableHash);
-      }
-      // if we have no ack - we need an ack.
-      if (!(props.claimable instanceof mp.Acknowledged.default)) {
-        wallet.acknowledgeClaimable(props.claimable);
+        if (props.claimable instanceof mp.Acknowledged.default) {
+          if (!statuses.some(status => status instanceof HookinAccepted)) {
+            await wallet.requestStatuses(props.claimableHash);
+          } else {
+            if (!statuses.some(status => status instanceof Claimed)) {
+              await wallet.claimClaimable(props.claimable);
+            }
+          }
+        } else {
+          wallet.acknowledgeClaimable(props.claimable);
+        }
       }
     };
     const memo = localStorage.getItem(claimable.bitcoinAddress);
@@ -57,40 +56,36 @@ export default function HookinStatuses(props: HookinProps) {
   const GetStatuses = () => {
     if (!statuses) {
       return <span> Loading Statuses...</span>;
-    } else if (statuses.length > 0) {
-      for (const s of statuses) {
-        if (s instanceof HookinAccepted) {
+    }
+    if (props.claimable instanceof mp.Acknowledged.default) {
+      if (statuses.some(status => status instanceof HookinAccepted)) {
+        if (statuses.some(status => status instanceof Claimed)) {
           return (
             <a href="#status" className="btn btn-outline-success status-badge">
-              Hookin received!
+              Hookin accepted and claimed!
+            </a>
+          );
+        } else {
+          return (
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Custodian has accepted the hookin but we haven't claimed it!
             </a>
           );
         }
-      }
-    }
-    if (!statuses.some(status => status instanceof HookinAccepted)) {
-      if (statuses.some(status => status instanceof Claimed)) {
+      } else {
         return (
-          <a href="#status" className="btn btn-outline-warning status-badge">
-            Waiting for confirmations!?
-          </a>
-        );
-      }
-      if (!statuses.some(status => status instanceof Claimed) && props.claimable instanceof mp.Acknowledged.default) {
-        return (
-          <a href="#status" className="btn btn-outline-warning status-badge">
+          <a href="#status" className="btn btn-outline-info status-badge">
             Custodian has not yet accepted the hookin!
           </a>
         );
-      } else if (!(props.claimable instanceof mp.Acknowledged.default)) {
-        return (
-          <a href="#status" className="btn btn-outline-danger status-badge">
-            Custodian is not aware of the hookin!
-          </a>
-        );
       }
+    } else {
+      return (
+        <a href="#status" className="btn btn-outline-danger status-badge">
+          Custodian is not aware of the hookin!
+        </a>
+      );
     }
-    return <span>Loading Statuses...</span>;
   };
 
   return (

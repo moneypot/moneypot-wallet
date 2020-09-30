@@ -31,7 +31,6 @@ export default function HookoutStatuses(props: HookoutProps) {
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
   const [IsConfirmed, hasConfirmed] = useState(true); // prevent false positives when loading
-
   const [Memo, setMemo] = useState<undefined | string>(undefined);
 
   async function getConfirmationStatus(txid: string) {
@@ -82,25 +81,22 @@ export default function HookoutStatuses(props: HookoutProps) {
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
-        if (statuses.length > 0) {
-          for (const s of statuses) {
-            if (s instanceof BitcoinTransactionSent) {
-              // setCurrentTxid(mp.Buffutils.toHex(s.txid));
-              getConfirmationStatus(mp.Buffutils.toHex(s.txid));
-            }
-          }
-          !statuses.some(status => status instanceof BitcoinTransactionSent) && (await wallet.requestStatuses(props.claimableHash));
-
-          if (props.claimable instanceof mp.Acknowledged.default) {
-            !statuses.some(status => status instanceof Claimed) && wallet.claimClaimable(props.claimable);
+        for (const s of statuses) {
+          if (s instanceof BitcoinTransactionSent) {
+            // setCurrentTxid(mp.Buffutils.toHex(s.txid));
+            getConfirmationStatus(mp.Buffutils.toHex(s.txid));
           }
         }
-      } else if (statuses === undefined) {
-        await wallet.requestStatuses(props.claimableHash);
-      }
-      // if we have no ack - we need an ack.
-      if (!(props.claimable instanceof mp.Acknowledged.default)) {
-        wallet.acknowledgeClaimable(props.claimable);
+        if (props.claimable instanceof mp.Acknowledged.default) {
+          if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
+            await wallet.requestStatuses(props.claimableHash);
+          }
+          if (!statuses.some(status => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
+            await wallet.claimClaimable(props.claimable);
+          }
+        } else {
+          await wallet.acknowledgeClaimable(props.claimable);
+        }
       }
       const memo = localStorage.getItem(claimable.hash);
       if (memo != undefined) {
@@ -111,34 +107,42 @@ export default function HookoutStatuses(props: HookoutProps) {
   }, [statuses]); // this usually triggers double requests w/ new transfers, but we cannot render upon loading.
 
   const GetStatuses = () => {
-    if (!statuses) {
+    if (!statuses && props.claimable.contents != undefined && props.claimable.contents.claimableAmount != 0) {
       return <span> Loading Statuses...</span>;
-    } else if (statuses.length > 0) {
-      for (const s of statuses) {
-        if (s instanceof BitcoinTransactionSent) {
+    }
+    if (statuses) {
+      if (props.claimable instanceof mp.Acknowledged.default) {
+        if (statuses.some(status => status instanceof BitcoinTransactionSent)) {
+          if (statuses.some(status => status instanceof Claimed) || (props.claimable.contents != undefined && props.claimable.contents.claimableAmount === 0)) {
+            return (
+              <a href="#status" className="btn btn-outline-success status-badge">
+                Transaction sent!
+              </a>
+            );
+          }
+        }
+        if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
-            <a href="#status" className="btn btn-outline-success status-badge">
-              Hookout Sent!
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Hookout remainder not yet claimed!
+            </a>
+          );
+        } else {
+          return (
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Hookout is in queue! (PENDING!)
             </a>
           );
         }
-      }
-    }
-    if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
-      if (statuses.some(status => status instanceof Claimed)) {
+      } else {
         return (
-          <a href="#status" className="btn btn-outline-warning status-badge">
-            Hookout Pending! (In Queue!)
-          </a>
-        );
-      } else if (!statuses.some(status => status instanceof Claimed)) {
-        return (
-          <a href="#status" className="btn btn-outline-danger status-badge">
-            Hookout not in queue! Please Sync!
+          <a href="#status" className="btn btn-outline-info status-badge">
+            Custodian is not yet aware of the Hookout!
           </a>
         );
       }
     }
+
     return <span>Loading Statuses...</span>;
   };
 

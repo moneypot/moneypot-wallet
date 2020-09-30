@@ -6,7 +6,7 @@ import * as Docs from '../../wallet/docs';
 export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable & hi.POD.Hookout)[] }) {
   return (
     <table className="table">
-      <tbody>
+      <thead>
         <tr>
           <th>#</th>
           <th>bitcoin address</th>
@@ -14,6 +14,8 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
           <th>created</th>
           <th>memo?</th>
         </tr>
+      </thead>
+      <tbody>
         {hookouts.map(hookout => (
           <Hookout key={hookout.hash} hookoutDoc={hookout as Docs.Claimable & hi.POD.Hookout} />
         ))}
@@ -27,7 +29,7 @@ function Hookout({ hookoutDoc }: { hookoutDoc: Docs.Claimable & hi.POD.Hookout }
   return (
     <tr>
       <td>
-        <Link to={`/claimables/${hookoutDoc.hash}`}>{hookoutDoc.hash.substring(0, 8)}...</Link>
+        <Link to={`/claimables/${hookoutDoc.hash}`}>{hookoutDoc.hash.substring(0, 32)}...</Link>
       </td>
       <td>
         {' '}

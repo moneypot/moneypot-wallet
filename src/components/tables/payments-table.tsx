@@ -74,7 +74,7 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
   return (
     <tr>
       <td>
-        <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.hash.substring(0, 8)}...</Link>
+        <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.hash.substring(0, 32)}...</Link>
       </td>
       <td>
         {' '}

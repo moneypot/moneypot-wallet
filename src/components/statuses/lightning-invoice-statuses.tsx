@@ -10,6 +10,7 @@ import { notError } from '../../util';
 import InvoiceSettledStatus from 'moneypot-lib/dist/status/invoice-settled';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import useUniqueId from '../../util/use-unique-id';
+import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 
 type LightningInvoiceProps = {
   paymentRequest: string;
@@ -87,24 +88,32 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
-        if (statuses.length > 0) {
-          for (const s of statuses) {
-            if (s instanceof InvoiceSettledStatus) {
-              setPreimage(mp.Buffutils.toHex(s.rPreimage));
-              if (amount === ' ') {
-                setFiniteAmount(s.amount);
-              }
+        for (const s of statuses) {
+          if (s instanceof InvoiceSettledStatus) {
+            setPreimage(mp.Buffutils.toHex(s.rPreimage));
+            if (amount === ' ') {
+              setFiniteAmount(s.amount);
             }
           }
-          !statuses.some(status => status instanceof InvoiceSettledStatus) && (await wallet.requestStatuses(props.claimableHash));
+        }
 
-          if (props.claimable instanceof mp.Acknowledged.default) {
-            !statuses.some(status => status instanceof Claimed) && (await wallet.claimClaimable(props.claimable));
+        if (props.claimable instanceof mp.Acknowledged.default) {
+          if (!statuses.some(status => status instanceof InvoiceSettledStatus)) {
+            if (!expired) {
+              await wallet.requestStatuses(props.claimableHash);
+            }
           }
-          // if (!(statuses instanceof Claimed )) {
-          //   wallet.claimClaimable(props.claimable)
-          // }
-        } else await wallet.requestStatuses(props.claimableHash);
+          if (!statuses.some(status => status instanceof Claimed)) {
+            if (statuses.some(status => status instanceof InvoiceSettledStatus)) {
+              await wallet.claimClaimable(props.claimable);
+            }
+          }
+        } else {
+          await wallet.acknowledgeClaimable(props.claimable);
+        }
+        // if (!(statuses instanceof Claimed )) {
+        //   wallet.claimClaimable(props.claimable)
+        // }
       }
     };
     getData();
@@ -113,22 +122,25 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   const GetStatuses = () => {
     if (!statuses) {
       return <span> Loading Statuses...</span>;
-    } else if (statuses.length > 0) {
-      for (const s of statuses) {
-        if (s instanceof InvoiceSettledStatus) {
-          return (
-            <a href="#status" className="btn btn-outline-success status-badge">
-              Received!
-            </a>
-          );
-        }
-      }
     }
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Pending...
-      </a>
-    );
+    if (statuses.some(status => status instanceof InvoiceSettled)) {
+      if (statuses.some(status => status instanceof Claimed)) {
+        <a href="#status" className="btn btn-outline-success status-badge">
+          Received and claimed!
+        </a>;
+      } else {
+        <a href="#status" className="btn btn-outline-info status-badge">
+          Received but not yet claimed!
+        </a>;
+      }
+    } else {
+      return (
+        <a href="#status" className="btn btn-outline-warning status-badge">
+          Pending...
+        </a>
+      );
+    }
+    return <span> Loading Statuses...</span>;
   };
 
   let timerComponents: JSX.Element[] = [];

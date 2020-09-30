@@ -55,10 +55,10 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               </InputGroup>
             </Col>
           </FormGroup>
-          {lightninginfo != null && amount > lightninginfo.lc.remotebalance && (
+          {lightninginfo != null && (amount > lightninginfo.lc.highest_inbound || amount > 4294967) && (
             <code>
-              Even if we were using the most optimal route and or MPP, our node still does not have enough capacity to handle an invoice of such amount, so you
-              can only use this invoice for internal transfers!
+              Even if we were using the most optimal route, our node still does not have enough capacity to handle an invoice of such amount, so you can only
+              use this invoice for internal transfers!
             </code>
           )}
           <FormGroup row>

@@ -20,6 +20,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
   const [toText, setToText] = useState<undefined | string>(undefined);
   const balance = useBalance();
   const [fee, setFee] = useState(Number);
+  const [FailedFee, setFailedFee] = useState('');
   const [inputs, setInputs] = useState(Number);
   const [outputs, setOutputs] = useState(Number);
   // const [Response, setResponse] = useState<undefined | any>(undefined)
@@ -32,7 +33,12 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
   useEffect(() => {
     async function getResponse() {
       if (toText) {
-        setFee(await calculateFee(await getTxData(toText)));
+        const fee = await calculateFee(await getTxData(toText));
+        if (typeof fee === 'number') {
+          setFee(fee);
+        } else {
+          setFailedFee(fee);
+        }
       }
     }
     getResponse();
@@ -58,10 +64,10 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     } else return { kind: 'error', message: 'not a valid txid.' };
   })();
 
-  async function calculateFee(Response: any): Promise<number> {
+  async function calculateFee(Response: any): Promise<number | string> {
     const feeSchedule = await getFeeSchedule(wallet.config);
     if (Response.status.confirmed === true) {
-      throw 'Invalid TX | TXID already confirmed';
+      return 'Invalid TX | TXID already confirmed';
     }
     if (!Response.status === undefined || !Response.vin) {
       throw Response;
@@ -72,12 +78,12 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     for (let index = 0; index < Response.vin.length; index++) {
       const sequence = Response.vin[index];
       if (sequence.sequence === undefined) {
-        throw 'invalid txid';
+        return 'invalid txid';
       }
 
       // needs to be lower than 0xfffffffe
       if (!(sequence.sequence < parseInt('0xfffffffe', 16))) {
-        throw 'Not flagging for RBF';
+        return 'Not flagging for RBF';
       }
     }
     // get the current fee
@@ -151,7 +157,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
 
           {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
           <p>
-            <b>Expected Fee:</b> {fee != 0 ? fee + ' sat' : "Couldn't calculate fee"}
+            <b>Expected Fee:</b> {fee != 0 ? fee + ' sat' : FailedFee}
           </p>
           <FormGroup row>
             <Col className="submit-button-container">

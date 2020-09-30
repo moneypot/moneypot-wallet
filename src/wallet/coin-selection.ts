@@ -6,7 +6,7 @@ interface Coin {
 
 type FindResult<T> = { found: T[]; excess: number };
 
-export function findAtLeast<T extends Coin>(coins: T[], target: number): FindResult<T> | undefined {
+export function findAtLeast<T extends Coin>(coins: T[], target: number): FindResult<T> | number | undefined {
   isTrue(Number.isSafeInteger(target));
   isTrue(target > 0);
 
@@ -28,7 +28,9 @@ export function findAtLeast<T extends Coin>(coins: T[], target: number): FindRes
       };
     }
   }
-
+  if (amount < target) {
+    return target - amount;
+  }
   return undefined;
 }
 

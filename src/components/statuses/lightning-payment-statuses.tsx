@@ -1,3 +1,4 @@
+import * as hi from 'moneypot-lib';
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
@@ -9,6 +10,7 @@ import { useClaimableStatuses, wallet } from '../../state/wallet';
 import { notError } from '../../util';
 import Failed from 'moneypot-lib/dist/status/failed';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
+import Claimed from 'moneypot-lib/dist/status/claimed';
 type LightningInvoiceProps = {
   paymentRequest: string;
   memo: string;
@@ -48,51 +50,80 @@ export default function LightningPayment(props: LightningInvoiceProps) {
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
+      if (!statuses) {
+        return;
+      }
       if (statuses) {
-        if (statuses.length > 0) {
-          for (const s of statuses) {
-            if (s instanceof LightningPaymentSent) {
-              setPaymentStatusSuccess(s);
-              setpaymentPreimage(mp.Buffutils.toHex(s.paymentPreimage));
-            }
-            if (s instanceof Failed) {
-              setPaymentStatusFailed(s);
+        for (const s of statuses) {
+          if (s instanceof LightningPaymentSent) {
+            setPaymentStatusSuccess(s);
+            setpaymentPreimage(mp.Buffutils.toHex(s.paymentPreimage));
+          }
+          if (s instanceof Failed) {
+            setPaymentStatusFailed(s);
+          }
+        }
+        if (!statuses.some(status => status instanceof LightningPaymentSent) && !statuses.some(status => status instanceof Failed)) {
+          await wallet.requestStatuses(props.claimableHash);
+        }
+        if (props.claimable instanceof mp.Acknowledged.default) {
+          // we want to claim on fail, and initial.
+          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof LightningPaymentSent)) {
+            if (statuses.filter(status => status instanceof Claimed).length < 2) {
+              const amountToClaim = hi.computeClaimableRemaining(props.claimable.contents, statuses);
+              if (amountToClaim > 0) {
+                await wallet.claimClaimable(props.claimable);
+              }
             }
           }
-          !statuses.some(status => status instanceof LightningPaymentSent) && (await wallet.requestStatuses(props.claimableHash));
-        } else await wallet.requestStatuses(props.claimableHash);
+        } else {
+          await wallet.acknowledgeClaimable(props.claimable);
+        }
       }
     };
     getData();
   }, [statuses]);
-
   const GetStatuses = () => {
     if (!statuses) {
       return <span>Loading statuses...</span>;
-    } else if (statuses.length > 0) {
-      for (const s of statuses) {
-        if (s instanceof LightningPaymentSent) {
-          return (
-            <a href="#status" className="btn btn-outline-success status-badge">
-              Sent!
-            </a>
-          );
-        }
-        if (s instanceof Failed) {
-          return (
-            <a href="#status" className="btn btn-outline-danger status-badge">
-              payment has failed!
-              {/* {s.reason} */}
-            </a>
-          );
-        }
-      }
     }
-    return (
-      <a href="#status" className="btn btn-outline-warning status-badge">
-        Pending!
-      </a>
-    );
+    // we don't know how many claims are required, could be 1, could be 2
+    if (statuses.some(status => status instanceof LightningPaymentSent)) {
+      return (
+        <a href="#status" className="btn btn-outline-success status-badge">
+          Sent!
+        </a>
+      );
+    }
+    if (statuses.some(status => status instanceof Failed)) {
+      return (
+        <a href="#status" className="btn btn-outline-danger status-badge">
+          payment has failed!
+          {/* {s.reason} */}
+        </a>
+      );
+    }
+    if (
+      !statuses.some(status => status instanceof LightningPaymentSent) &&
+      !statuses.some(status => status instanceof Failed) &&
+      props.claimable instanceof mp.Acknowledged.default
+    ) {
+      return (
+        <a href="#status" className="btn btn-outline-info status-badge">
+          payment is in transition!
+          {/* {s.reason} */}
+        </a>
+      );
+    } else if (!(props.claimable instanceof mp.Acknowledged.default)) {
+      return (
+        <a href="#status" className="btn btn-outline-danger status-badge">
+          Custodian is not yet aware of the payment request!
+          {/* {s.reason} */}
+        </a>
+      );
+    }
+
+    return <span>Loading statuses...</span>;
   };
 
   return (

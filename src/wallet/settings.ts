@@ -35,7 +35,7 @@ export default class Settings {
         throw new Error('expected a boolean value for this setting.');
       }
     }
-    const setting7_randomize_recovery = d.randomize_recovery;
+    const setting7_randomize_recovery = d.setting7_randomize_recovery;
     if (setting7_randomize_recovery) {
       if (typeof setting7_randomize_recovery != 'boolean') {
         throw new Error('expected a boolean value for this setting.');

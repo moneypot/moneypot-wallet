@@ -38,7 +38,19 @@ export default class Config {
 
     const custodian = util.notError(hi.CustodianInfo.fromPOD(d.custodian));
 
-    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian);
+    const sig = d.sig;
+    if (sig) {
+      if (hi.Signature.fromPOD(sig) instanceof Error) {
+        throw new Error('invalid sig provided.');
+      }
+    }
+    const pubkey = d.pubkey;
+    if (pubkey) {
+      if (hi.PublicKey.fromPOD(pubkey) instanceof Error) {
+        throw new Error('invalid pubkey provided.');
+      }
+    }
+    return new Config(mnemonic, gapLimit, seed, custodianUrl, custodian, sig, pubkey);
   }
 
   static async fromData(

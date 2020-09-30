@@ -28,64 +28,54 @@ export default function Settings() {
 
   useEffect(() => {
     const hasSettings = async () => {
-      if (wallet.settings.setting1_hasNested != undefined) {
-        if (wallet.settings.setting1_hasNested) {
-          setSetting1(true);
-        } else {
-          setSetting1(false);
-        }
+      console.log(wallet.settings);
+      if (wallet.settings.setting1_hasNested) {
+        setSetting1(true);
+      } else {
+        setSetting1(false);
       }
-      if (wallet.settings.setting2_hasCustomGapLimit != undefined) {
-        if (wallet.settings.setting2_hasCustomGapLimit) {
-          const amount = wallet.config.gapLimit;
-          if (amount != null) {
-            setAmountInput(amount);
-            setSetting2(true);
-          }
-        } else {
-          setSetting2(false);
-          if (wallet.config.gapLimit != 10) {
-            wallet.config.gapLimit = 10;
+      if (wallet.settings.setting2_hasCustomGapLimit) {
+        const amount = wallet.config.gapLimit;
+        if (amount != null) {
+          setAmountInput(amount);
+          setSetting2(true);
+        }
+      } else {
+        setSetting2(false);
+        if (wallet.config.gapLimit != 10) {
+          wallet.config.gapLimit = 10;
 
-            const walletConfig = await wallet.db.get('config', 1);
-            if (!walletConfig) {
-              return new Error('Invalid config?');
-            }
-            walletConfig.gapLimit = 10;
-            wallet.db.put('config', walletConfig);
+          const walletConfig = await wallet.db.get('config', 1);
+          if (!walletConfig) {
+            return new Error('Invalid config?');
           }
+          walletConfig.gapLimit = 10;
+          wallet.db.put('config', walletConfig);
         }
       }
 
-      if (wallet.settings.setting3_hasDisabledRBF != undefined) {
-        if (wallet.settings.setting3_hasDisabledRBF) {
-          setSetting3(true);
-        } else {
-          setSetting3(false);
-        }
+      if (wallet.settings.setting3_hasDisabledRBF) {
+        setSetting3(true);
+      } else {
+        setSetting3(false);
       }
-      if (wallet.settings.setting4_hasPTM != undefined) {
-        if (wallet.settings.setting4_hasPTM) {
-          console.log(wallet.settings.setting4_hasPTM);
-          setSetting4(true);
-        } else {
-          setSetting4(false);
-        }
+      if (wallet.settings.setting4_hasPTM) {
+        console.log(wallet.settings.setting4_hasPTM);
+        setSetting4(true);
+      } else {
+        setSetting4(false);
       }
-      if (wallet.settings.setting6_has0conf != undefined) {
-        if (wallet.settings.setting6_has0conf) {
-          setSetting6(true);
-        } else {
-          setSetting6(false);
-        }
+      if (wallet.settings.setting6_has0conf) {
+        setSetting6(true);
+      } else {
+        setSetting6(false);
       }
-      if (wallet.settings.setting7_randomize_recovery != undefined) {
-        if (wallet.settings.setting7_randomize_recovery) {
-          setSetting7(true);
-        } else {
-          setSetting7(false);
-        }
+      if (wallet.settings.setting7_randomize_recovery) {
+        setSetting7(true);
+      } else {
+        setSetting7(false);
       }
+
       // const setting5 = localStorage.getItem(`${wallet.db.name}-setting5-hasSyncWorkers`);
       // if (setting5) {
       //   if (setting5 === 'true') {
@@ -136,12 +126,12 @@ export default function Settings() {
       (settings.setting4_hasPTM = Setting4),
       (settings.setting6_has0conf = Setting6),
       (settings.setting7_randomize_recovery = Setting7),
-      (wallet.settings.setting1_hasNested = settings.setting1_hasNested),
-      (wallet.settings.setting2_hasCustomGapLimit = settings.setting2_hasCustomGapLimit),
-      (wallet.settings.setting3_hasDisabledRBF = settings.setting3_hasDisabledRBF),
-      (wallet.settings.setting4_hasPTM = settings.setting4_hasPTM),
-      (wallet.settings.setting6_has0conf = settings.setting6_has0conf),
-      (wallet.settings.setting7_randomize_recovery = settings.setting7_randomize_recovery),
+      (wallet.settings.setting1_hasNested = Setting1),
+      (wallet.settings.setting2_hasCustomGapLimit = Setting2),
+      (wallet.settings.setting3_hasDisabledRBF = Setting3),
+      (wallet.settings.setting4_hasPTM = Setting4),
+      (wallet.settings.setting6_has0conf = Setting6),
+      (wallet.settings.setting7_randomize_recovery = Setting7),
       wallet.db.put('settings', settings);
     toast.success('Settings saved successfully!');
   };
@@ -237,8 +227,7 @@ export default function Settings() {
                 wallet.
                 <p>
                   <b>Note:</b> This will make the recovery process significantly slower. If you don't enable this option, there is a chance that your custodian
-                  might be able to group several unblinded coins together through heuristic techniques. (Additional note: Even with the delay, doing this might
-                  still be trivial for the custodian, depending on the custodian's traffic.)
+                  might be able to group several unblinded coins together through heuristic techniques. (This is not foolproof!)
                 </p>
               </Label>
               <br />
