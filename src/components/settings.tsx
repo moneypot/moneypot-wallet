@@ -28,7 +28,6 @@ export default function Settings() {
 
   useEffect(() => {
     const hasSettings = async () => {
-      console.log(wallet.settings);
       if (wallet.settings.setting1_hasNested) {
         setSetting1(true);
       } else {
@@ -227,7 +226,7 @@ export default function Settings() {
                 wallet.
                 <p>
                   <b>Note:</b> This will make the recovery process significantly slower. If you don't enable this option, there is a chance that your custodian
-                  might be able to group several unblinded coins together through heuristic techniques. (This is not foolproof!)
+                  might be able to group several unblinded coins together with their blinded counterparts through heuristic techniques. (This is not foolproof!)
                 </p>
               </Label>
               <br />

@@ -45,9 +45,9 @@ export default async function(
 
       // no replayability..
       const ephemeral = hi.PrivateKey.fromRand().toPublicKey();
-      const custodianInfoHash = ci.hash();
-      const newUrl = `${custUrl}/ack-custodian-info/${custodianInfoHash.toPOD()}/${ephemeral.toPOD()}`;
-      const message = hi.Hash.fromMessage('verify', custodianInfoHash.buffer, ephemeral.buffer);
+      const ciHash = ci.hash();
+      const newUrl = `${custUrl}/ack-custodian-info/${ciHash.toPOD()}/${ephemeral.toPOD()}`;
+      const message = hi.Hash.fromMessage('verify', ciHash.buffer, ephemeral.buffer);
 
       const aci = await makeRequest<hi.POD.Signature>(newUrl);
       if (aci instanceof RequestError) {

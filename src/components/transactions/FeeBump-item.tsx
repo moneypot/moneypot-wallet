@@ -5,6 +5,7 @@ import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction
 
 import * as Docs from '../../wallet/docs';
 import Timeago from '../../util/timeago';
+import Failed from 'moneypot-lib/dist/status/failed';
 
 type Props = {
   statuses: mp.Status[] | undefined;
@@ -23,6 +24,9 @@ export default function FeeBumpItem({ claimable, statuses }: Props) {
     for (const s of statuses) {
       if (s instanceof BitcoinTransactionSent) {
         status = 'sent!';
+      }
+      if (s instanceof Failed) {
+        status = 'failed!'
       }
     }
   }

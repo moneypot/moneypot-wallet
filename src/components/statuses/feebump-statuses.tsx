@@ -9,6 +9,7 @@ import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction
 import { Link } from 'react-router-dom';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 import { RequestError } from '../../wallet/requests/make-request';
+import Failed from 'moneypot-lib/dist/status/failed';
 
 type FeeBumpProps = {
   created: Date;
@@ -45,11 +46,16 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
         }
 
         if (props.claimable instanceof mp.Acknowledged.default) {
-          if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
+          if (!statuses.some(status => status instanceof BitcoinTransactionSent) && !statuses.some(status => status instanceof Failed)) {
             await wallet.requestStatuses(props.claimableHash);
           }
           if (!statuses.some(status => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
             await wallet.claimClaimable(props.claimable);
+          }
+          if (statuses.some(status => status instanceof Failed)) {
+            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) { 
+              await wallet.claimClaimable(props.claimable)
+            }
           }
         } else {
           wallet.acknowledgeClaimable(props.claimable);
@@ -74,6 +80,13 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             );
           }
         }
+        if (statuses.some(status => status instanceof Failed)) {
+          return (
+            <a href="#status" className="btn btn-outline-danger status-badge">
+              Feebump failed!
+            </a>
+          );
+        }
         if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
             <a href="#status" className="btn btn-outline-info status-badge">
@@ -90,7 +103,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       } else {
         return (
           <a href="#status" className="btn btn-outline-info status-badge">
-            Custodian is not yet aware of the Hookout!
+            Custodian is not yet aware of the Feebump!
           </a>
         );
       }

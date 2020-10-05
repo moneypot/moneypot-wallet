@@ -581,6 +581,10 @@ export default class Database extends EventEmitter {
           if (statuses.some(status => status instanceof HookinAccepted)) {
             if (statuses.some(status => status instanceof Claimed)) {
               check = false;
+            } else {
+              if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
+                check = false; // if a hookin is *worthless*
+              }
             }
           }
           break;
@@ -791,12 +795,12 @@ export default class Database extends EventEmitter {
 
     // include the previous loop
     let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
-
+    let ghostChance = Buffer.from(hi.random(1)).readUInt8(0) % 10;
     for (const checkCoin of Unspent) {
       if (this.settings.setting7_randomize_recovery) {
-        await delay(Math.random() * 10000);
-        // fake a coin, 50% chance
-        if (Buffer.from(hi.random(1)).readUInt8(0) % 2 === 0) {
+        await delay(Math.random() * 3000);
+        // fake a coin, x% chance.
+        if (Buffer.from(hi.random(1)).readUInt8(0) % 10 >= ghostChance) {
           await getClaimableByInputOwner(
             this.config,
             hi.PrivateKey.fromRand()
@@ -1059,7 +1063,7 @@ export default class Database extends EventEmitter {
         }
       }
       if (claimable.hash().toPOD() != ackd.contents.hash().toPOD()) {
-        throw new Error('Custodian send a wrong claimable back!');
+        throw new Error('Custodian sent a wrong claimable back!');
       }
       if (!ackd.verify(this.config.custodian.acknowledgementKey)) {
         throw new Error('Custodian did not properly acknowledge this claimable.');

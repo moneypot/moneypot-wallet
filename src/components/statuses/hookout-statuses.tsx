@@ -19,6 +19,7 @@ import {
 } from '../../config';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 import { RequestError } from '../../wallet/requests/make-request';
+import Failed from 'moneypot-lib/dist/status/failed';
 
 type HookoutProps = {
   created: Date;
@@ -88,11 +89,16 @@ export default function HookoutStatuses(props: HookoutProps) {
           }
         }
         if (props.claimable instanceof mp.Acknowledged.default) {
-          if (!statuses.some(status => status instanceof BitcoinTransactionSent)) {
+          if (!statuses.some(status => status instanceof BitcoinTransactionSent) && !statuses.some(status => status instanceof Failed)) {
             await wallet.requestStatuses(props.claimableHash);
           }
           if (!statuses.some(status => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
             await wallet.claimClaimable(props.claimable);
+          }
+          if (statuses.some(status => status instanceof Failed)) {
+            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) { 
+              await wallet.claimClaimable(props.claimable)
+            }
           }
         } else {
           await wallet.acknowledgeClaimable(props.claimable);
@@ -120,6 +126,13 @@ export default function HookoutStatuses(props: HookoutProps) {
               </a>
             );
           }
+        }
+        if (statuses.some(status => status instanceof Failed)) {
+          return (
+            <a href="#status" className="btn btn-outline-danger status-badge">
+              Hookout failed!
+            </a>
+          );
         }
         if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
