@@ -87,7 +87,6 @@ export default function HookinStatuses(props: HookinProps) {
       );
     }
   };
-
   return (
     <div>
       <h5>
@@ -148,7 +147,7 @@ export default function HookinStatuses(props: HookinProps) {
             </div>
           </Col>
         </Row>
-        {statuses && statuses.some(status => status instanceof Claimed && status.claimRequest.fee != 0) && (
+        {statuses && statuses.some(status => status instanceof Claimed && status.claimRequest.fee != 0) === false ? (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>
               <p className="address-title">Anti-Cheating Fee: </p>
@@ -158,13 +157,15 @@ export default function HookinStatuses(props: HookinProps) {
                 {`${CurrentFee} sat`}
 
                 {/* <CopyToClipboard className="btn btn-light" style={{}} text={CurrentConsolidationFee.toString()}>
-                <i className="fa fa-copy" />
-              </CopyToClipboard> */}
+          <i className="fa fa-copy" />
+        </CopyToClipboard> */}
               </div>
             </Col>
           </Row>
+        ) : (
+          undefined
         )}
-        {Memo != undefined && (
+        {Memo != undefined ? (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>
               <p className="address-title">Memo: </p>
@@ -173,6 +174,8 @@ export default function HookinStatuses(props: HookinProps) {
               <div className="claimable-text-container">{Memo}</div>
             </Col>
           </Row>
+        ) : (
+          undefined
         )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
@@ -182,7 +185,7 @@ export default function HookinStatuses(props: HookinProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {claimable.amount < CurrentConsolidationFee && (
+        {claimable.amount < CurrentConsolidationFee != false ? (
           <Row>
             <Col sm={{ size: 8, offset: 0 }}>
               <div className="claimable-text-container">
@@ -193,6 +196,8 @@ export default function HookinStatuses(props: HookinProps) {
               </div>
             </Col>
           </Row>
+        ) : (
+          undefined
         )}
       </div>
     </div>

@@ -165,7 +165,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
       </h5>
       <div className="inner-container">
         <GetStatuses />
-        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired && (
+        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired ? (
           <div className="qr-code-wrapper">
             <div className="qr-code-container">
               <span>
@@ -173,6 +173,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </span>
             </div>
           </div>
+        ) : (
+          undefined
         )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
@@ -187,7 +189,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             </div>
           </Col>
         </Row>
-        {hasPreimage != undefined && (
+        {hasPreimage != undefined ? (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>
               <p className="address-title">rPreimage:</p>
@@ -196,11 +198,13 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               <div className="address-text-container">
                 {hasPreimage}{' '}
                 {/* <CopyToClipboard className="btn btn-light" style={{}} text={hasPreimage}>
-                  <i className="fa fa-copy" />
-                </CopyToClipboard> */}
+          <i className="fa fa-copy" />
+        </CopyToClipboard> */}
               </div>
             </Col>
           </Row>
+        ) : (
+          undefined
         )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
@@ -225,7 +229,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container" style={{ wordBreak: 'break-word' }}>
-              {description != null && description.toString()}
+              {description != null ? description.toString() : undefined}
             </div>
             <br />
           </Col>
@@ -238,32 +242,28 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {expired && statuses
-          ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
-              <Row>
-                <Col sm={{ size: 8, offset: 0 }}>
-                  <div className="claimable-text-container">
-                    {' '}
-                    <a href="#status" className="btn btn-outline-danger status-badge">
-                      This invoice has expired!
-                    </a>
-                  </div>
-                </Col>
-              </Row>
-            )
-          : undefined}
-        {!expired && statuses
-          ? !statuses.some(status => status instanceof InvoiceSettledStatus) && (
-              <Button color={Tcolor}>
+        {expired && statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
+          <Row>
+            <Col sm={{ size: 8, offset: 0 }}>
+              <div className="claimable-text-container">
                 {' '}
-                {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" />) ||
-                  (timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
-                  (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
-                  (timeLeft.days <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
-                {timerComponents}
-              </Button>
-            )
-          : undefined}
+                <a href="#status" className="btn btn-outline-danger status-badge">
+                  This invoice has expired!
+                </a>
+              </div>
+            </Col>
+          </Row>
+        ) : undefined}
+        {!expired && statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
+          <Button color={Tcolor}>
+            {' '}
+            {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" />) ||
+              (timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
+              (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
+              (timeLeft.days <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
+            {timerComponents}
+          </Button>
+        ) : undefined}
       </div>
     </div>
   );

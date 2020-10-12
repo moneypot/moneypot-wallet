@@ -69,7 +69,7 @@ export default function Faq() {
     Tcolor = timeLeft.days > 7 ? 'info' : 'danger';
   }
 
-  const url = 'https://1ml.com/testnet/node/' + (lightninginfo != null && lightninginfo.lnd.node.pub_key);
+  const url = 'https://1ml.com/testnet/node/' + (lightninginfo && lightninginfo.lnd.node.pub_key ? lightninginfo.lnd.node.pub_key : undefined);
   return (
     <div>
       <h5>FAQ and General information</h5>

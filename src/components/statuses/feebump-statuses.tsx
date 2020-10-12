@@ -53,8 +53,8 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             await wallet.claimClaimable(props.claimable);
           }
           if (statuses.some(status => status instanceof Failed)) {
-            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) { 
-              await wallet.claimClaimable(props.claimable)
+            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) {
+              await wallet.claimClaimable(props.claimable);
             }
           }
         } else {
@@ -110,7 +110,6 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
     }
     return <span>Loading Statuses...</span>;
   };
-
   return (
     <div>
       <h5>
@@ -165,10 +164,12 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {IsConfirmed === false && (
+        {!IsConfirmed ? (
           <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
             <button className="btn btn-secondary">Feebump this transaction!</button>
           </Link>
+        ) : (
+          undefined
         )}
       </div>
     </div>

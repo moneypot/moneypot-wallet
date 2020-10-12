@@ -96,8 +96,8 @@ export default function HookoutStatuses(props: HookoutProps) {
             await wallet.claimClaimable(props.claimable);
           }
           if (statuses.some(status => status instanceof Failed)) {
-            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) { 
-              await wallet.claimClaimable(props.claimable)
+            if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) {
+              await wallet.claimClaimable(props.claimable);
             }
           }
         } else {
@@ -230,7 +230,7 @@ export default function HookoutStatuses(props: HookoutProps) {
           </Col>
         </Row>
 
-        {Memo != undefined && (
+        {Memo != undefined ? (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>
               <p className="address-title">Memo: </p>
@@ -239,6 +239,8 @@ export default function HookoutStatuses(props: HookoutProps) {
               <div className="claimable-text-container">{Memo}</div>
             </Col>
           </Row>
+        ) : (
+          undefined
         )}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
@@ -248,10 +250,12 @@ export default function HookoutStatuses(props: HookoutProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {IsConfirmed === false && (
+        {!IsConfirmed ? (
           <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
             <button className="btn btn-secondary">Feebump this transaction!</button>
           </Link>
+        ) : (
+          undefined
         )}
       </div>
     </div>

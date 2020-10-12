@@ -1,5 +1,4 @@
-
-.table { 
+.table {
   margin-bottom: 1rem;
   color: #434d57;
   border-collapse: collapse;
@@ -30,11 +29,6 @@ td {
   tr {
     border-bottom: 1px solid #ccc;
   }
-  // td {
-  //   border: none;
-  //   position: relative;
-  //   word-wrap: break-word;
-  // }
 
   td:before {
     position: absolute;

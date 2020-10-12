@@ -55,11 +55,13 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               </InputGroup>
             </Col>
           </FormGroup>
-          {lightninginfo != null && (amount > lightninginfo.lc.highest_inbound || amount > 4294967) && (
+          {lightninginfo != null && (amount > lightninginfo.lc.highest_inbound || amount > 4294967) ? (
             <code>
               Even if we were using the most optimal route, our node still does not have enough capacity to handle an invoice of such amount, so you can only
               use this invoice for internal transfers!
             </code>
+          ) : (
+            undefined
           )}
           <FormGroup row>
             <Col className="submit-button-container">

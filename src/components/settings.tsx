@@ -119,6 +119,10 @@ export default function Settings() {
       wallet.db.put('config', walletConfig);
     }
 
+    if (settings.setting1_hasNested != Setting1) {
+      await wallet.resetAddresses();
+    }
+
     (settings.setting1_hasNested = Setting1),
       (settings.setting2_hasCustomGapLimit = Setting2),
       (settings.setting3_hasDisabledRBF = Setting3),

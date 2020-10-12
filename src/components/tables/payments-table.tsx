@@ -80,12 +80,11 @@ function Payment({ paymentsDoc }: { paymentsDoc: Docs.Claimable & hi.POD.Lightni
         {' '}
         <Link to={`/claimables/${paymentsDoc.hash}`}>{paymentsDoc.paymentRequest.substring(0, 32)}...</Link>
       </td>
-      {/* <td>{paymentpreimage != null && paymentpreimage.toString().substring(0, 32)}</td> */}
       <td>{memo}</td>
       <td>{paymentsDoc.amount} sat</td>
-      <td>{totalfees && totalfees}</td>
-      <td>{rebate && rebate}</td>
-      <td>{failurereason && failurereason}</td>
+      <td>{totalfees ? totalfees : undefined}</td>
+      <td>{rebate ? rebate : undefined}</td>
+      <td>{failurereason ? failurereason : undefined}</td>
     </tr>
   );
 }

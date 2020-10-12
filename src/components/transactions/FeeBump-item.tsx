@@ -26,7 +26,7 @@ export default function FeeBumpItem({ claimable, statuses }: Props) {
         status = 'sent!';
       }
       if (s instanceof Failed) {
-        status = 'failed!'
+        status = 'failed!';
       }
     }
   }

@@ -94,7 +94,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     if (!feeSchedule) {
       throw new Error('Fetching feeschedules is hard!');
     }
-    const amount = feeSchedule.immediateFeeRate * Response.weight - Response.fee;
+    const amount = Math.round(feeSchedule.immediateFeeRate * Response.weight) - Response.fee;
     // It seems like feebump increase is by default 5 sat/b ? todo: check this
     const minFee = (Response.weight / 4) * 5;
     if (amount < minFee) {

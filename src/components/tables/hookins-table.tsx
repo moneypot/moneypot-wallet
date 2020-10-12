@@ -49,7 +49,6 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
       </button>
     );
   }
-
   return (
     <tr>
       <td>
@@ -61,14 +60,16 @@ function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
       <td>{hookinDoc.amount} sat</td>
       <td>
         {/* don't think this is necessary anymore */}
-        {hookinDoc.txid != undefined && (
+        {hookinDoc.txid != undefined ? (
           <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank" rel="noreferrer">
             {hookinDoc.txid.substring(0, 8)}...
           </a>
-        )}
+        ) : 
+          undefined
+        }
       </td>
       <td>{renderAckStatus()}</td>
-      <td>{memo != undefined && memo}</td>
+      <td>{memo != undefined ? memo : undefined}</td>
 
       <td>{hookinDoc.created.toISOString()}</td>
     </tr>

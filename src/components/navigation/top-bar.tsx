@@ -21,9 +21,9 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
   if (wallet.config.custodian.wipeDate) {
     TDifference = +new Date(wallet.config.custodian.wipeDate) - +new Date();
   }
-
-  function show() {
-    return props.isMobile ? (
+  let warning: undefined | JSX.Element = undefined
+  if (TDifference && ((TDifference / (1000 * 60 * 60 * 24)) < 7) && location.pathname === '/') { 
+   warning = props.isMobile ? (
       <Button color="danger">
         <Link to="/faq">Warning!</Link>
       </Button>
@@ -49,7 +49,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
           <b style={{ fontWeight: 'bold' }}>{props.isMobile ? '' : wallet.db.name} </b> {balance + ' sat'}
         </span>
         <div className="nav-item-right">
-          {TDifference != undefined && Math.floor(TDifference / (1000 * 60 * 60 * 24)) < 7 && location.pathname === '/' && show()}{' '}
+          {warning}{' '}
           {props.isMobile ? <SyncBtn /> : ''}
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
             <i className="fa fa-cog" />

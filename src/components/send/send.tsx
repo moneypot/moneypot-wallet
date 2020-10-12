@@ -92,6 +92,7 @@ export default function Send({ history }: Props) {
           }
 
           setSendType({ kind: 'lightning', amount: decodedBolt11.satoshis || 0 });
+          return;
         }
 
         let decodedBitcoinAddress = hi.decodeBitcoinAddress(toText);
@@ -462,7 +463,7 @@ export default function Send({ history }: Props) {
           </Col>
         </Row>
         <Row style={{ justifyContent: 'center' }}>
-          {feeSchedule && (
+          {feeSchedule ? (
             <small className="text-muted">
               This transaction will be sent with{' '}
               {prioritySelection === 'IMMEDIATE'
@@ -474,6 +475,8 @@ export default function Send({ history }: Props) {
                 : 1}{' '}
               sat/vbyte
             </small>
+          ) : (
+            undefined
           )}
         </Row>
       </div>
@@ -573,13 +576,15 @@ export default function Send({ history }: Props) {
           Memo:
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>{description}</Col>
-        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.label && (
+        {sendType.kind === 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.label ? (
           <React.Fragment>
             <Label for="" sm={3}>
               Label:
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>{bip21Invoice.options.label}</Col>
           </React.Fragment>
+        ) : (
+          undefined
         )}
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
           <small className="text-muted">
@@ -709,14 +714,13 @@ export default function Send({ history }: Props) {
     }
     return true;
   }
-
   return (
     <div>
       <ToastContainer />
       <h5 className="main-header">Send</h5>
       <div className="inner-container">
         <Form>
-          {toPTM === '' && (
+          {toPTM === '' ? (
             <FormGroup row className="bordered-form-group">
               <Label for="toText" sm={3}>
                 To:
@@ -736,8 +740,10 @@ export default function Send({ history }: Props) {
                 </InputGroup>
               </Col>
             </FormGroup>
+          ) : (
+            undefined
           )}
-          {toPTM === '' && (
+          {toPTM === '' ? (
             <FormGroup row className="bordered-form-group">
               <Label for="amountInput" sm={3}>
                 Amount:
@@ -748,18 +754,19 @@ export default function Send({ history }: Props) {
                   max={maxAmount}
                   currentFee={isValid(toText) === true ? calcFee() : 0}
                   amount={
-                    (sendType.kind === 'lightning' && sendType.amount) ||
-                    (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice && BitcoinInvoice.outputs[0].amount) ||
-                    (sendType.kind == 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.amount && bip21Invoice.options.amount) ||
+                    (sendType.kind === 'lightning' ? sendType.amount : undefined) ||
+                    (sendType.kind === 'bitcoinInvoice' && BitcoinInvoice ? BitcoinInvoice.outputs[0].amount : undefined) ||
+                    (sendType.kind == 'bitcoinbip21Invoice' && bip21Invoice && bip21Invoice.options.amount ? bip21Invoice.options.amount : undefined) ||
                     undefined
                   }
                 />
               </Col>
             </FormGroup>
+          ) : (
+            undefined
           )}
-
-          {ptm === true && toText === '' && ShowPayToMany()}
-          {toPTM != '' && AmountOfPTM()}
+          {ptm === true && toText === '' ? ShowPayToMany() : undefined}
+          {toPTM != '' ? AmountOfPTM() : undefined}
 
           {sendType.kind === 'bitcoin' || toPTM != '' ? (
             <FormGroup row className="bordered-form-group">
@@ -783,11 +790,12 @@ export default function Send({ history }: Props) {
           )}
           {/* {sendType.kind === 'lightning' || sendType.kind === "bitcoinInvoice" ? showLightningFeeSelection() : undefined} */}
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
-          {sendType.kind === 'bitcoinInvoice' || sendType.kind === 'bitcoinbip21Invoice' ? ShowBitcoinInvoiceAddresses() : undefined}
+          {sendType.kind === 'bitcoinInvoice' || sendType.kind === 'bitcoinbip21Invoice'
+            ? (ShowBitcoinInvoiceAddresses(), showBitcoinInvoiceFeeSelection())
+            : undefined}
           {sendType.kind === 'lightning' || sendType.kind === 'bitcoinInvoice' || sendType.kind === 'bitcoinbip21Invoice'
             ? showLightningDescription()
             : undefined}
-          {sendType.kind === 'bitcoinInvoice' && showBitcoinInvoiceFeeSelection()}
           {(toPTM === '' && sendType.kind === 'bitcoin') || sendType.kind === 'bitcoinbip21Invoice' ? showBitcoinFeeSelection() : undefined}
           {(sendType.kind === 'bitcoin' && (prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE')) ||
           (sendType.kind === 'bitcoinbip21Invoice' && (prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE')) ? (

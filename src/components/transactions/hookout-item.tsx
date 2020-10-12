@@ -25,8 +25,6 @@ export default function HookoutItem({ claimable, statuses }: Props) {
       if (s instanceof BitcoinTransactionSent) {
         status = 'sent!';
       }
-    }
-    for (const s of statuses) {
       if (s instanceof Failed) {
         status = 'Failed!';
       }
