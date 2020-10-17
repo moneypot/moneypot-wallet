@@ -9,7 +9,7 @@ import * as Docs from '../../wallet/docs';
 export default function ReceiveLightning(props: RouteComponentProps) {
   const [memo, setMemo] = useState('deposit');
   const [amount, setAmount] = useState(0);
-  const [lightninginfo, setlightninginfo] = useState<{ lnd: Docs.LND; lc: Docs.LightningCapacities } | null>(null);
+  const [lightninginfo, setlightninginfo] = useState<Docs.LND | null>(null);
   useEffect(() => {
     const getCapabilities = async () => {
       setlightninginfo(await wallet.requestLightningInfo());
@@ -55,7 +55,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               </InputGroup>
             </Col>
           </FormGroup>
-          {lightninginfo != null && (amount > lightninginfo.lc.highest_inbound || amount > 4294967) ? (
+          {lightninginfo && amount > lightninginfo.remote_balance ? ( // Multi path payments is a thing? ()
             <code>
               Even if we were using the most optimal route, our node still does not have enough capacity to handle an invoice of such amount, so you can only
               use this invoice for internal transfers!

@@ -498,15 +498,26 @@ export default class Database extends EventEmitter {
 
   public async getBalance() {
     const coins = await this.listUnspent();
-
     let sum = 0;
     for (const coin of coins) {
       sum += 2 ** coin.magnitude;
     }
-
     return sum;
   }
 
+  // copied from coin-selection
+  public async getMaxSend() {
+    const coins = await this.listUnspent();
+    const candidates = [...coins] // first we copy (avoid mutation)
+      .sort((a, b) => b.magnitude - a.magnitude) // sort by biggest first...
+      .slice(0, 255); // max coins a transfer can have
+
+    let sum = 0;
+    for (const coin of candidates) {
+      sum += 2 ** coin.magnitude;
+    }
+    return sum;
+  }
   // should we delay...? It'll leak blind information...?
   async syncBitcoinAddresses() {
     let gapCount = 0;
@@ -530,9 +541,9 @@ export default class Database extends EventEmitter {
       const purpose = 'lightningInvoice';
 
       const claimant = this.deriveClaimableClaimant(index, purpose).toPublicKey();
-      const invoices = await getInvoicesByClaimant(this.config, claimant);
+      const invoice = await getInvoicesByClaimant(this.config, claimant);
 
-      if (invoices.length === 0) {
+      if (!invoice) {
         gapCount++;
         continue;
       }
@@ -540,24 +551,26 @@ export default class Database extends EventEmitter {
       gapCount = 0;
       const transaction = this.db.transaction(['counters', 'claimables', 'events'], 'readwrite');
       let added = false;
-      for (const invoice of invoices) {
-        const invoiceHash = invoice.hash().toPOD();
+      // TODO?
+      // for (const invoice of invoices) {
+      const invoiceHash = invoice.hash().toPOD();
 
-        const found = await transaction.objectStore('claimables').getKey(invoiceHash);
+      const found = await transaction.objectStore('claimables').getKey(invoiceHash);
 
-        if (found) {
-          continue;
-        }
-
-        const invoiceDoc = {
-          created: new Date(),
-          ...invoice.toPOD(),
-        };
-        await this.createCounter(purpose, index, claimant, transaction);
-
-        await transaction.objectStore('claimables').add(invoiceDoc);
-        added = true;
+      if (found) {
+        continue;
       }
+
+      const i = invoice.toPOD();
+      const invoiceDoc = {
+        created: i.initCreated ? new Date(i.initCreated) : new Date(),
+        ...i,
+      };
+      await this.createCounter(purpose, index, claimant, transaction);
+
+      await transaction.objectStore('claimables').add(invoiceDoc);
+      added = true;
+      // }
 
       if (added) {
         await this.emitInTransaction('table:claimables', transaction);
@@ -772,7 +785,7 @@ export default class Database extends EventEmitter {
         const e = c.inputs;
         for (const k of e) {
           if (coin.owner === k.owner) {
-            console.log(`we found a claimable for ${coin.owner}, no need to send a request to the custodian`);
+            // console.log(`we found a claimable for ${coin.owner}, no need to send a request to the custodian`);
             hasLocal.push(coin);
             //unnec
             break;
@@ -783,7 +796,7 @@ export default class Database extends EventEmitter {
       if (emptySyncedCoinsPrevious != undefined) {
         for (const c of emptySyncedCoinsPrevious) {
           if (coin.owner === c.owner) {
-            console.log(`We have already filtered ${coin.owner} before, no need to send again`);
+            // console.log(`We have already filtered ${coin.owner} before, no need to send again`);
             hasLocal.push(coin);
           }
         }
@@ -791,12 +804,13 @@ export default class Database extends EventEmitter {
     }
 
     let Unspent = coins.filter(x => !hasLocal.includes(x));
-    let newAckedClaimables: Docs.Claimable[] = [];
-
     // include the previous loop
     let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
     let ghostChance = Buffer.from(hi.random(1)).readUInt8(0) % 10;
     for (const checkCoin of Unspent) {
+      if (hasFound) {
+        break;
+      }
       if (this.settings.setting7_randomize_recovery) {
         await delay(Math.random() * 3000);
         // fake a coin, x% chance.
@@ -822,23 +836,19 @@ export default class Database extends EventEmitter {
       }
       hasFound = true;
 
+      const c = claimable.toPOD();
+
       const claimableDoc: Docs.Claimable = {
-        created: new Date(),
-        ...claimable.toPOD(),
+        created: c.initCreated ? new Date(c.initCreated) : new Date(),
+        ...c,
       };
-      newAckedClaimables.push(claimableDoc);
 
       await transaction.objectStore('claimables').add(claimableDoc);
       await this.emitInTransaction('table:claimables', transaction);
 
       await transaction.done;
-    }
-
-    // ideally we want to reduce the results of the status before submitting to querying all coins (new coins from UNSPENT)
-    for (const claimable of newAckedClaimables) {
-      // too lazy to fix actual errors...?
       try {
-        await this.requestStatuses(claimable.hash);
+        await this.requestStatuses(claimableHash);
         await this.claimClaimable(claimable);
       } catch (e) {
         continue;
@@ -996,25 +1006,10 @@ export default class Database extends EventEmitter {
     for (const receive of receives) {
       const claimant = util.notError(hi.PublicKey.fromPOD(bitcoinAddressDoc.claimant));
 
-      // reconstruct private key to sign hookin, if you want to use 0conf
       if (this.deriveBitcoinAddressFromClaimant(claimant) !== bitcoinAddressDoc.address) {
         throw new Error('assertion failed: derived wrong bitcoin address');
       }
 
-      // const enable0conf = localStorage.getItem(`${this.db.name}-setting6-enable0conf`);
-      // let confSig: hi.POD.Signature | undefined;
-      // if (enable0conf) {
-      //   if (enable0conf === 'true') {
-      //     const counter = await transaction.objectStore("counters").index('by-value').get(claimant.toPOD())
-      //     let key: hi.PrivateKey | undefined;
-      //     if (counter) {
-      //       key = this.deriveClaimableClaimant(counter.index, counter.purpose)
-      //     }
-      //     if (key) {
-      //       confSig = hi.Signature.compute(hi.Buffutils.fromString(enable0conf), key).toPOD()
-      //     }
-      //   }
-      // }
       let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
 
       let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
@@ -1069,10 +1064,10 @@ export default class Database extends EventEmitter {
         throw new Error('Custodian did not properly acknowledge this claimable.');
       }
     }
-
+    const ackPOD = ackd.toPOD();
     await this.db.put('claimables', {
-      ...ackd.toPOD(),
-      created: new Date(),
+      ...ackPOD,
+      created: ackPOD.initCreated ? new Date(ackPOD.initCreated) : new Date(), // fix recovery date, TODO: only works if the custodian has seen the claimable, and only shows when the custodian became aware of the custodian. on-chain times may differ significantly?!
     });
     await this.emit('table:claimables');
 

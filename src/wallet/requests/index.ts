@@ -35,7 +35,7 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
 
 export async function getLightningInfo(config: Config) {
   const url = `${config.custodianUrl}/inbound-outbound-capacity-lightning/`;
-  const resp = await makeRequest<{ lc: Docs.LightningCapacities; lnd: Docs.LND }>(url);
+  const resp = await makeRequest<Docs.LND>(url);
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);

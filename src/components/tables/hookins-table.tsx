@@ -2,76 +2,155 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import * as hi from 'moneypot-lib';
 
-import { wallet } from '../../state/wallet';
+import { wallet, useClaimableStatuses } from '../../state/wallet';
 
 import * as Docs from '../../wallet/docs';
 import { notError } from '../../util';
+import HookinAccepted from 'moneypot-lib/dist/status/hookin-accepted';
+import useSortableData from './table-util';
+// import Claimed from 'moneypot-lib/dist/status/claimed';
+import { Table } from 'reactstrap';
 
-export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & hi.POD.Hookin)[] }) {
+function x(hookin: Docs.Claimable & hi.POD.Hookin) {
   return (
-    <table className="table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>address</th>
-          <th>amount</th>
-          <th>tx</th>
-          <th>ackd</th>
-          <th>memo</th>
-          <th>created</th>
-        </tr>
-      </thead>
-      <tbody>
-        {hookins.map(hookin => (
-          <Hookin key={hookin.hash} hookinDoc={hookin} />
-        ))}
-      </tbody>
-    </table>
+    <button
+      type="button"
+      onClick={() => {
+        const hook = notError(hi.Hookin.fromPOD(hookin));
+        wallet.acknowledgeClaimable(hook);
+      }}
+    >
+      Claim
+    </button>
   );
 }
 
-function Hookin({ hookinDoc }: { hookinDoc: Docs.Claimable & hi.POD.Hookin }) {
-  const memo = localStorage.getItem(hookinDoc.bitcoinAddress);
+export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & hi.POD.Hookin)[] }) {
+  let filteredHookins = [];
+  for (const hookin of hookins) {
+    const memo = localStorage.getItem(hookin.hash);
 
-  function renderAckStatus() {
-    if (hookinDoc.acknowledgement) {
-      return <span>Acknowledged</span>;
+    const statuses = useClaimableStatuses(hookin.hash);
+    let statusT: string | undefined = undefined;
+    if (statuses) {
+      for (const status of statuses) {
+        if (status instanceof HookinAccepted) {
+          statusT = 'ACCEPTED';
+        }
+      }
+    }
+    if (!hookin.acknowledgement) {
+      statusT = 'UNACKED';
+    }
+    if (!statusT) {
+      statusT = 'UNKNOWN';
     }
 
-    return (
-      <button
-        onClick={() => {
-          const hookin = notError(hi.Hookin.fromPOD(hookinDoc));
-          wallet.acknowledgeClaimable(hookin);
-        }}
-      >
-        Claim
-      </button>
-    );
+    filteredHookins.push({
+      hash: hookin.hash,
+      address: hookin.bitcoinAddress,
+      amount: hookin.amount,
+      txid: hookin.txid,
+      status: statusT,
+      memo,
+      created: hookin.created,
+      hookin,
+    });
   }
-  return (
-    <tr>
-      <td>
-        <Link to={`/claimables/${hookinDoc.hash}`}>{hookinDoc.hash.substring(0, 32)}...</Link>
-      </td>
-      <td>
-        <Link to={`/addresses/${hookinDoc.bitcoinAddress}`}>{hookinDoc.bitcoinAddress}</Link>
-      </td>
-      <td>{hookinDoc.amount} sat</td>
-      <td>
-        {/* don't think this is necessary anymore */}
-        {hookinDoc.txid != undefined ? (
-          <a href={`https://blockstream.info/testnet/tx/${hookinDoc.txid}?input:${hookinDoc.vout}`} target="_blank" rel="noreferrer">
-            {hookinDoc.txid.substring(0, 8)}...
-          </a>
-        ) : 
-          undefined
-        }
-      </td>
-      <td>{renderAckStatus()}</td>
-      <td>{memo != undefined ? memo : undefined}</td>
 
-      <td>{hookinDoc.created.toISOString()}</td>
-    </tr>
+  const { items, requestSort, sortConfig } = useSortableData(filteredHookins, null);
+  const getClassNamesFor = (name: string) => {
+    if (!sortConfig) {
+      return;
+    }
+    return sortConfig.key === name ? sortConfig.direction : undefined;
+  };
+
+  return (
+    <Table hover className="table">
+      <thead>
+        <tr>
+          <th>
+            <button type="button" onClick={() => requestSort('hash')} className={getClassNamesFor('hash')}>
+              hash
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('address')} className={getClassNamesFor('address')}>
+              payment
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('amount')} className={getClassNamesFor('amount')}>
+              amount
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('txid')} className={getClassNamesFor('txid')}>
+              txid
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('memo')} className={getClassNamesFor('memo')}>
+              memo
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('status')} className={getClassNamesFor('status')}>
+              status
+            </button>
+          </th>
+          <th>
+            <button type="button" onClick={() => requestSort('created')} className={getClassNamesFor('created')}>
+              created
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map(item => (
+          <tr key={item.hash}>
+            <td>
+              <Link to={`/claimables/${item.hash}`}>{item.hash.substring(0, 32)}...</Link>
+            </td>
+            <td>
+              {' '}
+              <a href={`https://blockstream.info/testnet/address/${item.address}`} target="_blank" rel="noreferrer">
+                {item.address}
+              </a>
+            </td>
+            <td>{item.amount}</td>
+            <td>
+              {/* don't think this is necessary anymore */}
+              {item.txid != undefined ? (
+                <a href={`https://blockstream.info/testnet/tx/${item.txid}?input:${item.hookin.vout}`} target="_blank" rel="noreferrer">
+                  {item.txid}...
+                  {/* .substring(0, 8) */}
+                </a>
+              ) : (
+                undefined
+              )}
+            </td>
+            <td>{item.memo}</td>
+            <td>
+              {item.status === 'ACCEPTED' ? (
+                <p>
+                  <i className="fad fa-check" /> ACCEPTED
+                </p>
+              ) : item.status === 'UNACKED' ? (
+                x(item.hookin)
+              ) : item.status === 'UNKNOWN' ? (
+                <p>
+                  <i className="fad fa-question" /> UNKNOWN
+                </p>
+              ) : (
+                undefined
+              )}
+            </td>
+            <td>{item.created.toISOString()}</td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
   );
 }

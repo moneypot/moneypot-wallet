@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as hi from 'moneypot-lib';
 
-import { wallet, useBalance } from '../../state/wallet';
+import { wallet, useBalance, useMaxSend } from '../../state/wallet';
 import { Row, Button, Form, FormGroup, Label, Input, Col, InputGroup } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee-schedule';
@@ -64,7 +64,8 @@ export default function Send({ history }: Props) {
   const [feeText, setFeeText] = useState('');
 
   const [feeLimit, setFeeLimit] = useState(100);
-  const balance = useBalance();
+  // const balance = useBalance();
+  const maxSend = useMaxSend();
   useEffect(() => {
     const hasRBF = wallet.settings.setting3_hasDisabledRBF;
     if (hasRBF != undefined) {
@@ -539,7 +540,7 @@ export default function Send({ history }: Props) {
         </Label>
         <Col sm={{ size: 8, offset: 0 }}>
           <InputGroup>
-            <BitcoinAmountInput onAmountChange={setFeeLimit} max={maxAmount} defaultAmount={feeLimit} prefix="fee" />
+            <BitcoinAmountInput onAmountChange={setFeeLimit} max={maxSend} defaultAmount={feeLimit} prefix="fee" />
           </InputGroup>
           satoshis
         </Col>
@@ -706,7 +707,7 @@ export default function Send({ history }: Props) {
   //   }
   // }
 
-  const maxAmount = balance; // TODO: Reduce the tx fee
+  // const maxAmount = balance; // TODO: Reduce the tx fee
 
   function isValid(toText: string) {
     if (hi.decodeBitcoinAddress(toText) instanceof Error) {
@@ -751,7 +752,7 @@ export default function Send({ history }: Props) {
               <Col sm={{ size: 9, offset: 0 }}>
                 <BitcoinAmountInput
                   onAmountChange={setAmountInput}
-                  max={maxAmount}
+                  max={maxSend}
                   currentFee={isValid(toText) === true ? calcFee() : 0}
                   amount={
                     (sendType.kind === 'lightning' ? sendType.amount : undefined) ||
@@ -760,6 +761,13 @@ export default function Send({ history }: Props) {
                     undefined
                   }
                 />
+                {amountInput != 0 && amountInput > maxSend ? (
+                  <div>
+                    Due to a limitation of moneypot, you can at most send <code>{maxSend} sat</code>{' '}
+                  </div>
+                ) : (
+                  undefined
+                )}
               </Col>
             </FormGroup>
           ) : (

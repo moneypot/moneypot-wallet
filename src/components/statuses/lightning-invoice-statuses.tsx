@@ -253,17 +253,21 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </div>
             </Col>
           </Row>
-        ) : undefined}
+        ) : (
+          undefined
+        )}
         {!expired && statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
           <Button color={Tcolor}>
             {' '}
             {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" />) ||
               (timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
               (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
-              (timeLeft.days <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
+              (timeLeft.minutes <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
             {timerComponents}
           </Button>
-        ) : undefined}
+        ) : (
+          undefined
+        )}
       </div>
     </div>
   );

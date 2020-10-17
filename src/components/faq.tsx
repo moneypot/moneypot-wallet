@@ -32,16 +32,17 @@ export default function Faq() {
     return timeLeft;
   };
 
-  const [lightninginfo, setlightningInfo] = useState<{ lnd: Docs.LND; lc: Docs.LightningCapacities } | null>(null);
+  const [lightninginfo, setlightningInfo] = useState<Docs.LND | null>(null);
   const [year] = useState<Date | undefined>(wallet.config.custodian.wipeDate === undefined ? undefined : new Date(wallet.config.custodian.wipeDate));
   const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
-
   useEffect(() => {
     if (wallet.config.custodian.wipeDate) {
-      if (year) {
-        setTimeout(() => {
-          setTimeLeft(calculateTimeLeft(year));
-        }, 1000);
+      if (Date.now() < Date.parse(wallet.config.custodian.wipeDate)) { 
+        if (year) {
+          setTimeout(() => {
+            setTimeLeft(calculateTimeLeft(year));
+          }, 1000);
+        }
       }
     }
   });
@@ -55,7 +56,8 @@ export default function Faq() {
 
   let timerComponents: JSX.Element[] = [];
   if (wallet.config.custodian.wipeDate) {
-    for (const [key, value] of Object.entries(timeLeft)) {
+    if (Date.now() < Date.parse(wallet.config.custodian.wipeDate)) { 
+       for (const [key, value] of Object.entries(timeLeft)) {
       timerComponents.push(
         <span key={useUniqueId()}>
           {value} {key}{' '}
@@ -63,13 +65,13 @@ export default function Faq() {
       );
     }
   }
+}
 
   let Tcolor;
   if (timeLeft) {
     Tcolor = timeLeft.days > 7 ? 'info' : 'danger';
   }
-
-  const url = 'https://1ml.com/testnet/node/' + (lightninginfo && lightninginfo.lnd.node.pub_key ? lightninginfo.lnd.node.pub_key : undefined);
+  const url = 'https://1ml.com/testnet/node/' + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
   return (
     <div>
       <h5>FAQ and General information</h5>
@@ -77,16 +79,16 @@ export default function Faq() {
         <div className="inner-container">
           <h4>General information regarding the LND capabilities of this Custodian.</h4>
           <p>
-            The current inbound and outbound capacity: <b>{lightninginfo.lc.capacity} sat</b>
+            The current inbound and outbound capacity: <b>{lightninginfo.capacity} sat</b>
           </p>
           <p>
-            Of that capacity <b>{lightninginfo.lc.localbalance} sat</b> is Outbound capacity.
+            Of that capacity <b>{lightninginfo.local_balance} sat</b> is Outbound capacity.
           </p>
           <p>
-            Of that capacity <b>{lightninginfo.lc.remotebalance} sat</b> is Inbound capacity.
+            Of that capacity <b>{lightninginfo.remote_balance} sat</b> is Inbound capacity.
           </p>
           <p>
-            Currently number of open channels: <b>{lightninginfo.lnd.num_channels}</b>
+            Currently number of open channels: <b>{lightninginfo.num_channels}</b>
           </p>
           <p>
             For additional information, it might be possible to check external explorers{' '}

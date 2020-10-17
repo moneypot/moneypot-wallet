@@ -68,7 +68,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
         }
         if (props.claimable instanceof mp.Acknowledged.default) {
           // we want to claim on fail, and initial.
-          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof LightningPaymentSent)) {
+          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof Failed)) {
             if (statuses.filter(status => status instanceof Claimed).length < 2) {
               const amountToClaim = hi.computeClaimableRemaining(props.claimable.contents, statuses);
               if (amountToClaim > 0) {

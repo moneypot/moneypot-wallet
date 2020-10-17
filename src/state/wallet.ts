@@ -190,6 +190,28 @@ export function useBalance(): number {
   return balance;
 }
 
+export function useMaxSend(): number {
+  const [balance, setBalance] = useState(0);
+
+  async function getBalance() {
+    setBalance(await wallet.getMaxSend());
+  }
+
+  useEffect(() => {
+    const cleanup1 = wallet.on('table:claimables', getBalance);
+    const cleanup2 = wallet.on('table:coins', getBalance);
+
+    getBalance();
+
+    return () => {
+      cleanup1();
+      cleanup2();
+    };
+  }, []);
+
+  return balance;
+}
+
 export function useUnusedBitcoinAddress(): Docs.BitcoinAddress | undefined {
   const [address, setAddress] = useState<Docs.BitcoinAddress | undefined>(undefined);
   async function getAddress() {
