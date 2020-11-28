@@ -323,7 +323,6 @@ export default function Send({ history }: Props) {
     // this is DEFAULT
     if (toText != '' && toPTM === '' && !toText.startsWith('ln') && !toText.startsWith('bitcoin:')) {
       transferHash = await wallet.sendHookout(prioritySelection, toText, amount, calcFee(), disableRBF());
-
       if (typeof transferHash === 'string') {
         toast.error('Oops! ' + transferHash);
         return;
@@ -400,56 +399,56 @@ export default function Send({ history }: Props) {
     }
 
     // this is BIP70/PaymentProtocol.
-    if (toText.startsWith('bitcoin') && BitcoinInvoice) {
-      console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
-      if (new Date(typeof BitcoinInvoice.expires === 'number' ? BitcoinInvoice.expires * 1000 : BitcoinInvoice.expires) <= new Date(Date.now())) {
-        toast.error('Invoice has already expired! Please request a new one!');
-        return;
-        //  throw new Error("Invoice has expired in the meantime! Request a new one.")
-      }
-      // this is very inefficient
-      if (BitcoinInvoice.outputs.length > 1) {
-        for (const output of BitcoinInvoice.outputs) {
-          // we assume that the required fee rate is identical for each hookout. (This is still very costly as they're sent as individual hookouts. (Does this even work with sites such as bitpay? )
-          transferHash = await wallet.sendHookout(
-            prioritySelection,
-            output.address,
-            output.amount,
-            calcFee(output.address),
-            false
-            //  BitcoinInvoice.memo
-          );
-          if (typeof transferHash === 'string') {
-            toast.error('Oops! ' + transferHash);
-            return;
-          }
+    // if (toText.startsWith('bitcoin') && BitcoinInvoice) {
+    //   console.log('sending bitcoin Invoice payment: ', BitcoinInvoice.outputs, BitcoinInvoice.requiredFeeRate, BitcoinInvoice.memo, calcFee());
+    //   if (new Date(typeof BitcoinInvoice.expires === 'number' ? BitcoinInvoice.expires * 1000 : BitcoinInvoice.expires) <= new Date(Date.now())) {
+    //     toast.error('Invoice has already expired! Please request a new one!');
+    //     return;
+    //     //  throw new Error("Invoice has expired in the meantime! Request a new one.")
+    //   }
+    //   // this is very inefficient
+    //   if (BitcoinInvoice.outputs.length > 1) {
+    //     for (const output of BitcoinInvoice.outputs) {
+    //       // we assume that the required fee rate is identical for each hookout. (This is still very costly as they're sent as individual hookouts. (Does this even work with sites such as bitpay? )
+    //       transferHash = await wallet.sendHookout(
+    //         prioritySelection,
+    //         output.address,
+    //         output.amount,
+    //         calcFee(output.address),
+    //         false
+    //         //  BitcoinInvoice.memo
+    //       );
+    //       if (typeof transferHash === 'string') {
+    //         toast.error('Oops! ' + transferHash);
+    //         return;
+    //       }
 
-          // tx done, push memo to localstorage..?
-          localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
+    //       // tx done, push memo to localstorage..?
+    //       localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
 
-          history.push(`/claimables/${transferHash.toPOD()}`);
-        }
-      }
-      //TODO -> actually test this
-      else if (BitcoinInvoice.outputs.length === 1) {
-        transferHash = await wallet.sendHookout(
-          prioritySelection,
-          BitcoinInvoice.outputs[0].address,
-          BitcoinInvoice.outputs[0].amount,
-          calcFee(),
-          false
-          // BitcoinInvoice.memo
-        );
+    //       history.push(`/claimables/${transferHash.toPOD()}`);
+    //     }
+    //   }
+    //   //TODO -> actually test this
+    //   else if (BitcoinInvoice.outputs.length === 1) {
+    //     transferHash = await wallet.sendHookout(
+    //       prioritySelection,
+    //       BitcoinInvoice.outputs[0].address,
+    //       BitcoinInvoice.outputs[0].amount,
+    //       calcFee(),
+    //       false
+    //       // BitcoinInvoice.memo
+    //     );
 
-        if (typeof transferHash === 'string') {
-          toast.error('Oops! ' + transferHash);
-          return;
-        }
+    //     if (typeof transferHash === 'string') {
+    //       toast.error('Oops! ' + transferHash);
+    //       return;
+    //     }
 
-        localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
-        history.push(`/claimables/${transferHash.toPOD()}`);
-      }
-    }
+    //     localStorage.setItem(transferHash.toPOD(), BitcoinInvoice.memo);
+    //     history.push(`/claimables/${transferHash.toPOD()}`);
+    //   }
+    // }
   }
 
   function ShowFeeText() {

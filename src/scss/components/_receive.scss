@@ -3,9 +3,16 @@
   padding: 1rem;
   border-radius: 0.2rem;
   margin-bottom: 2rem;
-  display: flex;
+  // display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+// For a Small screen view
+@include media-breakpoint-up(sm) {
+  .address-text-container {
+    display: flex;
+  }
 }
 
 .claimable-text-container {

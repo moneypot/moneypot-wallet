@@ -1,7 +1,7 @@
 import React from 'react';
 import TransactionItem from './transaction-item';
 import { useClaimables } from '../../state/wallet';
-import { Button } from 'reactstrap';
+// import { Button } from 'reactstrap';
 
 export default function History() {
   const claimables = useClaimables();
@@ -21,9 +21,9 @@ export default function History() {
           <TransactionItem key={c.hash} claimable={c} />
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
         <Button color="primary">Load More</Button>
-      </div>
+      </div> */}
     </div>
   );
 }

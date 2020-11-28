@@ -7,14 +7,17 @@ import getFeeSchedule, { FeeScheduleResult } from '../../wallet/requests/get-fee
 import FetchTx, { AddressInfoTx } from '../../wallet/requests/bitcoin-txs';
 import { RouteComponentProps } from 'react-router-dom';
 import { RequestError } from '../../wallet/requests/make-request';
+
+import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
+
 type Props = { history: { push: (path: string) => void } };
 
-// Should probably actually ask the custodian...?
-function getTxData(decodedTxid: string): Promise<AddressInfoTx | RequestError> {
-  return FetchTx(decodedTxid).then(response => {
-    return response;
-  });
-}
+// // Should probably actually ask the custodian...?
+// function getTxData(decodedTxid: string): Promise<AddressInfoTx | RequestError> {
+//   return FetchTx(decodedTxid).then(response => {
+//     return response;
+//   });
+// }
 
 export default function FeebumpSend(props: RouteComponentProps, { history }: Props): JSX.Element {
   const [toText, setToText] = useState<undefined | string>(undefined);
@@ -29,11 +32,10 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
       setToText(props.history.location.state.txid.CurrentTxid);
     }
   }, []);
-
   useEffect(() => {
     async function getResponse() {
       if (toText) {
-        const fee = await calculateFee(await getTxData(toText));
+        const fee = await calculateFee(await fetchTxReceives(toText));
         if (typeof fee === 'number') {
           setFee(fee);
         } else {
@@ -64,7 +66,10 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     } else return { kind: 'error', message: 'not a valid txid.' };
   })();
 
-  async function calculateFee(Response: any): Promise<number | string> {
+  async function calculateFee(Response: RequestError | AddressInfoTx): Promise<number | string> {
+    if (Response instanceof RequestError) {
+      return `unable to fetch transaction ${Response.message}`;
+    }
     const feeSchedule = await getFeeSchedule(wallet.config);
     if (Response.status.confirmed === true) {
       return 'Invalid TX | TXID already confirmed';
@@ -77,9 +82,6 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
 
     for (let index = 0; index < Response.vin.length; index++) {
       const sequence = Response.vin[index];
-      if (sequence.sequence === undefined) {
-        return 'invalid txid';
-      }
 
       // needs to be lower than 0xfffffffe
       if (!(sequence.sequence < parseInt('0xfffffffe', 16))) {

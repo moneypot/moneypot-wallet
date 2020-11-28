@@ -5,11 +5,11 @@
   overflow: auto;
 }
 
-@include media-breakpoint-down(xs) {
-  .main-container {
-    padding: 1rem;
-  }
-}
+// @include media-breakpoint-down(xs) {
+//   .main-container {
+//     padding: 1rem;
+//   }
+// }
 
 .main-header {
   text-align: center;
@@ -25,6 +25,9 @@
 @include media-breakpoint-down(xs) {
   .inner-container {
     padding: 3rem 5vw;
+  }
+  .main-container {
+    padding: 1rem;
   }
 }
 // For a Desktop view

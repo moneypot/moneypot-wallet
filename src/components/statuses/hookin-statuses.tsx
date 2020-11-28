@@ -65,6 +65,12 @@ export default function HookinStatuses(props: HookinProps) {
               Hookin accepted and claimed!
             </a>
           );
+        } else if (mp.computeClaimableRemaining(props.claimable.contents, statuses) === 0) {
+          return (
+            <a href="#status" className="btn btn-outline-info status-badge">
+              Custodian has accepted the hookin but the fees are greater than its value. It's worthless!
+            </a>
+          );
         } else {
           return (
             <a href="#status" className="btn btn-outline-info status-badge">

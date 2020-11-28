@@ -32,6 +32,7 @@ import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction
 import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 import Failed from 'moneypot-lib/dist/status/failed';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
+// import { toast } from 'react-toastify';
 
 // import CoinWorker from 'worker-loader!./workers/WorkerCoins';
 // import ClaimableWorker from 'worker-loader!./workers/WorkerClaimable';
@@ -367,6 +368,11 @@ export default class Database extends EventEmitter {
 
         throw claimResponse;
       }
+      // const isValid = claimResponse.verify(this.config.custodian.acknowledgementKey)
+      // if (!isValid) {
+      //   toast.error(`${claimResponse.toPOD().hash} is invalid!`)
+      //   throw new Error(`${claimResponse.toPOD().hash} is invalid!`)
+      // }
 
       await this.processStatuses([claimResponse]);
       break;
@@ -404,6 +410,12 @@ export default class Database extends EventEmitter {
       const exists = await transaction.objectStore('statuses').getKey(statusDoc.hash);
       if (exists) {
         continue;
+      }
+      // is this sufficient..?
+      const isValid = await status.verify(this.config.custodian.acknowledgementKey);
+      if (!isValid) {
+        // toast.error(`${status.toPOD().hash} does not verify!`);
+        throw new Error(`${status.toPOD().hash} does not verify!`);
       }
 
       newStatus = true;

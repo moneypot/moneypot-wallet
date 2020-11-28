@@ -11,6 +11,7 @@ import InvoiceSettledStatus from 'moneypot-lib/dist/status/invoice-settled';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import useUniqueId from '../../util/use-unique-id';
 import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
+import Timer from '../../util/timer';
 
 type LightningInvoiceProps = {
   paymentRequest: string;
@@ -21,32 +22,7 @@ type LightningInvoiceProps = {
   // mp.Claimable & mp.Acknowledged.Claimable; // mp.Acknowledged.Claimable
 };
 
-interface TimeLeft {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
-
 export default function LightningInvoice(props: LightningInvoiceProps) {
-  const calculateTimeLeft = (year: Date) => {
-    if (!year) {
-      return;
-    }
-    const difference = +year - +new Date();
-    let timeLeft = {} as TimeLeft;
-
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    }
-    return timeLeft;
-  };
-
   const amount = GetLightningPaymentRequestAmount(props.paymentRequest);
   const [infiniteAmount, setFiniteAmount] = useState(0);
   const statuses = useClaimableStatuses(props.claimableHash);
@@ -54,16 +30,14 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   // this is not that interesting, just placeholders. maybe we want to call the custodian for transfer hashes
   const [hasPreimage, setPreimage] = useState<string | undefined>(undefined);
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
-  const [year] = useState<Date | undefined>(pro.timeExpireDateString === undefined ? undefined : new Date(pro.timeExpireDateString));
-  const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
   const [expired] = useState<boolean>(isExpired());
-
   let description;
   for (const tag of pro.tags) {
     if (tag.tagName === 'description') {
       description = tag.data;
     }
   }
+  // refactor TODO
   function isExpired() {
     const pro = notError(mp.decodeBolt11(props.paymentRequest));
     const currentTime = new Date().getTime();
@@ -74,16 +48,6 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
       return false;
     }
   }
-
-  useEffect(() => {
-    if (pro.timeExpireDateString) {
-      if (year) {
-        setTimeout(() => {
-          setTimeLeft(calculateTimeLeft(year));
-        }, 1000);
-      }
-    }
-  });
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -142,21 +106,6 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
     }
     return <span> Loading Statuses...</span>;
   };
-
-  let timerComponents: JSX.Element[] = [];
-  if (pro.timeExpireDateString) {
-    for (const [key, value] of Object.entries(timeLeft)) {
-      timerComponents.push(
-        <span key={useUniqueId()}>
-          {value} {key}{' '}
-        </span>
-      );
-    }
-  }
-  let Tcolor: string | undefined;
-  if (timeLeft) {
-    Tcolor = timeLeft.minutes < 10 && timeLeft.hours === 0 ? 'danger' : 'info';
-  }
 
   return (
     <div>
@@ -242,32 +191,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {expired && statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
-          <Row>
-            <Col sm={{ size: 8, offset: 0 }}>
-              <div className="claimable-text-container">
-                {' '}
-                <a href="#status" className="btn btn-outline-danger status-badge">
-                  This invoice has expired!
-                </a>
-              </div>
-            </Col>
-          </Row>
-        ) : (
-          undefined
-        )}
-        {!expired && statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
-          <Button color={Tcolor}>
-            {' '}
-            {(timeLeft.minutes > 30 && <i className="fad fa-hourglass-start" />) ||
-              (timeLeft.hours >= 1 && <i className="fad fa-hourglass-start" />) ||
-              (timeLeft.minutes > 10 && <i className="fad fa-hourglass-half" />) ||
-              (timeLeft.minutes <= 10 && <i className="fad fa-hourglass-end" />)}{' '}
-            {timerComponents}
-          </Button>
-        ) : (
-          undefined
-        )}
+        {<Timer p={pro.timeExpireDate * 1000}></Timer>}
       </div>
     </div>
   );

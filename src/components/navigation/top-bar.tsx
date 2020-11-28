@@ -45,11 +45,13 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
         ) : (
           ''
         )}
+        {/* TODO make warning class  */}
         <span className="wallet-info">
+          {warning}
           <b style={{ fontWeight: 'bold' }}>{props.isMobile ? '' : wallet.db.name} </b> {balance + ' sat'}
         </span>
         <div className="nav-item-right">
-          {warning} {props.isMobile ? <SyncBtn /> : ''}
+          {props.isMobile ? <SyncBtn /> : ''}
           <button type="button" className="navbar-toggler" onClick={() => setIsOpen(!isOpen)}>
             <i className="fa fa-cog" />
           </button>

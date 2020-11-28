@@ -2,50 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { wallet } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 import { Button } from 'reactstrap';
-import useUniqueId from '../util/use-unique-id';
+import Timer from '../util/timer';
 
-interface TimeLeft {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
 
 export default function Faq() {
   // copy pasted.
-  const calculateTimeLeft = (year: Date) => {
-    if (!year) {
-      return;
-    }
-    const difference = +year - +new Date();
-    let timeLeft = {} as TimeLeft;
-
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    }
-
-    return timeLeft;
-  };
 
   const [lightninginfo, setlightningInfo] = useState<Docs.LND | null>(null);
-  const [year] = useState<Date | undefined>(wallet.config.custodian.wipeDate === undefined ? undefined : new Date(wallet.config.custodian.wipeDate));
-  const [timeLeft, setTimeLeft] = useState<undefined | any>(year === undefined ? undefined : calculateTimeLeft(year));
-  useEffect(() => {
-    if (wallet.config.custodian.wipeDate) {
-      if (Date.now() < Date.parse(wallet.config.custodian.wipeDate)) { 
-        if (year) {
-          setTimeout(() => {
-            setTimeLeft(calculateTimeLeft(year));
-          }, 1000);
-        }
-      }
-    }
-  });
 
   useEffect(() => {
     const getKeys = async () => {
@@ -54,23 +17,6 @@ export default function Faq() {
     getKeys();
   }, []);
 
-  let timerComponents: JSX.Element[] = [];
-  if (wallet.config.custodian.wipeDate) {
-    if (Date.now() < Date.parse(wallet.config.custodian.wipeDate)) { 
-       for (const [key, value] of Object.entries(timeLeft)) {
-      timerComponents.push(
-        <span key={useUniqueId()}>
-          {value} {key}{' '}
-        </span>
-      );
-    }
-  }
-}
-
-  let Tcolor;
-  if (timeLeft) {
-    Tcolor = timeLeft.days > 7 ? 'info' : 'danger';
-  }
   const url = 'https://1ml.com/testnet/node/' + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
   return (
     <div>
@@ -108,22 +54,15 @@ export default function Faq() {
         <h4>Wipe Cycle.</h4>
         <p>
           {' '}
-          Most custodians will make use of regularly scheduled (6-12 months) wipes as part of their business model. While we can't speak for every custodian,
+          Most custodians will make use of regularly scheduled (3-6-12 months) wipes as part of their business model. While we can't speak for every custodian,
           this will generally be the case. {<br />} The wallet software is geared towards a somewhat generalized standard, so we will include a timer below
           which shows the date of the next wipe, as well as the days remaining. If your custodian does not wipe, you can ignore this section completely.{' '}
         </p>
         <div>
           {wallet.config.custodian.wipeDate ? (
-            <p>
-              Days until wipe:{' '}
-              <Button color={Tcolor}>
-                {' '}
-                {(timeLeft.days > 30 && <i className="fad fa-hourglass-start" />) ||
-                  (timeLeft.days > 7 && <i className="fad fa-hourglass-half" />) ||
-                  (timeLeft.days <= 7 && <i className="fad fa-hourglass-end" />)}{' '}
-                {timerComponents.length ? timerComponents : <span>Time's up!</span>}
-              </Button>
-            </p>
+            <div>
+              Days until wipe: <Timer p={Date.parse(wallet.config.custodian.wipeDate)}></Timer>
+            </div>
           ) : (
             <Button color="danger">
               {' '}
@@ -138,13 +77,13 @@ export default function Faq() {
           {<br />}
           {<br />}
           {wallet.config.custodian.wipeDate && (
-            <p>
-              This custodian will wipe at the very earliest on:{' '}
-              <Button color={Tcolor}>
+            <div>
+              This custodian will at the very earliest on:{' '}
+              <Button color={Date.parse(wallet.config.custodian.wipeDate) - 1000 * 60 * 60 * 24 * 10 > Date.now() ? 'info' : 'danger'}>
                 {' '}
                 <i className="fad fa-info" /> {wallet.config.custodian.wipeDate}
               </Button>
-            </p>
+            </div>
           )}
         </div>
         <p>
@@ -152,8 +91,8 @@ export default function Faq() {
           apparant and proveable.
         </p>
         <small>
-          If you don't understand what the above is referring to; Please read our F.A.Q and the generalized business model of an average moneypot custodian.{' '}
-          <b>Note:</b> Some custodians may wipe infrequently or not at all. Contact the operators in question for a more detailed answer.
+          If you don't understand what the above is referring to; Please read our F.A.Q and the business model of an average moneypot custodian. <b>Note:</b>{' '}
+          Some custodians may wipe infrequently or not at all. Contact the operators in question for a more detailed answer.
         </small>
       </div>
 

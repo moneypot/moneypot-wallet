@@ -36,8 +36,16 @@ export default function HookoutStatuses(props: HookoutProps) {
 
   async function getConfirmationStatus(txid: string) {
     const request = await fetchTxReceives(txid);
+    let nRBF: boolean = false;
     if (!(request instanceof RequestError)) {
-      hasConfirmed(request.status.confirmed);
+      for (let index = 0; index < request.vin.length; index++) {
+        const sequence = request.vin[index];
+        // needs to be lower than 0xfffffffe
+        if (!(sequence.sequence < parseInt('0xfffffffe', 16))) {
+          nRBF = true;
+        }
+      }
+      hasConfirmed(nRBF ? true : request.status.confirmed);
       setCurrentTxid(txid);
     } else if (request instanceof RequestError) {
       if (statuses && statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1) {
@@ -76,12 +84,13 @@ export default function HookoutStatuses(props: HookoutProps) {
         default:
           return claimable.fee / segwitOutput;
       }
-    } else return 1; // free
+    } else return 0.25; // free
   };
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
+        // TODO: this requests twice on new hookouts. refactor // 
         for (const s of statuses) {
           if (s instanceof BitcoinTransactionSent) {
             // setCurrentTxid(mp.Buffutils.toHex(s.txid));
