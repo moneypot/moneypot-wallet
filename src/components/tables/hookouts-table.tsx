@@ -1,28 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import * as hi from 'moneypot-lib';
-import { Link } from 'react-router-dom';
 import * as Docs from '../../wallet/docs';
 import { notError } from '../../util';
-import { useClaimableStatuses } from '../../state/wallet';
+import { useClaimableStatuses, getAllStatuses } from '../../state/wallet';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import Failed from 'moneypot-lib/dist/status/failed';
-import { Table } from 'reactstrap';
-import useSortableData from './table-util';
+import { CustomTable } from './table-util';
+import { Link } from 'react-router-dom';
 
 export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable & hi.POD.Hookout)[] }) {
   let filteredHookouts = [];
+  const statuses = getAllStatuses();
   for (const hookout of hookouts) {
     const memo = localStorage.getItem(hookout.hash);
+    // this is too slow
+    //  const statuses = useClaimableStatuses(hookout.hash);
 
-    const statuses = useClaimableStatuses(hookout.hash);
     let statusT: string | undefined = undefined;
+    let txid: string | undefined = undefined;
     if (statuses) {
+      // this stuff is sooo slow
       for (const status of statuses) {
-        if (status instanceof BitcoinTransactionSent) {
-          statusT = 'SENT';
-        }
-        if (status instanceof Failed) {
-          statusT = 'FAILED';
+        if (status.claimableHash.toPOD() === hookout.hash) {
+          if (status instanceof BitcoinTransactionSent) {
+            statusT = 'SENT';
+            txid = hi.Buffutils.toHex(status.txid);
+          }
+          if (status instanceof Failed) {
+            statusT = 'FAILED';
+          }
         }
       }
     }
@@ -30,108 +36,67 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
       statusT = 'UNKNOWN'; // PENDING
     }
 
-    filteredHookouts.push({ hash: hookout.hash, address: hookout.bitcoinAddress, amount: hookout.amount, created: hookout.created, memo, status: statusT });
+    filteredHookouts.push({
+      hash: hookout.hash,
+      address: hookout.bitcoinAddress,
+      amount: hookout.amount,
+      memo,
+      status: statusT,
+      txid: txid,
+      created: hookout.created.toString(),
+    });
   }
 
-  const { items, requestSort, sortConfig } = useSortableData(filteredHookouts, null);
-  const getClassNamesFor = (name: string) => {
-    if (!sortConfig) {
-      return;
-    }
-    return sortConfig.key === name ? sortConfig.direction : undefined;
-  };
-
-  return (
-    <Table hover className="table">
-      <thead>
-        <tr>
-          <th>
-            <button type="button" onClick={() => requestSort('hash')} className={getClassNamesFor('hash')}>
-              hash
-            </button>
-          </th>
-          <th>
-            <button type="button" onClick={() => requestSort('address')} className={getClassNamesFor('address')}>
-              payment
-            </button>
-          </th>
-          <th>
-            <button type="button" onClick={() => requestSort('amount')} className={getClassNamesFor('amount')}>
-              amount
-            </button>
-          </th>
-          <th>
-            <button type="button" onClick={() => requestSort('memo')} className={getClassNamesFor('memo')}>
-              memo
-            </button>
-          </th>
-          <th>
-            <button type="button" onClick={() => requestSort('status')} className={getClassNamesFor('status')}>
-              status
-            </button>
-          </th>
-          <th>
-            <button type="button" onClick={() => requestSort('created')} className={getClassNamesFor('created')}>
-              created
-            </button>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map(item => (
-          <tr key={item.hash}>
-            <td>
-              <Link to={`/claimables/${item.hash}`}>{item.hash.substring(0, 32)}...</Link>
-            </td>
-            <td>
-              {' '}
-              <a href={`https://blockstream.info/testnet/address/${item.address}`} target="_blank" rel="noreferrer">
-                {item.address}
+  const columns = useMemo(
+    () => [
+      {
+        Header: 'Hookouts',
+        columns: [
+          {
+            Header: 'Hash',
+            accessor: 'hash',
+            Cell: (e: { value: React.ReactNode }) => <Link to={`/claimables/${e.value}`}>{e.value}</Link>,
+          },
+          {
+            Header: 'Address',
+            accessor: 'address',
+            Cell: (e: { value: React.ReactNode }) => (
+              <a href={`https://blockstream.info/testnet/address/${e.value}`} target="_blank" rel="noreferrer">
+                {' '}
+                {e.value}
               </a>
-            </td>
-            <td>{item.amount}</td>
-            <td>{item.memo}</td>
-            <td>
-              {item.status === 'SENT' ? (
-                <p>
-                  <i className="fad fa-check" /> SENT
-                </p>
-              ) : item.status === 'FAILED' ? (
-                <p>
-                  <i className="fad fa-times" /> FAILED
-                </p>
-              ) : item.status === 'UNKNOWN' ? (
-                <p>
-                  <i className="fad fa-question" /> UNKNOWN
-                </p>
-              ) : (
-                undefined
-              )}
-            </td>
-            <td>{item.created.toISOString()}</td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+            ),
+          },
+          {
+            Header: 'Amount',
+            accessor: 'amount',
+          },
+          {
+            Header: 'Memo',
+            accessor: 'memo',
+          },
+          {
+            Header: 'Status',
+            accessor: 'status',
+          },
+          {
+            Header: 'Txid',
+            accessor: 'txid',
+            Cell: (e: { value: React.ReactNode }) => (
+              <a href={`https://blockstream.info/testnet/txid/${e.value}`} target="_blank" rel="noreferrer">
+                {e.value}
+              </a>
+            ),
+          },
+          {
+            Header: 'Created',
+            accessor: 'created',
+          },
+        ],
+      },
+    ],
+    []
   );
-}
 
-function Hookout({ hookoutDoc }: { hookoutDoc: Docs.Claimable & hi.POD.Hookout }) {
-  const memo = localStorage.getItem(hookoutDoc.hash);
-  return (
-    <tr>
-      <td>
-        <Link to={`/claimables/${hookoutDoc.hash}`}>{hookoutDoc.hash.substring(0, 32)}...</Link>
-      </td>
-      <td>
-        {' '}
-        <a href={`https://blockstream.info/testnet/address/${hookoutDoc.bitcoinAddress}`} target="_blank" rel="noreferrer">
-          {hookoutDoc.bitcoinAddress}
-        </a>
-      </td>
-      <td>{hookoutDoc.amount} sats</td>
-      <td>{hookoutDoc.created.toISOString()}</td>
-      <td>{memo === undefined ? 'No memo' : memo}</td>
-    </tr>
-  );
+  return <CustomTable columns={columns} data={filteredHookouts} />;
 }

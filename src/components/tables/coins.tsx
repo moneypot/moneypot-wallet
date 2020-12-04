@@ -1,11 +1,9 @@
-import React from 'react';
-import * as Docs from '../../wallet/docs';
+import React, { useMemo } from 'react';
 import { useCoins, getSpendingClaimables } from '../../state/wallet';
+import { CustomTable } from './table-util';
 import { Link } from 'react-router-dom';
-import * as mp from 'moneypot-lib';
-import { Table } from 'reactstrap';
-import useSortableData from './table-util';
 
+// TODO: table loading times for < 500 coins is stupid. We can pagify it, but of what use would it be then?
 export default function Coins() {
   const coins = useCoins();
   const claimableInputs = getSpendingClaimables();
@@ -36,66 +34,47 @@ export default function Coins() {
 
     filteredCoins.push({ hash: coin.hash, claimable, ack, owner: coin.owner, magnitude: coin.magnitude, origin: coin.claimableHash });
   }
+  const columns = useMemo(
+    () => [
+      {
+        Header: 'Coins',
+        columns: [
+          {
+            Header: 'Hash',
+            accessor: 'hash',
+            Cell: (e: { value: React.ReactNode }) => <Link to={`/coins/${e.value}`}>{e.value}</Link>,
+          },
+          {
+            Header: 'Claimable',
+            accessor: 'claimable',
+          },
+          {
+            Header: 'Ack',
+            accessor: 'ack',
+          },
+          {
+            Header: 'Owner',
+            accessor: 'owner',
+          },
+          {
+            Header: 'Magnitude',
+            accessor: 'magnitude',
+          },
+          {
+            Header: 'Origin',
+            accessor: 'origin',
+            Cell: (e: { value: React.ReactNode }) => <Link to={`/claimables/${e.value}`}>{e.value}</Link>,
+          },
+        ],
+      },
+    ],
+    []
+  );
 
-  const { items, requestSort, sortConfig } = useSortableData(filteredCoins, null);
-  const getClassNamesFor = (name: string) => {
-    if (!sortConfig) {
-      return;
-    }
-    return sortConfig.key === name ? sortConfig.direction : undefined;
-  };
-  // TODO: this is soo slow @ large wallets.
   return (
     <div>
-      <h1>Coins ({coins.length})</h1>
-      {/* <table style={{ borderSpacing: '3px', borderCollapse: 'separate' }}> */}
-      <Table hover className="table">
-        <thead>
-          <tr>
-            <th>
-              <button type="button" onClick={() => requestSort('claimable')} className={getClassNamesFor('claimable')}>
-                Spent in
-              </button>
-            </th>
-            <th>
-              <button type="button" onClick={() => requestSort('ack')} className={getClassNamesFor('ack')}>
-                Spent ack'd
-              </button>
-            </th>
-            <th>
-              <button type="button" onClick={() => requestSort('owner')} className={getClassNamesFor('owner')}>
-                owner
-              </button>
-            </th>
-            <th>
-              <button type="button" onClick={() => requestSort('magnitude')} className={getClassNamesFor('magnitude')}>
-                magnitude
-              </button>
-            </th>
-            <th>
-              <button type="button" onClick={() => requestSort('origin')} className={getClassNamesFor('origin')}>
-                origin
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map(item => (
-            <tr key={item.hash}>
-              <td>{item.claimable === 'UNSPENT' ? <p>UNSPENT</p> : <Link to={`/claimables/${item.claimable}`}>{item.claimable}</Link>}</td>
-              <td>{item.ack}</td>
-              <td>{item.owner}</td>
-              <td>{item.magnitude}</td>
-
-              <td>
-                <code>
-                  <Link to={`/claimables/${item.origin}`}>{item.origin}</Link>
-                </code>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <h1>All Coins ({coins.length})</h1>
+      <CustomTable columns={columns} data={filteredCoins} />
     </div>
   );
 }

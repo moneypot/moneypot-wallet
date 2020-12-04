@@ -90,6 +90,10 @@ export function useClaimableStatuses(claimableHash: string) {
   );
 }
 
+export function getAllStatuses() {
+  return useQueryResult(() => wallet.db.getAll('statuses').then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)))), 'table:statuses');
+}
+
 export function useQueryResult<T>(f: () => Promise<T>, watch: string) {
   const [res, setRes] = useState<T>();
 

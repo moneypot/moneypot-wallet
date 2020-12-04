@@ -13,7 +13,7 @@ export type FeeScheduleResult = {
 export default async function getFeeSchedule(config: Config): Promise<FeeScheduleResult> {
   const res = await makeRequest<FeeScheduleResult>(`${config.custodianUrl}/fee-schedule`);
   if (res instanceof RequestError) {
-    toast.error("Error: Couldn't fetch feeschedule! Custodian is most likely experiencing issues!")
+    toast.error("Error: Couldn't fetch feeschedule! Custodian is most likely experiencing issues!");
     throw res;
   }
 

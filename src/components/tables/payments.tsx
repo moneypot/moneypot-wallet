@@ -15,7 +15,7 @@ export default function(props: RouteComponentProps<{ hash: string }>) {
   }
   return (
     <div>
-      <h1>All Lightning Payments</h1>
+      <h1>All Lightning Payments ({lnPayments.length})</h1>
       <LnPaymentsTable payments={lnPayments as (Docs.Claimable & hi.POD.LightningPayment)[]} />
     </div>
   );

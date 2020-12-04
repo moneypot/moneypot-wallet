@@ -1,13 +1,6 @@
 import React, { Component } from 'react';
 import { Button } from 'reactstrap';
 
-// interface TimeLeft {
-//   days: number;
-//   hours: number;
-//   minutes: number;
-//   seconds: number;
-// }
-
 export default class Timer extends Component<{ p: any }, { seconds: number; minutes: number; hours: number; days: number }> {
   public difference: number;
   constructor(props: any) {
@@ -25,7 +18,7 @@ export default class Timer extends Component<{ p: any }, { seconds: number; minu
   componentDidMount() {
     this.myInterval = setInterval(() => {
       const { seconds, minutes, hours, days } = this.state;
-      if (seconds <= 0 && minutes <= 0 && hours <= 0 && days <= 0) { 
+      if (seconds <= 0 && minutes <= 0 && hours <= 0 && days <= 0) {
         return;
       }
       if (seconds > 0) {
@@ -38,14 +31,14 @@ export default class Timer extends Component<{ p: any }, { seconds: number; minu
           clearInterval(this.myInterval);
         } else if (seconds === 0) {
           this.setState(({ minutes }) => ({
-            minutes: (minutes - 1) > 0 ? minutes - 1 : 59,
-            hours: (minutes - 1 < 0 ? hours - 1 : hours),
+            minutes: minutes - 1 > 0 ? minutes - 1 : 59,
+            hours: minutes - 1 < 0 ? hours - 1 : hours,
             seconds: 59,
           }));
         } else if (minutes === 0) {
           this.setState(({ hours }) => ({
-            hours: (hours - 1) > 0 ? hours - 1 : 23,
-            days: (hours - 1) < 0 ? days -1 : days,
+            hours: hours - 1 > 0 ? hours - 1 : 23,
+            days: hours - 1 < 0 ? days - 1 : days,
             minutes: 59,
             seconds: 59,
           }));

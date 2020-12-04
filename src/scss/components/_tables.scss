@@ -13,33 +13,33 @@ td {
   word-wrap: break-word;
 }
 
-thead button {
-  border: 0;
-  border-radius: none;
-  font-weight: 700;
-  padding: 0.5em;
-  margin-bottom: 1px;
-}
+// thead button {
+//   border: 0;
+//   border-radius: none;
+//   font-weight: 700;
+//   padding: 0.5em;
+//   margin-bottom: 1px;
+// }
 
-thead button::after {
-  font-family: 'Font Awesome 5 Pro';
-  color: $theme-blue;
-  content: '\f062';
-  display: inline-block;
-  margin-left: 1em;
-}
+// thead button::after {
+//   font-family: 'Font Awesome 5 Pro';
+//   color: $theme-blue;
+//   content: '\f062';
+//   display: inline-block;
+//   margin-left: 1em;
+// }
 
-thead button.ascending::after {
-  content: '\f063';
-  display: inline-block;
-  margin-left: 1em;
-}
+// thead button.ascending::after {
+//   content: '\f063';
+//   display: inline-block;
+//   margin-left: 1em;
+// }
 
-thead button.descending::after {
-  content: '\f062';
-  display: inline-block;
-  margin-left: 1em;
-}
+// thead button.descending::after {
+//   content: '\f062';
+//   display: inline-block;
+//   margin-left: 1em;
+// }
 
 @include media-breakpoint-down(md) {
   table,
@@ -56,6 +56,7 @@ thead button.descending::after {
   }
   tr {
     border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
   }
 
   td:before {

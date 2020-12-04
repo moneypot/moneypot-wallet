@@ -89,13 +89,17 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
     }
     if (statuses.some(status => status instanceof InvoiceSettled)) {
       if (statuses.some(status => status instanceof Claimed)) {
-       return( <a href="#status" className="btn btn-outline-success status-badge">
-          Received and claimed!
-        </a> );
+        return (
+          <a href="#status" className="btn btn-outline-success status-badge">
+            Received and claimed!
+          </a>
+        );
       } else {
-        return ( <a href="#status" className="btn btn-outline-info status-badge">
-        Received but not yet claimed!
-      </a>);
+        return (
+          <a href="#status" className="btn btn-outline-info status-badge">
+            Received but not yet claimed!
+          </a>
+        );
       }
     } else {
       return (
@@ -191,11 +195,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) ? (
-          <Timer p={pro.timeExpireDate * 1000}/>
-        ) : (
-          undefined
-        )}
+        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired ? <Timer p={pro.timeExpireDate * 1000} /> : undefined}
       </div>
     </div>
   );

@@ -419,42 +419,41 @@ export default class Database extends EventEmitter {
       if (status instanceof hi.Acknowledged.default) {
         if (status.contents instanceof Claimed) {
           const claimedStatus = status.contents;
-      
+
           const { claimableHash, claimRequest, blindedReceipts } = claimedStatus;
           const { coinRequests } = claimRequest;
-          if (!claimRequest.authorization) { 
-            throw new Error("No auth provided?! what the hell?!")
-        }
-            const sig = claimRequest.authorization
-            const claimable = await transaction
-            .objectStore('claimables').get(claimableHash.toPOD())
-            
-            
-            if (!claimable) { 
-              throw new Error("Didn't find a local claimable for this status?!")
-            }
-            const p = hi.PublicKey.fromPOD(claimable.claimant)
-            if (p instanceof Error) { 
-              throw new Error("Huh, our local claimable contains an invalid claimant?!")
-            }
+          if (!claimRequest.authorization) {
+            throw new Error('No auth provided?! what the hell?!');
+          }
+          const sig = claimRequest.authorization;
+          const claimable = await transaction.objectStore('claimables').get(claimableHash.toPOD());
 
-            // check if the request is actually ours (our coins)
-            const isOurs = sig.verify(claimRequest.hash().buffer, p)
-            if (!isOurs) {  
-              throw new Error("Couldn't verify if custodian returned our/right claimRequest")
-            }
-           
-          
+          if (!claimable) {
+            throw new Error("Didn't find a local claimable for this status?!");
+          }
+          const p = hi.PublicKey.fromPOD(claimable.claimant);
+          if (p instanceof Error) {
+            throw new Error('Huh, our local claimable contains an invalid claimant?!');
+          }
+
+          // check if the request is actually ours (our coins)
+          const isOurs = sig.verify(claimRequest.hash().buffer, p);
+          if (!isOurs) {
+            throw new Error("Couldn't verify if custodian returned our/right claimRequest");
+          }
+
           // We signed the request, so we can assume?! that the nonces and owners are valid, now we check if the receipts are what we expect them to be
-          for (let i = 0; i < blindedReceipts.length; i++) { 
+          for (let i = 0; i < blindedReceipts.length; i++) {
             const blindedReceipt = blindedReceipts[i];
             const originalClaim = coinRequests[i];
             const signee = this.config.custodian.blindCoinKeys[originalClaim.magnitude.n];
 
-            const isEqual = blindedReceipt.verify(originalClaim.blindingNonce, originalClaim.blindedOwner.c, signee)
-             if (!isEqual) { 
-              throw new Error( `Custodian is trying to feed us invalid coins! ${blindedReceipt.toPOD()}, ${originalClaim.blindedOwner.toPOD()}, ${signee.toPOD()}`)
-           }
+            const isEqual = blindedReceipt.verify(originalClaim.blindingNonce, originalClaim.blindedOwner.c, signee);
+            if (!isEqual) {
+              throw new Error(
+                `Custodian is trying to feed us invalid coins! ${blindedReceipt.toPOD()}, ${originalClaim.blindedOwner.toPOD()}, ${signee.toPOD()}`
+              );
+            }
           }
         }
       }
