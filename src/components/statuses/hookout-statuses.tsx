@@ -34,6 +34,7 @@ export default function HookoutStatuses(props: HookoutProps) {
   const [IsConfirmed, hasConfirmed] = useState(true); // prevent false positives when loading
   const [Memo, setMemo] = useState<undefined | string>(undefined);
 
+  // TODO improve this for when there are feebumps?!
   async function getConfirmationStatus(txid: string) {
     const request = await fetchTxReceives(txid);
     let nRBF: boolean = false;
@@ -90,7 +91,7 @@ export default function HookoutStatuses(props: HookoutProps) {
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
-        // TODO: this requests twice on new hookouts. refactor // 
+        // TODO: this requests twice on new hookouts. refactor //
         for (const s of statuses) {
           if (s instanceof BitcoinTransactionSent) {
             // setCurrentTxid(mp.Buffutils.toHex(s.txid));
@@ -145,20 +146,20 @@ export default function HookoutStatuses(props: HookoutProps) {
         }
         if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
-            <a href="#status" className="btn btn-outline-info status-badge">
+            <a href="#status" className="btn btn-outline-primary status-badge">
               Hookout remainder not yet claimed!
             </a>
           );
         } else {
           return (
-            <a href="#status" className="btn btn-outline-info status-badge">
-              Hookout is in queue! (PENDING!)
+            <a href="#status" className="btn btn-outline-primary btn-color-primary status-badge">
+              Hookout is in queue!
             </a>
           );
         }
       } else {
         return (
-          <a href="#status" className="btn btn-outline-info status-badge">
+          <a href="#status" className="btn btn-outline-primary status-badge">
             Custodian is not yet aware of the Hookout!
           </a>
         );

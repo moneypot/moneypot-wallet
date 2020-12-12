@@ -13,8 +13,9 @@ export default function Support() {
           .
         </p>
         <p>
-          If you still need support, please e-mail us at <a href="mailto:riperk@protonmail.com?Subject=Support%20Request">riperk@protonmail.com</a>
+          If you still need support, please e-mail us at <a href="mailto:support@moneypot.dev?Subject=Support%20Request">support@moneypot.dev</a>
         </p>
+        <small>Please only use this email for support requests related to the functionality of the wallet.</small>
       </div>
     </div>
   );

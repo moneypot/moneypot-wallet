@@ -96,7 +96,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         );
       } else {
         return (
-          <a href="#status" className="btn btn-outline-info status-badge">
+          <a href="#status" className="btn btn-outline-primary status-badge">
             Received but not yet claimed!
           </a>
         );
@@ -135,7 +135,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="address-text-container">
-              <code>{props.paymentRequest}</code>{' '}
+              <code style={{ wordBreak: 'break-word' }}>{props.paymentRequest}</code>{' '}
               <CopyToClipboard className="btn btn-light" style={{}} text={props.paymentRequest}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>

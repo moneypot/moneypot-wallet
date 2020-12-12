@@ -24,6 +24,10 @@ export default async function genInvoice(config: Config, claimant: hi.PublicKey,
     throw invoice;
   }
 
+  if (invoice.contents.claimant !== claimant) {
+    throw new Error('custodian returned invoice with wrong claimant - we can never prove this is ours');
+  }
+
   if (!invoice.verify(config.custodian.acknowledgementKey)) {
     throw new Error('invoices acknowledgement did not validate');
   }

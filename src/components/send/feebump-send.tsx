@@ -10,23 +10,20 @@ import { RequestError } from '../../wallet/requests/make-request';
 
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 
-type Props = { history: { push: (path: string) => void } };
+// why is this nested.. TODO
+interface txid {
+  txid: {
+    CurrentTxid: string;
+  };
+}
 
-// // Should probably actually ask the custodian...?
-// function getTxData(decodedTxid: string): Promise<AddressInfoTx | RequestError> {
-//   return FetchTx(decodedTxid).then(response => {
-//     return response;
-//   });
-// }
-
-export default function FeebumpSend(props: RouteComponentProps, { history }: Props): JSX.Element {
+export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): JSX.Element {
   const [toText, setToText] = useState<undefined | string>(undefined);
   const balance = useBalance();
-  const [fee, setFee] = useState(Number);
+  const [fee, setFee] = useState<number | undefined>(undefined);
   const [FailedFee, setFailedFee] = useState('');
-  const [inputs, setInputs] = useState(Number);
-  const [outputs, setOutputs] = useState(Number);
-  // const [Response, setResponse] = useState<undefined | any>(undefined)
+  const [fairShare, setFairShare] = useState('Loading...');
+
   useEffect(() => {
     if (props.history.location.state != undefined) {
       setToText(props.history.location.state.txid.CurrentTxid);
@@ -47,13 +44,6 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
   }, [toText]);
 
   // we should check bytes rather than inputs/outputs, but this'll do somewhat.
-  function checkInputs() {
-    if (inputs != 0) {
-      if (inputs > 2 || outputs > 2) {
-        return <Label>Please note: You will most likely pay a disproportionate amount of money for this feebump.</Label>;
-      } else return <Label>It seems like this tx has a limited amount of inputs/outputs. You'll likely pay a fair share!</Label>;
-    }
-  }
 
   let sendType = ((): { kind: 'empty' } | { kind: 'error'; message: string } | { kind: 'txid' } => {
     if (toText === undefined) {
@@ -70,33 +60,35 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
     if (Response instanceof RequestError) {
       return `unable to fetch transaction ${Response.message}`;
     }
+
+    const { vin, vout, status, fee, weight } = Response;
     const feeSchedule = await getFeeSchedule(wallet.config);
-    if (Response.status.confirmed === true) {
+    if (!status) {
+      throw status;
+    }
+    if (status.confirmed === true) {
       return 'Invalid TX | TXID already confirmed';
     }
-    if (!Response.status === undefined || !Response.vin) {
-      throw Response;
+    // how much is disproportionate?
+    if (weight > 561 + 500) {
+      setFairShare('Please note: You will most likely pay a disproportionate amount of money for this feebump.');
+    } else {
+      setFairShare("It seems like this tx has a limited amount of inputs/outputs. You'll likely pay a fair share!");
     }
-    setOutputs(Response.vout.length);
-    setInputs(Response.vin.length);
 
-    for (let index = 0; index < Response.vin.length; index++) {
-      const sequence = Response.vin[index];
+    for (let index = 0; index < vin.length; index++) {
+      const sequence = vin[index];
 
       // needs to be lower than 0xfffffffe
       if (!(sequence.sequence < parseInt('0xfffffffe', 16))) {
         return 'Not flagging for RBF';
       }
     }
-    // get the current fee
-    if (!Response.fee || !Response.weight) {
-      throw Response;
-    }
 
     if (!feeSchedule) {
       throw new Error('Fetching feeschedules is hard!');
     }
-    const amount = Math.round(feeSchedule.immediateFeeRate * Response.weight) - Response.fee;
+    const amount = Math.round(feeSchedule.immediateFeeRate * weight) - fee;
     // It seems like feebump increase is by default 5 sat/b ? todo: check this
     const minFee = (Response.weight / 4) * 5;
     if (amount < minFee) {
@@ -113,6 +105,10 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
 
   async function send(): Promise<void> {
     const amount = fee;
+    if (!amount) {
+      toast.error('invalid amount');
+      return;
+    }
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error('invalid amount');
       return;
@@ -176,7 +172,7 @@ export default function FeebumpSend(props: RouteComponentProps, { history }: Pro
               </Button>
             </Col>
           </FormGroup>
-          {checkInputs()}
+          <Label>{fairShare}</Label>
         </Form>
       </div>
     </div>

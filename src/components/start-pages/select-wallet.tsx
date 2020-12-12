@@ -14,6 +14,7 @@ export default function SelectWallet(props: any & { isMobile: boolean }) {
     dbInfo.list().then(dbNames => {
       setExistingDbs(dbNames);
 
+      // ok, this is neat, but we trade off security for it to work. useful for dev
       if (dbNames.indexOf('autoload') !== -1) {
         loadWallet('autoload', '');
       }
@@ -69,7 +70,7 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
     <div>
       <div>{walletName}</div>
       <div>
-        <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="text" name="walletName" required />
+        <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" name="walletName" required />
       </div>
       <div className="select-wallet-button">
         <Button onClick={() => load(walletName, password)} className="btn-moneypot-sm btn btn-primary">

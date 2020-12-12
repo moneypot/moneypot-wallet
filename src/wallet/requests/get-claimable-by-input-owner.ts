@@ -33,7 +33,6 @@ export default async function getClaimableByInputOwner(config: Config, inputOwne
       break;
     }
   }
-
   if (!found) {
     throw new Error('got a claimable that didnt have correct input owner');
   }
@@ -41,5 +40,11 @@ export default async function getClaimableByInputOwner(config: Config, inputOwne
   if (!ackdClaimable.verify(config.custodian.acknowledgementKey)) {
     throw new Error('Claimable is not properly acknowledged.'); // awkward..?
   }
+
+  // LightningPayment | hi.Hookout | hi.FeeBump
+  if (!claimable.isAuthorized()) {
+    throw new Error('Custodian is playing with our original claimable. what are they doing?!'); // if this doesn't check out you need..
+  }
+
   return ackdClaimable;
 }

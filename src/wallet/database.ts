@@ -32,13 +32,7 @@ import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction
 import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 import Failed from 'moneypot-lib/dist/status/failed';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
-// import { toast } from 'react-toastify';
 
-// import CoinWorker from 'worker-loader!./workers/WorkerCoins';
-// import ClaimableWorker from 'worker-loader!./workers/WorkerClaimable';
-
-// const WorkerCoins = new CoinWorker();
-// const workerClaimable = new ClaimableWorker();
 let currentVersion = 4;
 // TODO: Improve this, placeholder.
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -257,7 +251,6 @@ export default class Database extends EventEmitter {
 
       const coin = new hi.Coin(newOwner, coinClaim.magnitude, existenceProof);
       coinStore.put({
-        hash: coin.hash().toPOD(),
         claimableHash: claimableHash.toPOD(),
         blindingNonce: coinClaim.blindingNonce.toPOD(),
         ...coin.toPOD(),
@@ -329,6 +322,7 @@ export default class Database extends EventEmitter {
           }
           if (!is0conf.status.confirmed) {
             if (fee === 0) {
+              // make a guess
               fee = claimable.amount * (1 / 100);
             }
           }
@@ -400,7 +394,6 @@ export default class Database extends EventEmitter {
 
     for (const status of statuses) {
       const statusDoc: Docs.Status = {
-        hash: status.hash().toPOD(),
         created: new Date(),
         ...status.toPOD(),
       };
@@ -440,6 +433,10 @@ export default class Database extends EventEmitter {
           const isOurs = sig.verify(claimRequest.hash().buffer, p);
           if (!isOurs) {
             throw new Error("Couldn't verify if custodian returned our/right claimRequest");
+          }
+          // check if blindReceipts is of equal length.
+          if (coinRequests.length != blindedReceipts.length) {
+            throw new Error('Custodian is trying to cheat us by not sending requested amount of receipts back.');
           }
 
           // We signed the request, so we can assume?! that the nonces and owners are valid, now we check if the receipts are what we expect them to be
@@ -481,7 +478,6 @@ export default class Database extends EventEmitter {
 
     const invoice = await genInvoice(this.config, claimant, memo, amount);
     const invoiceDoc = {
-      hash: invoice.hash().toPOD(),
       created: new Date(),
       ...invoice.toPOD(),
     };
@@ -579,6 +575,9 @@ export default class Database extends EventEmitter {
       const bitcoinAddressDoc = await this.getOrAddBitcoinAddressByIndex(index, transaction);
       console.log('[sync:bitcoin-address] checking address: ', bitcoinAddressDoc.address, ' index ', index);
 
+      if (this.settings.setting7_randomize_recovery) {
+        await delay(Math.random() * 10000);
+      }
       const found = await this.checkBitcoinAddress(bitcoinAddressDoc);
 
       console.log('[sync:bitcoin-address] for address: ', bitcoinAddressDoc.address, ' we found something? ', found);
@@ -641,6 +640,7 @@ export default class Database extends EventEmitter {
       const statuses = await this.db
         .getAllFromIndex('statuses', 'by-claimable-hash', claimable.hash)
         .then(ss => ss.map(s => util.notError(hi.statusFromPOD(s))));
+
       switch (claimable.kind) {
         case 'Hookin':
           if (statuses.some(status => status instanceof HookinAccepted)) {
@@ -696,53 +696,6 @@ export default class Database extends EventEmitter {
     }
   }
 
-  // async syncMultiThreadClaimable(change: number) {
-  //   const claimables = await this.db.getAll('claimables');
-  //   var i,
-  //     j,
-  //     tparr: any[] = [],
-  //     chk = 10;
-
-  //   const isResolved: string[] = [];
-  //   for (const c of claimables) {
-  //     // we don't multithread this
-  //     try {
-  //       await this.claimClaimable(c);
-  //     } catch (e) {
-  //       continue;
-  //     }
-  //   }
-  //   for (i = 0, j = claimables.length; i < j; i += chk) {
-  //     tparr = claimables.slice(i, i + chk);
-  //     workerClaimable.postMessage([tparr, this.config.toDoc()]);
-  //     workerClaimable.addEventListener('message', async (event: MessageEvent) => {
-  //       if (event.data[0] != 'd') {
-  //         const unPOD = event.data.map((s: any) => hi.Acknowledged.statusFromPOD(s));
-  //         await this.processStatuses(unPOD);
-  //       } else {
-  //         isResolved.push('done');
-  //       }
-  //     });
-  //   }
-  //   this.checkClaimableFlag(claimables, isResolved, change);
-  //   // push outside of it with a checkfunction or w/e, this doesn't seem like the way to go.
-  // }
-
-  // async checkClaimableFlag(claimables: any[], isResolved: string | any[] | undefined, change: number) {
-  //   if (Math.ceil(claimables.length / 10) === Math.sqrt(isResolved === undefined ? 1337 : isResolved.length)) {
-  //     if (change === 0) {
-  //       await this.syncMultiThreadCoins();
-  //     } else if (change === 1) {
-  //       await this.syncMultiThreadClaimable(2);
-  //     } else if (change === 2) {
-  //       await this.syncNested();
-  //     }
-  //   } else
-  //     setTimeout(() => {
-  //       this.checkClaimableFlag(claimables, isResolved, change);
-  //     }, 1000);
-  // }
-
   async syncCoins() {
     const coins = await this.db.getAll('coins');
     for (const coin of coins) {
@@ -771,53 +724,6 @@ export default class Database extends EventEmitter {
       await transaction.done;
     }
   }
-
-  // async syncMultiThreadCoins() {
-  //   const coins = await this.db.getAll('coins');
-  //   var i,
-  //     j,
-  //     tparr: Docs.Coin[],
-  //     chk = 10;
-  //   let isResolved: string[] = [];
-
-  //   for (i = 0, j = coins.length; i < j; i += chk) {
-  //     tparr = coins.slice(i, i + chk);
-  //     // make it async => push resolves to array, if array matches amount of workers, function has ended.
-  //     WorkerCoins.postMessage([tparr, this.config.toDoc()]);
-  //     WorkerCoins.addEventListener('message', async (event: MessageEvent) => {
-  //       if (event.data[0] != 'd') {
-  //         const receivedClaimable: hi.POD.Claimable = event.data[0];
-  //         const claimableHash = receivedClaimable.hash;
-
-  //         const transaction = this.db.transaction(['claimables', 'events'], 'readwrite');
-  //         if (!(await transaction.objectStore('claimables').getKey(claimableHash))) {
-  //           const claimableDoc: Docs.Claimable = {
-  //             created: new Date(),
-  //             ...receivedClaimable,
-  //           };
-
-  //           await transaction.objectStore('claimables').add(claimableDoc);
-  //           await this.emitInTransaction('table:claimables', transaction);
-
-  //           await transaction.done;
-  //         }
-  //       } else {
-  //         isResolved.push('done');
-  //       }
-  //     });
-  //   }
-  //   this.checkFlag(coins, isResolved);
-  // }
-
-  // async checkFlag(coins: Docs.Coin[], isResolved: string | string[] | undefined) {
-  //   if (Math.ceil(coins.length / 10) === Math.sqrt(isResolved === undefined ? 1337 : isResolved.length)) {
-  //     await this.syncMultiThreadClaimable(2);
-  //     // await this.syncNested();
-  //   } else
-  //     setTimeout(() => {
-  //       this.checkFlag(coins, isResolved);
-  //     }, 1000);
-  // }
 
   async syncNested(emptySyncedCoinsPrevious?: Docs.Coin[]) {
     let coins = await this.db.getAll('coins');
@@ -1094,10 +1000,6 @@ export default class Database extends EventEmitter {
 
   // makes network req
   async acknowledgeClaimable(claimable: hi.Claimable): Promise<void> {
-    // not necessarily on recovery... TODO
-    if (this.settings.setting7_randomize_recovery) {
-      await delay(Math.random() * 10000);
-    }
     const ackd = await requests.addClaimable(this.config, claimable);
     if (ackd instanceof Error) {
       throw ackd;
@@ -1184,20 +1086,6 @@ export default class Database extends EventEmitter {
     return abtransfer.hash();
   }
 
-  // public deriveBitcoinAddress(n: number) {
-  //   const claimant = this.config.bitcoinAddressGenerator().derive(n);
-  //   const claimantPub = claimant.toPublicKey();
-
-  //   const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.bzuffer).buffer;
-  //   const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
-
-  //   const tweakPubkey = tweak.toPublicKey();
-
-  //   const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
-
-  //   return { claimant, bitcoinAddress: pubkey.toBitcoinAddress() };
-  // }
-
   public deriveBitcoinAddressFromClaimant(claimantPub: hi.PublicKey) {
     const tweakBytes = hi.Hash.fromMessage('tweak', claimantPub.buffer).buffer;
     const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
@@ -1206,9 +1094,9 @@ export default class Database extends EventEmitter {
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
     const usesNested = this.settings.setting1_hasNested;
     if (usesNested) {
-      return pubkey.toNestedBitcoinAddress();
+      return pubkey.toNestedBitcoinAddress(true); // testnet = true
     }
-    return pubkey.toBitcoinAddress();
+    return pubkey.toBitcoinAddress(true);
   }
 
   public deriveClaimableClaimant(index: number, purpose: string): hi.PrivateKey {

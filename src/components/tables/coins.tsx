@@ -42,11 +42,12 @@ export default function Coins() {
           {
             Header: 'Hash',
             accessor: 'hash',
-            Cell: (e: { value: React.ReactNode }) => <Link to={`/coins/${e.value}`}>{e.value}</Link>,
+            // Cell: (e: { value: React.ReactNode }) => <Link to={`/coins/${e.value}`}>{e.value}</Link>,
           },
           {
             Header: 'Claimable',
             accessor: 'claimable',
+            Cell: (e: { value: React.ReactNode }) => <Link to={`/claimables/${e.value}`}>{e.value}</Link>,
           },
           {
             Header: 'Ack',

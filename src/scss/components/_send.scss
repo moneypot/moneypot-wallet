@@ -6,6 +6,20 @@
   flex-direction: column;
   width: 100%;
 }
+@include media-breakpoint-down(sm) {
+  .fee-wrapper {
+    margin: 0;
+  }
+  .lame-duck { 
+    margin: 10px 0px 0px 0px;
+  }
+}
+
+.lame-duck {
+  margin: 10px 30px 0px 30px;
+  justify-content: center;
+  word-wrap: break-word;
+}
 
 .send-radio-buttons-container {
   margin: 1rem;

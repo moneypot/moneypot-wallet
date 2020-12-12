@@ -61,7 +61,7 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
             Header: 'Address',
             accessor: 'address',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/testnet/address/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={`https://blockstream.info/address/${e.value}`} target="_blank" rel="noreferrer">
                 {' '}
                 {e.value}
               </a>
@@ -83,7 +83,7 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/testnet/txid/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={`https://blockstream.info/txid/${e.value}`} target="_blank" rel="noreferrer">
                 {e.value}
               </a>
             ),

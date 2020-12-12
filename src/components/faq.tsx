@@ -4,7 +4,6 @@ import * as Docs from '../wallet/docs';
 import { Button } from 'reactstrap';
 import Timer from '../util/timer';
 
-
 export default function Faq() {
   // copy pasted.
 
@@ -17,7 +16,7 @@ export default function Faq() {
     getKeys();
   }, []);
 
-  const url = 'https://1ml.com/testnet/node/' + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
+  const url = `https://1ml.com/node/` + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
   return (
     <div>
       <h5>FAQ and General information</h5>
@@ -51,7 +50,7 @@ export default function Faq() {
         undefined
       )}
       <div className="inner-container">
-        <h4>Wipe Cycle.</h4>
+        <h4>Wipe Cycle</h4>
         <p>
           {' '}
           Most custodians will make use of regularly scheduled (3-6-12 months) wipes as part of their business model. While we can't speak for every custodian,
@@ -98,12 +97,29 @@ export default function Faq() {
 
       {/* TODO (remove maybe?) */}
       <div className="inner-container">
+        <h4>Acknowledged</h4>
+        {<br />}
+        <div>
+          {// a sig is only pushed to config if it's valid, as per get-custodian-info
+          wallet.config.sig ? (
+            <Button color="primary">
+              <i className="fad fa-check" /> You have correctly verified the custodian info!
+            </Button>
+          ) : (
+            <Button color="danger">
+              <i className="fad fa-exclamation-triangle" /> Warning! This wallet has not verified that the current custodian parameters are valid!
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="inner-container">
         <h4>API</h4>
-        <p>
+        {/* <p>
           {' '}
           Moneypot.com also offers certain functionality of the wallet programatically. Interested? Please visit our docs here ...Todo, and view our repository{' '}
           <a href="https://github.com/moneypot/moneypot-api">here</a>
-        </p>
+        </p> */}
+        <p> This feature is currently not available.</p>
       </div>
     </div>
   );

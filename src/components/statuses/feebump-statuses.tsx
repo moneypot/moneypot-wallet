@@ -38,6 +38,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
   useEffect(() => {
     const getData = async (): Promise<void> => {
       if (statuses) {
+        // TODO: do we want to refilter all this fetching stuff?
         for (const s of statuses) {
           if (s instanceof BitcoinTransactionSent) {
             // setCurrentTxid(mp.Buffutils.toHex(s.txid));
@@ -89,20 +90,20 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
         }
         if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
-            <a href="#status" className="btn btn-outline-info status-badge">
+            <a href="#status" className="btn btn-outline-primary status-badge">
               Feebump remainder not yet claimed!
             </a>
           );
         } else {
           return (
-            <a href="#status" className="btn btn-outline-info status-badge">
-              Feebump is in queue! (PENDING!)
+            <a href="#status" className="btn btn-outline-primary status-badge">
+              Feebump is in queue!
             </a>
           );
         }
       } else {
         return (
-          <a href="#status" className="btn btn-outline-info status-badge">
+          <a href="#status" className="btn btn-outline-primary status-badge">
             Custodian is not yet aware of the Feebump!
           </a>
         );

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Button } from 'reactstrap';
 
-export default class Timer extends Component<{ p: any }, { seconds: number; minutes: number; hours: number; days: number }> {
+export default class Timer extends Component<{ p: number }, { seconds: number; minutes: number; hours: number; days: number }> {
   public difference: number;
-  constructor(props: any) {
+  constructor(props: {p: number}) {
     super(props);
     this.difference = +new Date(this.props.p) - +new Date();
     this.state = {
