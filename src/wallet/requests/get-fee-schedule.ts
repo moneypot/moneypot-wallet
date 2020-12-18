@@ -19,3 +19,12 @@ export default async function getFeeSchedule(config: Config): Promise<FeeSchedul
 
   return res;
 }
+export async function getDynamicFeeRate(config: Config, confTarget: number): Promise<number | RequestError> {
+  const res = await makeRequest<number>(`${config.custodianUrl}/fee-rate/${confTarget}`);
+  if (res instanceof RequestError) {
+    toast.error("Error: Couldn't fetch feeschedule! Custodian is most likely experiencing issues!");
+    return res;
+  }
+
+  return res;
+}

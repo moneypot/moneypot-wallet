@@ -1,5 +1,6 @@
 import * as hi from 'moneypot-lib';
 import makeRequest, { RequestError } from './make-request';
+import { wallet } from '../../state/wallet';
 
 export interface BitcoinReceiveInfo {
   txid: Uint8Array;
@@ -20,7 +21,7 @@ interface AddressInfoTx {
 }
 
 export default async function(address: string): Promise<BitcoinReceiveInfo[]> {
-  const txs = await makeRequest<AddressInfoTx[]>(`https://www.moneypot.com/api/testnet/address/${address}/txs`);
+  const txs = await makeRequest<AddressInfoTx[]>(wallet.config.custodian.currency === 'BTC' ? `https://www.moneypot.com/api/address/${address}/txs` : `https://www.moneypot.com/api/testnet/address/${address}/txs`);
 
   if (txs instanceof RequestError) {
     throw txs;

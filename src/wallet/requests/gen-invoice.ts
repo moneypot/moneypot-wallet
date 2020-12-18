@@ -24,7 +24,7 @@ export default async function genInvoice(config: Config, claimant: hi.PublicKey,
     throw invoice;
   }
 
-  if (invoice.contents.claimant !== claimant) {
+  if (invoice.contents.claimant.toPOD() !== claimant.toPOD()) {
     throw new Error('custodian returned invoice with wrong claimant - we can never prove this is ours');
   }
 

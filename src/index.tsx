@@ -4,6 +4,7 @@ import App from './components/app';
 import './wallet/database';
 import './scss/main.scss';
 import 'react-toastify/dist/ReactToastify.min.css';
+import { toast } from 'react-toastify';
 
 ReactDOM.render(<App />, document.getElementById('root'));
 // Check ip
@@ -15,6 +16,13 @@ ReactDOM.render(<App />, document.getElementById('root'));
       'content-type': 'application/json',
     },
   });
+
+  // TODO: if it's actually tor, there's a decent chance cloudflare blocks the request?!
   const ip = await response.json();
+  if (ip.countryCode === 'T1') {
+    toast.success("It looks like you're using tor!");
+  } else {
+    toast.error("Are you sure you're using TOR?");
+  }
   console.log('You are using Tor: ', ip.countryCode === 'T1');
 })();

@@ -59,7 +59,6 @@ export default function Settings() {
         setSetting3(false);
       }
       if (wallet.settings.setting4_hasPTM) {
-        console.log(wallet.settings.setting4_hasPTM);
         setSetting4(true);
       } else {
         setSetting4(false);

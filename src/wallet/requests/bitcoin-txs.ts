@@ -1,4 +1,5 @@
 import makeRequest, { RequestError } from './make-request';
+import { wallet } from '../../state/wallet';
 
 // We don't really need a seperate function for this, maybe merge with bitcoin-receives?
 export interface AddressInfoTx {
@@ -16,7 +17,7 @@ export interface AddressInfoTx {
 }
 
 export default async function(txid: string): Promise<AddressInfoTx | RequestError> {
-  const txs = await makeRequest<AddressInfoTx>(`https://www.moneypot.com/api/testnet/tx/${txid}`);
+  const txs = await makeRequest<AddressInfoTx>(wallet.config.custodian.currency === 'BTC' ? `https://www.moneypot.com/api/tx/${txid}`:  `https://www.moneypot.com/api/testnet/tx/${txid}`);
   if (txs instanceof RequestError) {
     return txs;
   }

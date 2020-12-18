@@ -125,7 +125,8 @@ export const schemaPOD: StoreInfo[] = [${pod}
 
 function stringify(x: any, nakedSymbols: boolean, indent: number = 0): string {
   if (typeof x === 'symbol') {
-    return nakedSymbols ? x.description : JSON.stringify(x.description);
+    // ?
+    return nakedSymbols ? (x.description ? x.description : '') : JSON.stringify(x.description);
   }
 
   // primitives

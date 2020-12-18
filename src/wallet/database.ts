@@ -1006,7 +1006,7 @@ export default class Database extends EventEmitter {
     }
     // verification.
     if (ackd) {
-      if (ackd instanceof hi.FeeBump || ackd instanceof hi.Hookout || ackd instanceof hi.LightningPayment) {
+      if (ackd instanceof hi.AbstractTransfer) {
         // this is unnecessary if we check the hash.
         if (!ackd.isAuthorized()) {
           throw new Error('Custodian tried to ack a false claimable');
@@ -1094,9 +1094,9 @@ export default class Database extends EventEmitter {
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
     const usesNested = this.settings.setting1_hasNested;
     if (usesNested) {
-      return pubkey.toNestedBitcoinAddress(true); // testnet = true
+      return pubkey.toNestedBitcoinAddress(this.config.custodian.currency === 'BTC' ? false : true); // testnet = true
     }
-    return pubkey.toBitcoinAddress(true);
+    return pubkey.toBitcoinAddress(this.config.custodian.currency === 'BTC' ? false : true);
   }
 
   public deriveClaimableClaimant(index: number, purpose: string): hi.PrivateKey {
