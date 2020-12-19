@@ -1037,8 +1037,8 @@ export default class Database extends EventEmitter {
     return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.Hookout({ inputs, amount, fee }, bitcoinAddress, priority, rbf), amount + fee);
   }
 
-  public async sendFeeBump(txid: Uint8Array, fee: number, amount: number) {
-    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.FeeBump({ inputs, amount, fee }, txid), amount + fee);
+  public async sendFeeBump(txid: Uint8Array, fee: number, amount: number, confTarget: number) {
+    return this.sendAbstractTransfer((inputs: hi.Coin[]) => new hi.FeeBump({ inputs, amount, fee }, txid, confTarget), amount + fee);
   }
   private async sendAbstractTransfer(
     cstr: (inputs: hi.Coin[]) => hi.LightningPayment | hi.Hookout | hi.FeeBump,

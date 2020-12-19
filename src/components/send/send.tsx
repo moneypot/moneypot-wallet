@@ -153,6 +153,7 @@ export default function Send({ history }: Props) {
     );
   }
 
+  // make this a hook?
   function calcFee(PTMaddress?: string): number {
     if (sendType.kind === 'lightning') {
       return feeLimit;
@@ -396,7 +397,9 @@ export default function Send({ history }: Props) {
     } else if (recommendedFees.halfHourFee <= Number(feeText)) {
       return `half an hour, within 3 blocks. (recommended fees to get confirmed within half an hour are ${recommendedFees.halfHourFee} sat/vbyte)`;
     } else if (recommendedFees.hourFee <= Number(feeText)) {
-      return `probably an hour or more, most likely around 6 blocks. (recommend fees to get confirmed within the hour are ${recommendedFees.hourFee} sat/vbyte)`;
+      return `Within an hour, most likely around 6 blocks. (recommend fees to get confirmed within the hour are ${recommendedFees.hourFee} sat/vbyte)`;
+    } else { 
+      return `With this feerate it will take longer than an hour to get confirmed. Recommended fees to get confirmed within an hour are ${recommendedFees.hourFee}`
     }
   };
 
@@ -420,7 +423,7 @@ export default function Send({ history }: Props) {
         {/* // lame shit right here */}
         <Row className="lame-duck">
           <small className="text-muted">
-            {} This transaction will be sent with {feeText} sat/vbyte and has an ETA of confirming within{' '}
+             This transaction will be sent with {feeText} sat/vbyte or <b>{calcFee()} sats</b> and has an ETA of confirming within{' '}
             {recommendedFees ? howLong() : "...can't load feerates"}
           </small>
         </Row>

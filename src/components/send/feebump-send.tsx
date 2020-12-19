@@ -9,7 +9,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import { RequestError } from '../../wallet/requests/make-request';
 
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
-import Failed from 'moneypot-lib/dist/status/failed';
 
 // why is this nested.. TODO
 interface txid {
