@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import LeftPanel from './left-panel';
 
-const defaultCustodian = 'https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0';
+const defaultCustodian = 'https://main.moneypotcustodian.io/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4';
 
 export default function CreateWallet(props: any & { isMobile: boolean }) {
   const [walletName, setWalletName] = useState('main');
@@ -52,8 +52,8 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               <Input value={custodianUrl} name="custodianUrl" onChange={e => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
               {/* TODO: */}
               <datalist id="default=custodian-urls">
-                <option value="https://www.moneypot.com/api/dev#pubhi1q0nx078gh7mzf3jd7t6ey72plqre0laqy9q9g7x9cfn762xupmkrzf66sn0" />
-                <option value="http://localhost:3030" />
+                <option value="https://main.moneypotcustodian.io/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
+                <option value="http://cz42xaedmgslf3me5orcko3ptxfkntav5bcgk7algci3orgh4ot73rad.onion/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
               </datalist>
             </Col>
             <UncontrolledCollapse toggler="#toggler">
