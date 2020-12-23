@@ -7,6 +7,7 @@ import { wallet, useBitcoinAddress, useHookinsOfAddress } from '../../state/wall
 // @ts-ignore
 import { TheQr } from '@the-/ui-qr';
 import HookinsTable from './hookins-table';
+import { Button } from 'reactstrap';
 
 export default function BitcoinAddressInfo(props: RouteComponentProps<{ address: string }>) {
   const address = props.match.params.address;
@@ -26,11 +27,12 @@ export default function BitcoinAddressInfo(props: RouteComponentProps<{ address:
 function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }) {
   const hookins = useHookinsOfAddress(addressDoc.address) || [];
 
+  // color="primary"
   return (
     <div>
       <h1>{addressDoc.address}</h1>
       <TheQr text={addressDoc.address.toUpperCase()} />
-      <button onClick={() => wallet.checkBitcoinAddress(addressDoc)}>Check</button>
+      <Button onClick={() => wallet.checkBitcoinAddress(addressDoc)}>Check</Button>
       <hr />
       <Link to="/addresses">Addresses</Link>
       <hr />
@@ -44,3 +46,4 @@ function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }
     </div>
   );
 }
+

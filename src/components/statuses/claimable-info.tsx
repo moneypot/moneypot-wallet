@@ -11,6 +11,7 @@ import { notError } from '../../util';
 import HookinStatuses from './hookin-statuses';
 import HookoutStatuses from './hookout-statuses';
 import FeeBumpStatuses from './feebump-statuses';
+import { Button } from 'reactstrap';
 
 export default function ClaimableInfo(props: RouteComponentProps<{ hash: string }>) {
   const hash = props.match.params.hash;
@@ -110,19 +111,18 @@ export default function ClaimableInfo(props: RouteComponentProps<{ hash: string 
   return (
     <div>
       {kindOfClaimable()}
-      {
-        <button
+      {(!(claimable instanceof hi.Acknowledged.default)) ? // we can only remove unacked claimables. (TODO: if uncorrectly synced with custodian, this might cause confusion)
+        <Button color="primary"
           onClick={() => {
             wallet.discardClaimable(claimableDoc.hash);
             props.history.push('/claimables');
           }}
         >
-          Discard!
-        </button>
+        </Button> : undefined
       }
       {<br />}
       {<br />}
-
+      
       {claimable instanceof hi.Acknowledged.default && <ShowStatuses claimable={claimable} claimableHash={claimableDoc.hash} />}
       <DevDataDisplay title="Raw Claimable">{claimableDoc}</DevDataDisplay>
     </div>
@@ -159,3 +159,4 @@ function ShowStatuses({ claimable, claimableHash }: { claimable: hi.Acknowledged
     </div>
   );
 }
+

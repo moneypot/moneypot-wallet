@@ -89,7 +89,7 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/txid/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={`https://blockstream.info/tx/${e.value}`} target="_blank" rel="noreferrer">
                 {e.value}
               </a>
             ),

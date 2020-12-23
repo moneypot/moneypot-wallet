@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 import { RequestError } from '../../wallet/requests/make-request';
 import Failed from 'moneypot-lib/dist/status/failed';
+import { ToastContainer } from 'react-toastify';
 
 type FeeBumpProps = {
   created: Date;
@@ -104,7 +105,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       } else {
         return (
           <a href="#status" className="btn btn-outline-primary status-badge">
-            Custodian is not yet aware of the Feebump!
+            Custodian is not yet aware of the Feebump! You can discard it and resync to get your funds back!
           </a>
         );
       }
@@ -113,18 +114,20 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
   };
   return (
     <div>
+      <ToastContainer />
       <h5>
         <i className="fad fa-history" /> feebump
       </h5>
       <div className="inner-container">
         <GetStatuses />
+        <br/> &nbsp;
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Original transaction ID: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {claimable.txid}
+            <code style={{ wordBreak: 'break-word' }}>{claimable.txid}</code>  
               <CopyToClipboard className="btn btn-light" style={{}} text={claimable.txid}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
@@ -137,7 +140,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {CurrentTxid}
+            <code style={{ wordBreak: 'break-word' }}>{CurrentTxid}</code>  
               <CopyToClipboard className="btn btn-light" style={{}} text={CurrentTxid}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>

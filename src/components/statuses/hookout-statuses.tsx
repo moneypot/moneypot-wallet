@@ -20,6 +20,7 @@ import {
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 import { RequestError } from '../../wallet/requests/make-request';
 import Failed from 'moneypot-lib/dist/status/failed';
+import { ToastContainer } from 'react-toastify';
 
 type HookoutProps = {
   created: Date;
@@ -160,7 +161,7 @@ export default function HookoutStatuses(props: HookoutProps) {
       } else {
         return (
           <a href="#status" className="btn btn-outline-primary status-badge">
-            Custodian is not yet aware of the Hookout!
+            Custodian is not yet aware of the Hookout/ It was not accepted! You can discard it and resync to get your funds back!
           </a>
         );
       }
@@ -171,18 +172,20 @@ export default function HookoutStatuses(props: HookoutProps) {
 
   return (
     <div>
+      <ToastContainer />
       <h5>
         <i className="fad fa-arrow-from-bottom" /> Hookout
       </h5>
       <div className="inner-container">
         <GetStatuses />
+        <br/> &nbsp;
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Address: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
-            <div className="claimable-text-container">
-              {claimable.bitcoinAddress}
+            <div className="address-text-container">
+            <code style={{ wordBreak: 'break-word' }}>{claimable.bitcoinAddress}</code>  
               {
                 <CopyToClipboard className="btn btn-light" style={{}} text={claimable.bitcoinAddress}>
                   <i className="fa fa-copy" />
@@ -271,3 +274,4 @@ export default function HookoutStatuses(props: HookoutProps) {
     </div>
   );
 }
+

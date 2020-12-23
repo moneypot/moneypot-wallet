@@ -3,6 +3,7 @@ import { wallet } from '../state/wallet';
 import * as Docs from '../wallet/docs';
 import { Button } from 'reactstrap';
 import Timer from '../util/timer';
+import { ToastContainer } from 'react-toastify';
 
 export default function Faq() {
   // copy pasted.
@@ -19,6 +20,7 @@ export default function Faq() {
   const url = `https://1ml.com/node/` + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
   return (
     <div>
+      <ToastContainer />
       <h5>FAQ and General information</h5>
       {lightninginfo != null ? (
         <div className="inner-container">

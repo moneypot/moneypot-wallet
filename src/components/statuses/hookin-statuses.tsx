@@ -6,6 +6,7 @@ import * as mp from 'moneypot-lib';
 import { useClaimableStatuses, wallet } from '../../state/wallet';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import HookinAccepted from 'moneypot-lib/dist/status/hookin-accepted';
+import { ToastContainer } from 'react-toastify';
 
 type HookinProps = {
   created: Date;
@@ -95,18 +96,20 @@ export default function HookinStatuses(props: HookinProps) {
   };
   return (
     <div>
+      <ToastContainer />
       <h5>
         <i className="fad fa-arrow-from-top" /> Hookin
       </h5>
       <div className="inner-container">
         <GetStatuses />
+        <br/> &nbsp;
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Address: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              {claimable.bitcoinAddress}
+            <code style={{ wordBreak: 'break-word' }}>{claimable.bitcoinAddress}</code>  
               <CopyToClipboard className="btn btn-light" style={{}} text={claimable.bitcoinAddress}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
@@ -209,3 +212,4 @@ export default function HookinStatuses(props: HookinProps) {
     </div>
   );
 }
+

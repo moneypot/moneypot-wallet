@@ -11,6 +11,7 @@ import { notError } from '../../util';
 import Failed from 'moneypot-lib/dist/status/failed';
 import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sent';
 import Claimed from 'moneypot-lib/dist/status/claimed';
+import { ToastContainer } from 'react-toastify';
 type LightningInvoiceProps = {
   paymentRequest: string;
   memo: string;
@@ -117,7 +118,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
     } else if (!(props.claimable instanceof mp.Acknowledged.default)) {
       return (
         <a href="#status" className="btn btn-outline-danger status-badge">
-          Custodian is not yet aware of the payment request!
+          Custodian is not yet aware of the payment request! You can discard it and resync to get your funds back!
           {/* {s.reason} */}
         </a>
       );
@@ -127,12 +128,14 @@ export default function LightningPayment(props: LightningInvoiceProps) {
   };
 
   return (
-    <div>
+    <div>      
+      <ToastContainer />
       <h5>
         <i className="far fa-bolt" /> Lightning Payment!
       </h5>
       <div className="inner-container">
         <GetStatuses />
+        <br/> &nbsp;
         <div className="qr-code-wrapper">
           <div className="qr-code-container">
             <span>
@@ -142,7 +145,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
         </div>
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
-            <p className="address-title">Address:</p>
+            <p className="address-title">Invoice:</p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="address-text-container">

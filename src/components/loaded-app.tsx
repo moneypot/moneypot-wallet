@@ -70,7 +70,7 @@ export default function LoadedApp() {
             <Route path="/coins" component={Coins} />
             <Route path="/config" component={Config} />
             <Route path="/settings" exact component={Settings} />
-            <Route path="/contact" render={props => <Page {...props} page="Contact" />} />
+            {/* <Route path="/contact" render={props => <Page {...props} page="Contact" />} /> */}
             <Route path="/support" render={props => <Support />} />
             <Route component={NoMatch} />
           </Switch>
@@ -87,3 +87,4 @@ export default function LoadedApp() {
     </Router>
   );
 }
+

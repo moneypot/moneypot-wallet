@@ -113,11 +113,11 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
                 Support
               </Link>
             </NavItem>
-            <NavItem>
+            {/* <NavItem>
               <Link className="nav-link" to="/contact">
                 Contact
               </Link>
-            </NavItem>
+            </NavItem> */}
             <NavItem>
               <i className="fa fa-lg fa-sign-out-alt" style={{ color: 'rgba(0, 0, 0, 0.5)' }} />
             </NavItem>

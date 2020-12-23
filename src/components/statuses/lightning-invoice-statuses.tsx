@@ -12,6 +12,7 @@ import Claimed from 'moneypot-lib/dist/status/claimed';
 import useUniqueId from '../../util/use-unique-id';
 import InvoiceSettled from 'moneypot-lib/dist/status/invoice-settled';
 import Timer from '../../util/timer';
+import { ToastContainer } from 'react-toastify';
 
 type LightningInvoiceProps = {
   paymentRequest: string;
@@ -113,11 +114,13 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
 
   return (
     <div>
+      <ToastContainer />
       <h5>
         <i className="far fa-bolt" /> Lightning Invoice
       </h5>
       <div className="inner-container">
         <GetStatuses />
+        <br/> &nbsp;
         {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired ? (
           <div className="qr-code-wrapper">
             <div className="qr-code-container">

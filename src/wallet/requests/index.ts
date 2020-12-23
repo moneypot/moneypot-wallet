@@ -5,6 +5,7 @@ import makeRequest, { RequestError } from './make-request';
 import { notError } from '../../util';
 
 import * as Docs from '../docs';
+import { toast } from 'react-toastify';
 
 export async function getStatusesByClaimable(config: Config, claimableHash: string) {
   const url = `${config.custodianUrl}/statuses-by-claimable/${claimableHash}`;
@@ -12,6 +13,7 @@ export async function getStatusesByClaimable(config: Config, claimableHash: stri
   const statusPOD = await makeRequest<hi.POD.Status[]>(url);
 
   if (statusPOD instanceof RequestError) {
+    toast.error(`got request error: ${statusPOD.message}`)
     throw statusPOD;
   }
 
@@ -27,6 +29,7 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);
+    toast.error(`got request error: ${resp.message}`)
     return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
   }
 
@@ -39,6 +42,7 @@ export async function getLightningInfo(config: Config) {
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);
+    toast.error(`got request error: ${resp.message}`)
     return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
   }
   return resp;
