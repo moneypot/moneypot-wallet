@@ -48,9 +48,7 @@ export default function Faq() {
             significantly!
           </small>
         </div>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
       <div className="inner-container">
         <h4>Wipe Cycle</h4>
         <p>
@@ -102,16 +100,18 @@ export default function Faq() {
         <h4>Acknowledged</h4>
         {<br />}
         <div>
-          {// a sig is only pushed to config if it's valid, as per get-custodian-info
-          wallet.config.sig ? (
-            <Button color="primary">
-              <i className="fad fa-check" /> You have correctly verified the custodian info!
-            </Button>
-          ) : (
-            <Button color="danger">
-              <i className="fad fa-exclamation-triangle" /> Warning! This wallet has not verified that the current custodian parameters are valid!
-            </Button>
-          )}
+          {
+            // a sig is only pushed to config if it's valid, as per get-custodian-info
+            wallet.config.sig ? (
+              <Button color="primary">
+                <i className="fad fa-check" /> You have correctly verified the custodian info!
+              </Button>
+            ) : (
+              <Button color="danger">
+                <i className="fad fa-exclamation-triangle" /> Warning! This wallet has not verified that the current custodian parameters are valid!
+              </Button>
+            )
+          }
         </div>
       </div>
       <div className="inner-container">

@@ -20,8 +20,12 @@ interface AddressInfoTx {
   status: { confirmed: boolean; block_height: number | null };
 }
 
-export default async function(address: string): Promise<BitcoinReceiveInfo[]> {
-  const txs = await makeRequest<AddressInfoTx[]>(wallet.config.custodian.currency === 'BTC' ? `https://www.moneypot.com/api/address/${address}/txs` : `https://www.moneypot.com/api/testnet/address/${address}/txs`);
+export default async function (address: string): Promise<BitcoinReceiveInfo[]> {
+  const txs = await makeRequest<AddressInfoTx[]>(
+    wallet.config.custodian.currency === 'BTC'
+      ? `https://www.moneypot.com/api/address/${address}/txs`
+      : `https://www.moneypot.com/api/testnet/address/${address}/txs`
+  );
 
   if (txs instanceof RequestError) {
     throw txs;

@@ -13,7 +13,7 @@ export default function Addresses(props: any) {
           <div>Memo</div>
           <div>Created</div>
         </div>
-        {allAddresses.map(address => {
+        {allAddresses.map((address) => {
           return (
             <div key={address.address}>
               <div>

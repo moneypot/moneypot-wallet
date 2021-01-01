@@ -74,12 +74,12 @@ export default function LnPaymentsTable({ payments }: { payments: (Docs.Claimabl
             accessor: 'paymentRequest',
           },
           {
-            Header: 'Memo',
-            accessor: 'memo',
-          },
-          {
             Header: 'Amount',
             accessor: 'amount',
+          },
+          {
+            Header: 'Memo',
+            accessor: 'memo',
           },
           {
             Header: 'Totalfees',

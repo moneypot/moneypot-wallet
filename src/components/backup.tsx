@@ -16,7 +16,7 @@ export default function Backup() {
   const recoverJSON = (data: Blob) => {
     const fileReader = new FileReader();
     fileReader.readAsText(data, 'UTF-8');
-    fileReader.onload = data => {
+    fileReader.onload = (data) => {
       if (data.target) {
         if (data.target.result) {
           if (typeof data.target.result === 'string') {

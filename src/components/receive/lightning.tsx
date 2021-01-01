@@ -41,7 +41,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
             </Label>
             <Col sm={{ size: 9, offset: 0 }}>
               <InputGroup>
-                <Input value={memo} onChange={e => setMemo(e.target.value)} type="text" className="to-text-input" />
+                <Input value={memo} onChange={(e) => setMemo(e.target.value)} type="text" className="to-text-input" />
               </InputGroup>
             </Col>
           </FormGroup>
@@ -60,9 +60,7 @@ export default function ReceiveLightning(props: RouteComponentProps) {
               Even if we were using the most optimal route, our node still does not have enough capacity to handle an invoice of such amount, so you can only
               use this invoice for internal transfers!
             </code>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
           <FormGroup row>
             <Col className="submit-button-container">
               <Button color="success" className="btn-moneypot" onClick={() => genInvoice()}>

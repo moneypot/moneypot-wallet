@@ -10,12 +10,15 @@ import Failed from 'moneypot-lib/dist/status/failed';
 type Props = {
   statuses: mp.Status[] | undefined;
   claimable: Docs.Claimable;
+  isMobile: boolean;
 };
 
-export default function FeeBumpItem({ claimable, statuses }: Props) {
+export default function FeeBumpItem({ claimable, statuses, isMobile }: Props) {
   if (claimable.kind !== 'FeeBump') {
     throw new Error('expected feebump');
   }
+
+  const fetchedMemo = localStorage.getItem(claimable.hash);
 
   let status = 'not yet sent';
   if (statuses === undefined) {
@@ -32,9 +35,11 @@ export default function FeeBumpItem({ claimable, statuses }: Props) {
   }
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card Hookout">
-      <div className="text-muted">
-        <Timeago date={claimable.created} />
-      </div>
+      {isMobile ? undefined : (
+        <div className="text-muted">
+          <Timeago date={claimable.created} />
+        </div>
+      )}
       <div>
         <span className="fa-stack">
           <i className="fas fa-circle fa-stack-2x" />
@@ -42,7 +47,7 @@ export default function FeeBumpItem({ claimable, statuses }: Props) {
         </span>
         <span>
           Feebump
-          <br /> ( {claimable.txid} ){' '}
+          <br /> ( {isMobile ? fetchedMemo : claimable.txid} ){' '}
         </span>
       </div>
       <div>-{claimable.amount} satoshis</div>

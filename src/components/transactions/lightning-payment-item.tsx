@@ -13,9 +13,10 @@ import Failed from 'moneypot-lib/dist/status/failed';
 type Props = {
   statuses: mp.Status[] | undefined;
   claimable: Docs.Claimable;
+  isMobile: boolean;
 };
 
-export default function LightningPaymentItem({ claimable, statuses }: Props) {
+export default function LightningPaymentItem({ claimable, statuses, isMobile }: Props) {
   if (claimable.kind !== 'LightningPayment') {
     return null;
   }
@@ -54,9 +55,11 @@ export default function LightningPaymentItem({ claimable, statuses }: Props) {
 
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card LightningPayment">
-      <div className="text-muted">
-        <Timeago date={claimable.created} />
-      </div>
+      {isMobile ? undefined : (
+        <div className="text-muted">
+          <Timeago date={claimable.created} />
+        </div>
+      )}
       <div>
         {icon}
         <span>

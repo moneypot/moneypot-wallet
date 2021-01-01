@@ -4,7 +4,7 @@ export default class Mutex {
   }
 
   acquire(): Promise<Releaser> {
-    return new Promise<Releaser>(resolve => {
+    return new Promise<Releaser>((resolve) => {
       this._queue.push(resolve);
 
       if (!this._pending) {

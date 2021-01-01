@@ -14,7 +14,7 @@ export default function App() {
 
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);
   useEffect(() => {
-    dbInfo.list().then(dbs => {
+    dbInfo.list().then((dbs) => {
       setExistingDbs(dbs);
     });
   }, []);
@@ -34,9 +34,9 @@ export default function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/create-wallet" exact render={props => <CreateWallet {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
-        <Route path="/restore" exact render={props => <Restore {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
-        <Route render={props => <SelectWallet {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
+        <Route path="/create-wallet" exact render={(props) => <CreateWallet {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
+        <Route path="/restore" exact render={(props) => <Restore {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
+        <Route render={(props) => <SelectWallet {...props} isMobile={mobileView} setIsWalletSet={setIsWalletSet} />} />
       </Switch>
     </Router>
   );

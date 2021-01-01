@@ -29,7 +29,7 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
   const statuses = getAllStatuses();
 
   for (const hookin of hookins) {
-    const memo = localStorage.getItem(hookin.hash);
+    const memo = localStorage.getItem(hookin.bitcoinAddress);
     // too slow
     // const statuses = useClaimableStatuses(hookin.hash);
     let statusT: string | undefined = undefined;
@@ -86,6 +86,10 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
             accessor: 'amount',
           },
           {
+            Header: 'Memo',
+            accessor: 'memo',
+          },
+          {
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
@@ -97,10 +101,6 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
           {
             Header: 'Status',
             accessor: 'status',
-          },
-          {
-            Header: 'Memo',
-            accessor: 'memo',
           },
           {
             Header: 'Created',

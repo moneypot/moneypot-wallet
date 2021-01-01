@@ -89,7 +89,7 @@ const pod = Object.entries(schemaJs)
   .join(', ');
 
 const storeNames = Object.keys(schemaJs)
-  .map(x => `'${x}'`)
+  .map((x) => `'${x}'`)
   .join(' | ');
 
 // now we need to normalize schemaJS to make it a valid
@@ -135,7 +135,7 @@ function stringify(x: any, nakedSymbols: boolean, indent: number = 0): string {
   }
 
   if (Array.isArray(x)) {
-    return '[' + x.map(e => stringify(e, nakedSymbols, indent + 1)).join(', ') + ']';
+    return '[' + x.map((e) => stringify(e, nakedSymbols, indent + 1)).join(', ') + ']';
   }
 
   if (typeof x !== 'object') {

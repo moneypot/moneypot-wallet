@@ -11,9 +11,10 @@ import { notError } from '../../util';
 type Props = {
   statuses: mp.Status[] | undefined;
   claimable: Docs.Claimable;
+  isMobile: boolean;
 };
 
-export default function LightningInvoiceItem({ claimable, statuses }: Props) {
+export default function LightningInvoiceItem({ claimable, statuses, isMobile }: Props) {
   if (claimable.kind !== 'LightningInvoice') {
     return null;
   }
@@ -49,9 +50,11 @@ export default function LightningInvoiceItem({ claimable, statuses }: Props) {
 
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card LightningInvoice">
-      <div className="text-muted">
-        <Timeago date={claimable.created} />
-      </div>
+      {isMobile ? undefined : (
+        <div className="text-muted">
+          <Timeago date={claimable.created} />
+        </div>
+      )}
       <div>
         {icon}
         <span>

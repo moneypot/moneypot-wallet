@@ -24,7 +24,7 @@ export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): 
   const [FailedFee, setFailedFee] = useState('');
   const [fairShare, setFairShare] = useState('Loading...');
 
-  const [confTarget, setconfTarget] = useState('6') // 6 is default immediate.
+  const [confTarget, setconfTarget] = useState('6'); // 6 is default immediate.
 
   useEffect(() => {
     if (props.history.location.state != undefined) {
@@ -65,13 +65,13 @@ export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): 
     }
     if (!Number.isFinite(Number(confTarget)) || Number(confTarget) <= 0) {
       toast.error('invalid blockTarget');
-      return "Not a valid confTarget";
+      return 'Not a valid confTarget';
     }
 
     const { vin, vout, status, fee, weight } = Response;
     const fees = await getDynamicFeeRate(wallet.config, Number(confTarget));
-    if (fees instanceof RequestError) { 
-      return fees.message
+    if (fees instanceof RequestError) {
+      return fees.message;
     }
 
     if (status.confirmed === true) {
@@ -131,7 +131,6 @@ export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): 
       transferHash = await wallet.sendFeeBump(txid, 0, amount, Number(confTarget));
     }
 
-
     if (typeof transferHash === 'string') {
       toast.error('Oops! ' + transferHash);
       return;
@@ -167,18 +166,18 @@ export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): 
             <b>Expected Fee:</b> {fee != undefined ? fee + ' sat' : FailedFee}
           </p>
           <FormGroup row className="bordered-form-group">
-              <Label for="toText" sm={3}>
-                Confirm within:
-              </Label>
-          <Col sm={{ size: 12, offset: 1 }} md={{ size: 9, offset: 0 }}>
-            <InputGroup>
-              <Input value={confTarget} onChange={handleConfTargetChange} /> {/*// e => setFeetext(e.targe.value) */}
-              {/* )} */}
-              <div className="input-group-append">
-                <span className="input-group-text">confTarget</span>
-              </div>
-            </InputGroup>
-          </Col>
+            <Label for="toText" sm={3}>
+              Confirm within:
+            </Label>
+            <Col sm={{ size: 12, offset: 1 }} md={{ size: 9, offset: 0 }}>
+              <InputGroup>
+                <Input value={confTarget} onChange={handleConfTargetChange} /> {/*// e => setFeetext(e.targe.value) */}
+                {/* )} */}
+                <div className="input-group-append">
+                  <span className="input-group-text">confTarget</span>
+                </div>
+              </InputGroup>
+            </Col>
           </FormGroup>
           <FormGroup row>
             <Col className="submit-button-container">
@@ -195,7 +194,7 @@ export default function FeebumpSend(props: RouteComponentProps<{}, any, txid>): 
               </Button>
             </Col>
           </FormGroup>
-         {fee  !== undefined ?  <Label>{fairShare}</Label> : undefined}
+          {fee !== undefined ? <Label>{fairShare}</Label> : undefined}
         </Form>
       </div>
     </div>

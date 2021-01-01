@@ -16,7 +16,7 @@ function binaryToByte(bin: string): number {
 }
 
 function bytesToBinary(bytes: number[]): string {
-  return bytes.map(x => lpad(x.toString(2), '0', 8)).join('');
+  return bytes.map((x) => lpad(x.toString(2), '0', 8)).join('');
 }
 
 function deriveChecksumBits(entropyBuffer: Uint8Array): string {
@@ -46,7 +46,7 @@ export function mnemonicToEntropy(mnemonic: string): Uint8Array {
 
   // convert word indices to 11 bit binary strings
   const bits = words
-    .map(word => {
+    .map((word) => {
       const index = DEFAULT_WORDLIST.indexOf(word);
       if (index === -1) throw new Error(INVALID_MNEMONIC);
 
@@ -86,7 +86,7 @@ export function entropyToMnemonic(entropy: Uint8Array): string {
 
   const bits = entropyBits + checksumBits;
   const chunks = bits.match(/(.{1,11})/g)!;
-  const words = chunks.map(binary => {
+  const words = chunks.map((binary) => {
     const index = binaryToByte(binary);
     return DEFAULT_WORDLIST[index];
   });

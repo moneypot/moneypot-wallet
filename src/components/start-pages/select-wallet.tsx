@@ -11,7 +11,7 @@ import * as dbInfo from '../../wallet/database-info';
 export default function SelectWallet(props: any & { isMobile: boolean }) {
   const [existingDbs, setExistingDbs] = useState<string[]>([]);
   useEffect(() => {
-    dbInfo.list().then(dbNames => {
+    dbInfo.list().then((dbNames) => {
       setExistingDbs(dbNames);
 
       // ok, this is neat, but we trade off security for it to work. useful for dev
@@ -40,7 +40,7 @@ export default function SelectWallet(props: any & { isMobile: boolean }) {
         <ToastContainer />
         <h2 className="main-heading">Select Wallet</h2>
         <div className="select-wallet-table">
-          {existingDbs.map(dbName => (
+          {existingDbs.map((dbName) => (
             <LoadableWallet key={dbName} walletName={dbName} load={loadWallet} />
           ))}
         </div>
@@ -70,7 +70,7 @@ function LoadableWallet({ walletName, load }: { walletName: string; load: (walle
     <div>
       <div>{walletName}</div>
       <div>
-        <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" name="walletName" required />
+        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" name="walletName" required />
       </div>
       <div className="select-wallet-button">
         <Button onClick={() => load(walletName, password)} className="btn-moneypot-sm btn btn-primary">

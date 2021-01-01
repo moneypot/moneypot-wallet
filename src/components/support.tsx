@@ -13,7 +13,8 @@ export default function Support() {
           .
         </p>
         <p>
-          If you still need support, please e-mail us at <a href="mailto:moneypotsupport@protonmail.com?Subject=Support%20Request">moneypotsupport@protonmail.com</a>
+          If you still need support, please e-mail us at{' '}
+          <a href="mailto:moneypotsupport@protonmail.com?Subject=Support%20Request">moneypotsupport@protonmail.com</a>
         </p>
         <small>Please only use this email for support requests related to the functionality of the wallet.</small>
       </div>

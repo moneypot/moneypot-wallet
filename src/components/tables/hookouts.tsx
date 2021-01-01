@@ -7,7 +7,7 @@ import * as Docs from '../../wallet/docs';
 import { useClaimableKinds } from '../../state/wallet';
 import HookoutsTable from './hookouts-table';
 
-export default function(props: RouteComponentProps<{ hash: string }>) {
+export default function (props: RouteComponentProps<{ hash: string }>) {
   const hookouts = useClaimableKinds('Hookout');
 
   if (hookouts === 'LOADING') {

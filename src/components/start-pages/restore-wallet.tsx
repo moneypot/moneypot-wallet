@@ -40,7 +40,7 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               Name
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
-              <Input value={walletName} onChange={e => setWalletName(e.target.value)} placeholder="Name" type="text" name="walletName" required />
+              <Input value={walletName} onChange={(e) => setWalletName(e.target.value)} placeholder="Name" type="text" name="walletName" required />
             </Col>
           </FormGroup>
           <FormGroup row>
@@ -48,7 +48,7 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               Custodian URL:
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
-              <Input value={custodianUrl} name="custodianUrl" onChange={e => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
+              <Input value={custodianUrl} name="custodianUrl" onChange={(e) => setCustodianUrl(e.target.value)} list="default=custodian-urls" />
               <datalist id="default=custodian-urls">
                 <option value="https://main.moneypotcustodian.io/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
                 <option value="http://cz42xaedmgslf3me5orcko3ptxfkntav5bcgk7algci3orgh4ot73rad.onion/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
@@ -60,7 +60,7 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               Password
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
-              <Input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" type="password" name="password" />
+              <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" name="password" />
             </Col>
           </FormGroup>
           <FormGroup row>
@@ -68,7 +68,7 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               Seed:
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>
-              <Input value={seed} onChange={e => setSeed(e.target.value)} />
+              <Input value={seed} onChange={(e) => setSeed(e.target.value)} />
             </Col>
           </FormGroup>
           <FormGroup row>

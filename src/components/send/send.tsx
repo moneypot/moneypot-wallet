@@ -375,9 +375,7 @@ export default function Send({ history }: Props) {
                 : 1}{' '}
               sat/vbyte
             </small>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
         </Row>
       </div>
     );
@@ -398,8 +396,8 @@ export default function Send({ history }: Props) {
       return `half an hour, within 3 blocks. (recommended fees to get confirmed within half an hour are ${recommendedFees.halfHourFee} sat/vbyte)`;
     } else if (recommendedFees.hourFee <= Number(feeText)) {
       return `Within an hour, most likely around 6 blocks. (recommend fees to get confirmed within the hour are ${recommendedFees.hourFee} sat/vbyte)`;
-    } else { 
-      return `With this feerate it will take longer than an hour to get confirmed. Recommended fees to get confirmed within an hour are ${recommendedFees.hourFee}`
+    } else {
+      return `With this feerate it will take longer than an hour to get confirmed. Recommended fees to get confirmed within an hour are ${recommendedFees.hourFee}`;
     }
   };
 
@@ -423,7 +421,7 @@ export default function Send({ history }: Props) {
         {/* // lame shit right here */}
         <Row className="lame-duck">
           <small className="text-muted">
-             This transaction will be sent with {feeText} sat/vbyte or <b>{calcFee()} sats</b> and has an ETA of confirming within{' '}
+            This transaction will be sent with {feeText} sat/vbyte or <b>{calcFee()} sats</b> and has an ETA of confirming within{' '}
             {recommendedFees ? howLong() : "...can't load feerates"}
           </small>
         </Row>
@@ -481,9 +479,7 @@ export default function Send({ history }: Props) {
             </Label>
             <Col sm={{ size: 8, offset: 0 }}>{bip21Invoice.options.label}</Col>
           </React.Fragment>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         <Row style={{ justifyContent: 'center', margin: '1rem 2rem' }}>
           <small className="text-muted">
             This is the description that was attached to the invoice. If you expected a different memo, you might be getting scammed.
@@ -598,9 +594,7 @@ export default function Send({ history }: Props) {
                 </InputGroup>
               </Col>
             </FormGroup>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
           {toPTM === '' ? (
             <FormGroup row className="bordered-form-group">
               <Label for="amountInput" sm={3}>
@@ -621,14 +615,10 @@ export default function Send({ history }: Props) {
                   <div>
                     Due to a limitation of moneypot, you can at most send <code>{maxSend} sat</code>{' '}
                   </div>
-                ) : (
-                  undefined
-                )}
+                ) : undefined}
               </Col>
             </FormGroup>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
           {ptm === true && toText === '' ? ShowPayToMany() : undefined}
           {toPTM != '' ? AmountOfPTM() : undefined}
 
@@ -647,9 +637,7 @@ export default function Send({ history }: Props) {
                 </InputGroup>
               </Col>
             </FormGroup>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
           {/* {sendType.kind === 'lightning' || sendType.kind === "bitcoinInvoice" ? showLightningFeeSelection() : undefined} */}
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
           {sendType.kind === 'bitcoinbip21Invoice' ? (ShowBitcoinInvoiceAddresses(), showBitcoinInvoiceFeeSelection()) : undefined}
@@ -665,9 +653,7 @@ export default function Send({ history }: Props) {
                 </p>
               </Label>
             </FormGroup>
-          ) : (
-            undefined
-          )}
+          ) : undefined}
 
           {sendType.kind === 'error' ? <p>Error: {sendType.message}</p> : undefined}
 

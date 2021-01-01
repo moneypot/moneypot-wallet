@@ -52,7 +52,7 @@ export default function LoadedApp() {
         <div className="main-container">
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
-            <Route path="/" exact component={Transactions} />
+            <Route path="/" exact component={() => <Transactions isMobile={mobileView} />} />
             <Route path="/receive" exact component={ReceiveBitcoin} />
             <Route path="/backup" exact component={Backup} />
             <Route path="/faq" exact component={Faq} />
@@ -71,7 +71,7 @@ export default function LoadedApp() {
             <Route path="/config" component={Config} />
             <Route path="/settings" exact component={Settings} />
             {/* <Route path="/contact" render={props => <Page {...props} page="Contact" />} /> */}
-            <Route path="/support" render={props => <Support />} />
+            <Route path="/support" render={(props) => <Support />} />
             <Route component={NoMatch} />
           </Switch>
           {!mobileView ? (
@@ -87,4 +87,3 @@ export default function LoadedApp() {
     </Router>
   );
 }
-

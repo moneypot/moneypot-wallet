@@ -32,6 +32,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
   const [hasPreimage, setPreimage] = useState<string | undefined>(undefined);
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
   const [expired] = useState<boolean>(isExpired());
+  const [Loading, setLoading] = useState<boolean>(false);
+
   let description;
   for (const tag of pro.tags) {
     if (tag.tagName === 'description') {
@@ -63,18 +65,21 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         }
 
         if (props.claimable instanceof mp.Acknowledged.default) {
-          if (!statuses.some(status => status instanceof InvoiceSettledStatus)) {
+          if (!statuses.some((status) => status instanceof InvoiceSettledStatus)) {
             if (!expired) {
               await wallet.requestStatuses(props.claimableHash);
             }
           }
-          if (!statuses.some(status => status instanceof Claimed)) {
-            if (statuses.some(status => status instanceof InvoiceSettledStatus)) {
-              await wallet.claimClaimable(props.claimable);
+          if (!statuses.some((status) => status instanceof Claimed)) {
+            if (statuses.some((status) => status instanceof InvoiceSettledStatus)) {
+              if (!Loading) {
+                setLoading(!Loading);
+                await wallet.claimClaimable(props.claimable);
+              }
             }
           }
         } else {
-          await wallet.acknowledgeClaimable(props.claimable);
+          // await wallet.acknowledgeClaimable(props.claimable);
         }
         // if (!(statuses instanceof Claimed )) {
         //   wallet.claimClaimable(props.claimable)
@@ -88,8 +93,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
     if (!statuses) {
       return <span> Loading Statuses...</span>;
     }
-    if (statuses.some(status => status instanceof InvoiceSettled)) {
-      if (statuses.some(status => status instanceof Claimed)) {
+    if (statuses.some((status) => status instanceof InvoiceSettled)) {
+      if (statuses.some((status) => status instanceof Claimed)) {
         return (
           <a href="#status" className="btn btn-outline-success status-badge">
             Received and claimed!
@@ -120,8 +125,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
       </h5>
       <div className="inner-container">
         <GetStatuses />
-        <br/> &nbsp;
-        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired ? (
+        <br /> &nbsp;
+        {statuses && !statuses.some((status) => status instanceof InvoiceSettledStatus) && !expired ? (
           <div className="qr-code-wrapper">
             <div className="qr-code-container">
               <span>
@@ -129,9 +134,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </span>
             </div>
           </div>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Invoice:</p>
@@ -148,10 +151,10 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
         {hasPreimage != undefined ? (
           <Row>
             <Col sm={{ size: 2, offset: 0 }}>
-              <p className="address-title">rPreimage:</p>
+              <p className="address-title">Preimage:</p>
             </Col>
             <Col sm={{ size: 8, offset: 0 }}>
-              <div className="address-text-container">
+              <div className="claimable-text-container">
                 {hasPreimage}{' '}
                 {/* <CopyToClipboard className="btn btn-light" style={{}} text={hasPreimage}>
           <i className="fa fa-copy" />
@@ -159,9 +162,7 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
               </div>
             </Col>
           </Row>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Amount: </p>
@@ -198,7 +199,8 @@ export default function LightningInvoice(props: LightningInvoiceProps) {
             <div className="claimable-text-container">{props.created.toString()}</div>
           </Col>
         </Row>
-        {statuses && !statuses.some(status => status instanceof InvoiceSettledStatus) && !expired ? <Timer p={pro.timeExpireDate * 1000} /> : undefined}
+        <br />
+        {statuses && !statuses.some((status) => status instanceof InvoiceSettledStatus) && !expired ? <Timer p={pro.timeExpireDate * 1000} /> : undefined}
       </div>
     </div>
   );

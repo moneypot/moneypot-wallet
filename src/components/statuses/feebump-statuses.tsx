@@ -18,11 +18,18 @@ type FeeBumpProps = {
   claimable: mp.FeeBump & Partial<mp.Acknowledged.Claimable>;
 };
 
+let blockD: string = '';
+
 export default function FeeBumpStatuses(props: FeeBumpProps) {
   const [CurrentTxid, setCurrentTxid] = useState('');
   const claimable = props.claimable.toPOD();
   const statuses = useClaimableStatuses(props.claimableHash);
   const [IsConfirmed, hasConfirmed] = useState(true); // prevent false positives when loading
+  const [Loading, setLoading] = useState<boolean>(false);
+
+  if (!Loading) {
+    blockD = '';
+  }
 
   async function getConfirmationStatus(txid: string) {
     const request = await fetchTxReceives(txid);
@@ -30,7 +37,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       hasConfirmed(request.status.confirmed);
       setCurrentTxid(txid);
     } else if (request instanceof RequestError) {
-      if (statuses && statuses.filter(status => status instanceof BitcoinTransactionSent).length === 1) {
+      if (statuses && statuses.filter((status) => status instanceof BitcoinTransactionSent).length === 1) {
         setCurrentTxid(txid);
       }
     }
@@ -43,24 +50,31 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
         for (const s of statuses) {
           if (s instanceof BitcoinTransactionSent) {
             // setCurrentTxid(mp.Buffutils.toHex(s.txid));
-            getConfirmationStatus(mp.Buffutils.toHex(s.txid)); // have to do the operation twice....
+            const txid = mp.Buffutils.toHex(s.txid);
+            if (!(blockD === txid)) {
+              blockD = txid;
+              await getConfirmationStatus(txid);
+            }
           }
         }
 
         if (props.claimable instanceof mp.Acknowledged.default) {
-          if (!statuses.some(status => status instanceof BitcoinTransactionSent) && !statuses.some(status => status instanceof Failed)) {
-            await wallet.requestStatuses(props.claimableHash);
+          if (!statuses.some((status) => status instanceof BitcoinTransactionSent) && !statuses.some((status) => status instanceof Failed)) {
+            if (!Loading) {
+              setLoading(!Loading);
+              await wallet.requestStatuses(props.claimableHash);
+            }
           }
-          if (!statuses.some(status => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
+          if (!statuses.some((status) => status instanceof Claimed) && props.claimable.claimableAmount != 0) {
             await wallet.claimClaimable(props.claimable);
           }
-          if (statuses.some(status => status instanceof Failed)) {
+          if (statuses.some((status) => status instanceof Failed)) {
             if (mp.computeClaimableRemaining(props.claimable.contents, statuses) != 0) {
               await wallet.claimClaimable(props.claimable);
             }
           }
         } else {
-          wallet.acknowledgeClaimable(props.claimable);
+          // wallet.acknowledgeClaimable(props.claimable);
         }
       }
     };
@@ -73,8 +87,11 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
     }
     if (statuses) {
       if (props.claimable instanceof mp.Acknowledged.default) {
-        if (statuses.some(status => status instanceof BitcoinTransactionSent)) {
-          if (statuses.some(status => status instanceof Claimed) || (props.claimable.contents != undefined && props.claimable.contents.claimableAmount === 0)) {
+        if (statuses.some((status) => status instanceof BitcoinTransactionSent)) {
+          if (
+            statuses.some((status) => status instanceof Claimed) ||
+            (props.claimable.contents != undefined && props.claimable.contents.claimableAmount === 0)
+          ) {
             return (
               <a href="#status" className="btn btn-outline-success status-badge">
                 Feebump sent!
@@ -82,14 +99,14 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
             );
           }
         }
-        if (statuses.some(status => status instanceof Failed)) {
+        if (statuses.some((status) => status instanceof Failed)) {
           return (
             <a href="#status" className="btn btn-outline-danger status-badge">
               Feebump failed!
             </a>
           );
         }
-        if (!statuses.some(status => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
+        if (!statuses.some((status) => status instanceof Claimed) && props.claimable.contents.claimableAmount != 0) {
           return (
             <a href="#status" className="btn btn-outline-primary status-badge">
               Feebump remainder not yet claimed!
@@ -120,14 +137,14 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
       </h5>
       <div className="inner-container">
         <GetStatuses />
-        <br/> &nbsp;
+        <br /> &nbsp;
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">Original transaction ID: </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-            <code style={{ wordBreak: 'break-word' }}>{claimable.txid}</code>  
+              {claimable.txid}
               <CopyToClipboard className="btn btn-light" style={{}} text={claimable.txid}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
@@ -140,7 +157,10 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-            <code style={{ wordBreak: 'break-word' }}>{CurrentTxid}</code>  
+              <a href={`https://blockstream.info/tx/${CurrentTxid}`} target="_blank" rel="noreferrer">
+                {' '}
+                {CurrentTxid}
+              </a>
               <CopyToClipboard className="btn btn-light" style={{}} text={CurrentTxid}>
                 <i className="fa fa-copy" />
               </CopyToClipboard>
@@ -172,9 +192,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           <Link to={{ pathname: '/feebump-send', state: { txid: { CurrentTxid } } }}>
             <button className="btn btn-secondary">Feebump this transaction!</button>
           </Link>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
       </div>
     </div>
   );

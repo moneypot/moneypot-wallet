@@ -6,6 +6,7 @@
   // display: flex;
   justify-content: space-between;
   align-items: center;
+  word-break: break-word;
 }
 
 // For a Small screen view
@@ -19,7 +20,7 @@
   border-radius: 0.2rem;
   display: flex;
   justify-content: space-between;
-  word-wrap: break-word;
+  word-break: break-word;
 }
 .address-title {
   font-weight: 600;

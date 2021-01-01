@@ -2,7 +2,7 @@ import * as hi from 'moneypot-lib';
 import makeRequest, { RequestError } from './make-request';
 import { notError } from '../../util';
 
-export default async function(
+export default async function (
   custodianUrl: string
 ): Promise<
   | Error

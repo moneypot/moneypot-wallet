@@ -70,7 +70,7 @@ function show(addressDoc: Docs.BitcoinAddress) {
               <InputGroup>
                 <Input
                   defaultValue={memo}
-                  onChange={e => {
+                  onChange={(e) => {
                     memo = e.target.value;
                   }}
                   type="text"

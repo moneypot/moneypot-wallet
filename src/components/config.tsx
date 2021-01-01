@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { wallet } from '../state/wallet';
 import { Button } from 'reactstrap';
 
-export default function() {
+export default function () {
   const [hidden, setHidden] = useState(true);
   if (!wallet.config) {
     return <span>Wallet is not loaded..</span>;

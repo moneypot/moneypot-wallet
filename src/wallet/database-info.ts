@@ -7,7 +7,7 @@ export async function list(): Promise<string[]> {
 
   const names = await db.getAll('names');
 
-  return names.map(n => n.name);
+  return names.map((n) => n.name);
 }
 
 export async function add(name: string) {

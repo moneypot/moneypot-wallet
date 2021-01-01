@@ -4,7 +4,7 @@ import { useClaimables } from '../../state/wallet';
 import { Button } from 'reactstrap';
 // import { Button } from 'reactstrap';
 
-export default function History() {
+export default function History({ isMobile }: { isMobile: boolean }) {
   const [page, setPage] = useState(1);
 
   const claimables = useClaimables();
@@ -14,14 +14,14 @@ export default function History() {
       <h5 className="main-header">Transactions</h5>
       <div className="history-table">
         <div>
-          <span>Created</span>
+          {isMobile ? undefined : <span>Created</span>}
           <span>Type</span>
           <span>Amount</span>
           <span>Status</span>
         </div>
 
-        {claimables.slice(0, 50 * page).map(c => (
-          <TransactionItem key={c.hash} claimable={c} />
+        {claimables.slice(0, 50 * page).map((c) => (
+          <TransactionItem key={c.hash} claimable={c} isMobile={isMobile} />
         ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center' }}>

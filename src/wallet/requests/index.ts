@@ -13,7 +13,7 @@ export async function getStatusesByClaimable(config: Config, claimableHash: stri
   const statusPOD = await makeRequest<hi.POD.Status[]>(url);
 
   if (statusPOD instanceof RequestError) {
-    toast.error(`got request error: ${statusPOD.message}`)
+    toast.error(`got request error: ${statusPOD.message}`);
     throw statusPOD;
   }
 
@@ -21,7 +21,7 @@ export async function getStatusesByClaimable(config: Config, claimableHash: stri
     throw new Error('statuses-by-claimable should have returned an array...');
   }
 
-  return statusPOD.map(s => notError(hi.Acknowledged.statusFromPOD(s)));
+  return statusPOD.map((s) => notError(hi.Acknowledged.statusFromPOD(s)));
 }
 
 export async function addClaimable(config: Config, claimable: hi.Claimable): Promise<hi.Acknowledged.Claimable | Error> {
@@ -29,7 +29,7 @@ export async function addClaimable(config: Config, claimable: hi.Claimable): Pro
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);
-    toast.error(`got request error: ${resp.message}`)
+    toast.error(`got request error: ${resp.message}`);
     return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
   }
 
@@ -42,7 +42,7 @@ export async function getLightningInfo(config: Config) {
 
   if (resp instanceof RequestError) {
     console.error('got request error: ', resp);
-    toast.error(`got request error: ${resp.message}`)
+    toast.error(`got request error: ${resp.message}`);
     return new Error('could not make request against server: ' + resp.message + ' : ' + resp.statusCode);
   }
   return resp;

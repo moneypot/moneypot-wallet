@@ -66,9 +66,14 @@ export function useClaimable(claimableHash: string) {
   return depromise(wallet.db.get('claimables', claimableHash));
 }
 
+// TODO
+export async function aUseClaimable(claimableHash: string) {
+  return await wallet.db.get('claimables', claimableHash);
+}
+
 export function useClaimableKinds(kind: string) {
   // TODO: index on kind?
-  return depromise(wallet.db.getAllFromIndex('claimables', 'by-created').then(cs => cs.filter(c => c.kind === kind).reverse()));
+  return depromise(wallet.db.getAllFromIndex('claimables', 'by-created').then((cs) => cs.filter((c) => c.kind === kind).reverse()));
 }
 
 // export function useHookinsOfAddress(bitcoinAddress: string) {
@@ -78,20 +83,21 @@ export function useClaimableKinds(kind: string) {
 // }
 export function useHookinsOfAddress(bitcoinAddress: string) {
   return useQueryResult(
-    () => wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress).then(hihos => hihos.filter(hiho => hiho.kind === 'Hookin').reverse()),
+    () =>
+      wallet.db.getAllFromIndex('claimables', 'by-bitcoin-address', bitcoinAddress).then((hihos) => hihos.filter((hiho) => hiho.kind === 'Hookin').reverse()),
     'table:claimables'
   ) as undefined | (Docs.Claimable & hi.POD.Hookin)[];
 }
 
 export function useClaimableStatuses(claimableHash: string) {
   return useQueryResult(
-    () => wallet.db.getAllFromIndex('statuses', 'by-claimable-hash', claimableHash).then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)))),
+    () => wallet.db.getAllFromIndex('statuses', 'by-claimable-hash', claimableHash).then((ss) => ss.map((s) => util.notError(hi.statusFromPOD(s)))),
     'table:statuses'
   );
 }
 
 export function getAllStatuses() {
-  return useQueryResult(() => wallet.db.getAll('statuses').then(ss => ss.map(s => util.notError(hi.statusFromPOD(s)))), 'table:statuses');
+  return useQueryResult(() => wallet.db.getAll('statuses').then((ss) => ss.map((s) => util.notError(hi.statusFromPOD(s)))), 'table:statuses');
 }
 
 export function useQueryResult<T>(f: () => Promise<T>, watch: string) {
@@ -127,8 +133,8 @@ export function useCoins(): Docs.Coin[] {
 
   return claimed;
 }
-// I don't think we've improved the speed of this function? Todo: benchmark
-// we shouldn't use this.. TODO
+
+// TODO this is all just hi.AbstractTransfer... change types everywhere
 export function getSpendingClaimables():
   | (Docs.Claimable & hi.POD.FeeBump)[]
   | (Docs.Claimable & hi.POD.LightningPayment)[]
@@ -140,7 +146,7 @@ export function getSpendingClaimables():
   async function get() {
     const coins = (await wallet.db
       .getAll('claimables')
-      .then(claimables => claimables.filter(c => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
+      .then((claimables) => claimables.filter((c) => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
       | (Docs.Claimable & hi.POD.FeeBump)[]
       | (Docs.Claimable & hi.POD.LightningPayment)[]
       | (Docs.Claimable & hi.POD.Hookout)[];

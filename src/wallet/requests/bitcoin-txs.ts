@@ -16,8 +16,10 @@ export interface AddressInfoTx {
   status: { confirmed: boolean; block_height: number | null };
 }
 
-export default async function(txid: string): Promise<AddressInfoTx | RequestError> {
-  const txs = await makeRequest<AddressInfoTx>(wallet.config.custodian.currency === 'BTC' ? `https://www.moneypot.com/api/tx/${txid}`:  `https://www.moneypot.com/api/testnet/tx/${txid}`);
+export default async function (txid: string): Promise<AddressInfoTx | RequestError> {
+  const txs = await makeRequest<AddressInfoTx>(
+    wallet.config.custodian.currency === 'BTC' ? `https://www.moneypot.com/api/tx/${txid}` : `https://www.moneypot.com/api/testnet/tx/${txid}`
+  );
   if (txs instanceof RequestError) {
     return txs;
   }

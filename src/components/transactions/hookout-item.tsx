@@ -10,12 +10,14 @@ import Failed from 'moneypot-lib/dist/status/failed';
 type Props = {
   statuses: mp.Status[] | undefined;
   claimable: Docs.Claimable;
+  isMobile: boolean;
 };
 
-export default function HookoutItem({ claimable, statuses }: Props) {
+export default function HookoutItem({ claimable, statuses, isMobile }: Props) {
   if (claimable.kind !== 'Hookout') {
     throw new Error('expected hookout');
   }
+  const fetchedMemo = localStorage.getItem(claimable.hash);
 
   let status = 'not yet sent';
   if (statuses === undefined) {
@@ -33,9 +35,11 @@ export default function HookoutItem({ claimable, statuses }: Props) {
 
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card Hookout">
-      <div className="text-muted">
-        <Timeago date={claimable.created} />
-      </div>
+      {isMobile ? undefined : (
+        <div className="text-muted">
+          <Timeago date={claimable.created} />
+        </div>
+      )}
       <div>
         <span className="fa-stack">
           <i className="fas fa-circle fa-stack-2x" />
@@ -43,7 +47,7 @@ export default function HookoutItem({ claimable, statuses }: Props) {
         </span>
         <span>
           Bitcoin Send
-          <br /> ( {claimable.bitcoinAddress} ){' '}
+          <br /> ( {isMobile ? fetchedMemo : claimable.bitcoinAddress} ){' '}
         </span>
       </div>
       <div>-{claimable.amount} satoshis</div>

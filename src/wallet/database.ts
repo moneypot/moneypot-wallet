@@ -35,7 +35,7 @@ import LightningPaymentSent from 'moneypot-lib/dist/status/lightning-payment-sen
 
 let currentVersion = 4;
 // TODO: Improve this, placeholder.
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export default class Database extends EventEmitter {
   db: idb.IDBPDatabase<Schema>;
@@ -265,12 +265,9 @@ export default class Database extends EventEmitter {
   }
 
   private async getStatuses<S extends StoreName>(claimableHash: string, transaction: idb.IDBPTransaction<Schema, (S | 'statuses')[]>) {
-    const statusDocs = await transaction
-      .objectStore('statuses')
-      .index('by-claimable-hash')
-      .getAll(claimableHash);
+    const statusDocs = await transaction.objectStore('statuses').index('by-claimable-hash').getAll(claimableHash);
 
-    return statusDocs.map(s => util.notError(hi.statusFromPOD(s)));
+    return statusDocs.map((s) => util.notError(hi.statusFromPOD(s)));
   }
 
   public async claimClaimable(ackdClaimable: hi.Acknowledged.Claimable | Docs.Claimable) {
@@ -292,10 +289,7 @@ export default class Database extends EventEmitter {
 
       claimant = hi.PrivateKey.combine(owners);
     } else {
-      const counter = await transaction
-        .objectStore('counters')
-        .index('by-value')
-        .get(claimable.claimant.toPOD());
+      const counter = await transaction.objectStore('counters').index('by-value').get(claimable.claimant.toPOD());
 
       if (!counter) {
         console.error('could not find counter by claimant: ', claimable.claimant.toPOD());
@@ -474,7 +468,7 @@ export default class Database extends EventEmitter {
 
     const purpose = 'lightningInvoice';
 
-    let claimant = await this.nextCounter(purpose, index => this.deriveClaimableClaimant(index, purpose).toPublicKey(), counterTransaction);
+    let claimant = await this.nextCounter(purpose, (index) => this.deriveClaimableClaimant(index, purpose).toPublicKey(), counterTransaction);
 
     const invoice = await genInvoice(this.config, claimant, memo, amount);
     const invoiceDoc = {
@@ -639,12 +633,12 @@ export default class Database extends EventEmitter {
       let check: boolean = true;
       const statuses = await this.db
         .getAllFromIndex('statuses', 'by-claimable-hash', claimable.hash)
-        .then(ss => ss.map(s => util.notError(hi.statusFromPOD(s))));
+        .then((ss) => ss.map((s) => util.notError(hi.statusFromPOD(s))));
 
       switch (claimable.kind) {
         case 'Hookin':
-          if (statuses.some(status => status instanceof HookinAccepted)) {
-            if (statuses.some(status => status instanceof Claimed)) {
+          if (statuses.some((status) => status instanceof HookinAccepted)) {
+            if (statuses.some((status) => status instanceof Claimed)) {
               check = false;
             } else {
               if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
@@ -655,8 +649,8 @@ export default class Database extends EventEmitter {
           break;
         case 'Hookout':
         case 'FeeBump':
-          if (statuses.some(status => status instanceof BitcoinTransactionSent)) {
-            if (statuses.some(status => status instanceof Claimed)) {
+          if (statuses.some((status) => status instanceof BitcoinTransactionSent)) {
+            if (statuses.some((status) => status instanceof Claimed)) {
               check = false;
             } else {
               if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
@@ -666,15 +660,15 @@ export default class Database extends EventEmitter {
           }
           break;
         case 'LightningInvoice':
-          if (statuses.some(status => status instanceof InvoiceSettled)) {
-            if (statuses.some(status => status instanceof Claimed)) {
+          if (statuses.some((status) => status instanceof InvoiceSettled)) {
+            if (statuses.some((status) => status instanceof Claimed)) {
               check = false;
             }
           }
           break;
         case 'LightningPayment':
-          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof Failed)) {
-            if (statuses && statuses.filter(status => status instanceof Claimed)) {
+          if (statuses.some((status) => status instanceof LightningPaymentSent) || statuses.some((status) => status instanceof Failed)) {
+            if (statuses && statuses.filter((status) => status instanceof Claimed)) {
               if (hi.computeClaimableRemaining(fromPODClaimable, statuses) === 0) {
                 check = false;
               }
@@ -730,7 +724,7 @@ export default class Database extends EventEmitter {
 
     const localClaimables = (await this.db
       .getAll('claimables')
-      .then(claimables => claimables.filter(c => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
+      .then((claimables) => claimables.filter((c) => c.kind === 'Hookout' || c.kind === 'FeeBump' || c.kind === 'LightningPayment'))) as
       | (Docs.Claimable & hi.POD.FeeBump)[]
       | (Docs.Claimable & hi.POD.LightningPayment)[]
       | (Docs.Claimable & hi.POD.Hookout)[];
@@ -761,7 +755,7 @@ export default class Database extends EventEmitter {
       }
     }
 
-    let Unspent = coins.filter(x => !hasLocal.includes(x));
+    let Unspent = coins.filter((x) => !hasLocal.includes(x));
     // include the previous loop
     let emptySyncedCoins: Docs.Coin[] = emptySyncedCoinsPrevious != undefined ? emptySyncedCoinsPrevious : [];
     let ghostChance = Buffer.from(hi.random(1)).readUInt8(0) % 10;
@@ -773,12 +767,7 @@ export default class Database extends EventEmitter {
         await delay(Math.random() * 3000);
         // fake a coin, x% chance.
         if (Buffer.from(hi.random(1)).readUInt8(0) % 10 >= ghostChance) {
-          await getClaimableByInputOwner(
-            this.config,
-            hi.PrivateKey.fromRand()
-              .toPublicKey()
-              .toPOD()
-          );
+          await getClaimableByInputOwner(this.config, hi.PrivateKey.fromRand().toPublicKey().toPOD());
         }
       }
       const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
@@ -875,10 +864,7 @@ export default class Database extends EventEmitter {
       console.log('checking if address: ', { bitcoinAdress, index }, ' is used');
 
       // Check if it's used...
-      const k = await transaction
-        .objectStore('claimables')
-        .index('by-bitcoin-address')
-        .getKey(bitcoinAdress);
+      const k = await transaction.objectStore('claimables').index('by-bitcoin-address').getKey(bitcoinAdress);
       if (k) {
         return [bitcoinAdress, index];
       }
@@ -904,10 +890,7 @@ export default class Database extends EventEmitter {
     claimant: string,
     transaction: idb.IDBPTransaction<Schema, (S | 'events' | 'bitcoinAddresses')[]>
   ): Promise<Docs.BitcoinAddress> {
-    const bitcoinAddress = await transaction
-      .objectStore('bitcoinAddresses')
-      .index('by-claimant')
-      .get(claimant);
+    const bitcoinAddress = await transaction.objectStore('bitcoinAddresses').index('by-claimant').get(claimant);
     if (bitcoinAddress) {
       return bitcoinAddress;
     }
@@ -931,10 +914,7 @@ export default class Database extends EventEmitter {
     index: number,
     transaction: idb.IDBPTransaction<Schema, (S | 'counters' | 'events' | 'bitcoinAddresses')[]>
   ): Promise<Docs.BitcoinAddress> {
-    const counter = await transaction
-      .objectStore('counters')
-      .index('by-purpose-index')
-      .get(['bitcoinAddress', index]);
+    const counter = await transaction.objectStore('counters').index('by-purpose-index').get(['bitcoinAddress', index]);
     if (counter) {
       const claimant = counter.value;
       return this.getOrAddBitcoinAddressByClaimant(claimant, transaction);
@@ -1053,7 +1033,7 @@ export default class Database extends EventEmitter {
       return `NOT_ENOUGH_FUNDS, MISSING ${coinsToUse} sat `;
     }
 
-    const inputs = coinsToUse.found.map(coin => util.notError(hi.Coin.fromPOD(coin)));
+    const inputs = coinsToUse.found.map((coin) => util.notError(hi.Coin.fromPOD(coin)));
     hi.AbstractTransfer.sort(inputs);
 
     // const inputHash = hi.Hash.fromMessage('inputHash', ...inputs.map(i => i.buffer));
@@ -1100,10 +1080,7 @@ export default class Database extends EventEmitter {
   }
 
   public deriveClaimableClaimant(index: number, purpose: string): hi.PrivateKey {
-    return this.config
-      .claimantGenerator()
-      .derive(hi.Buffutils.fromString(purpose))
-      .derive(index);
+    return this.config.claimantGenerator().derive(hi.Buffutils.fromString(purpose)).derive(index);
   }
 }
 

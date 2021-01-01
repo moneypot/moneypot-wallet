@@ -179,7 +179,14 @@ export default function Settings() {
                 </p>
                 <InputGroup>
                   <InputGroupAddon addonType="prepend"></InputGroupAddon>
-                  <Input placeholder={amountInput.toString()} min={0} max={-1} type="number" step="1" onChange={e => setAmountInput(Number(e.target.value))} />
+                  <Input
+                    placeholder={amountInput.toString()}
+                    min={0}
+                    max={-1}
+                    type="number"
+                    step="1"
+                    onChange={(e) => setAmountInput(Number(e.target.value))}
+                  />
                 </InputGroup>
                 <small>Default gaplimit = 10.</small>
               </Label>

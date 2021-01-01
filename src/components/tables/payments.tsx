@@ -7,7 +7,7 @@ import * as Docs from '../../wallet/docs';
 import { useClaimableKinds } from '../../state/wallet';
 import LnPaymentsTable from './payments-table';
 
-export default function(props: RouteComponentProps<{ hash: string }>) {
+export default function (props: RouteComponentProps<{ hash: string }>) {
   const lnPayments = useClaimableKinds('LightningPayment');
 
   if (lnPayments === 'LOADING') {

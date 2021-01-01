@@ -101,9 +101,7 @@ export default class Config {
       one: 1,
       mnemonic: this.mnemonic,
       gapLimit: this.gapLimit,
-      claimantGenerator: this.claimantGenerator()
-        .toPublicKey()
-        .toPOD(),
+      claimantGenerator: this.claimantGenerator().toPublicKey().toPOD(),
       custodianUrl: this.custodianUrl,
       custodian: this.custodian.toPOD(),
       sig: this.sig,

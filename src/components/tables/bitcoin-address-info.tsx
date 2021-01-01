@@ -46,4 +46,3 @@ function RenderAddress({ address: addressDoc }: { address: Docs.BitcoinAddress }
     </div>
   );
 }
-

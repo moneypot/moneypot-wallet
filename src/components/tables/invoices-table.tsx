@@ -69,12 +69,12 @@ export const InvoicesTable = ({ invoices }: { invoices: (Docs.Claimable & hi.POD
             accessor: 'paymentRequest',
           },
           {
-            Header: 'Memo',
-            accessor: 'memo',
-          },
-          {
             Header: 'Amount',
             accessor: 'amount',
+          },
+          {
+            Header: 'Memo',
+            accessor: 'memo',
           },
           {
             Header: 'Paid',

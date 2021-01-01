@@ -9,12 +9,14 @@ import Timeago from '../../util/timeago';
 type Props = {
   statuses: mp.Status[] | undefined;
   claimable: Docs.Claimable;
+  isMobile: boolean;
 };
 
-export default function HookinItem({ claimable, statuses }: Props) {
+export default function HookinItem({ claimable, statuses, isMobile }: Props) {
   if (claimable.kind !== 'Hookin') {
     throw new Error('hookin expected');
   }
+  const fetchedMemo = localStorage.getItem(claimable.bitcoinAddress);
 
   let status = 'pending confs';
   if (statuses === undefined) {
@@ -29,9 +31,11 @@ export default function HookinItem({ claimable, statuses }: Props) {
 
   return (
     <Link to={`claimables/${claimable.hash}`} className="transaction-card Hookin">
-      <div className="text-muted">
-        <Timeago date={claimable.created} />
-      </div>
+      {isMobile ? undefined : (
+        <div className="text-muted">
+          <Timeago date={claimable.created} />
+        </div>
+      )}
 
       <div>
         <span className="fa-stack">
@@ -40,7 +44,7 @@ export default function HookinItem({ claimable, statuses }: Props) {
         </span>
         <span>
           Bitcoin Deposit
-          <br /> ( {claimable.bitcoinAddress} ){' '}
+          <br /> ( {isMobile ? fetchedMemo : claimable.bitcoinAddress} ){' '}
         </span>
       </div>
       <div>{claimable.amount} satoshis</div>

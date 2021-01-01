@@ -76,10 +76,6 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
             accessor: 'memo',
           },
           {
-            Header: 'Status',
-            accessor: 'status',
-          },
-          {
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
@@ -87,6 +83,10 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
                 {e.value}
               </a>
             ),
+          },
+          {
+            Header: 'Status',
+            accessor: 'status',
           },
           {
             Header: 'Created',

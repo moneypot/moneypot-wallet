@@ -32,6 +32,8 @@ export default function LightningPayment(props: LightningInvoiceProps) {
   const [paymentStatusFailed, setPaymentStatusFailed] = useState<Failed>(Object);
   const [paymentStatusSuccess, setPaymentStatusSuccess] = useState<LightningPaymentSent>(Object);
   const [paymentPreimage, setpaymentPreimage] = useState('');
+  const [Loading, setLoading] = useState<boolean>(false);
+
   const pro = notError(mp.decodeBolt11(props.paymentRequest));
   let description;
   for (const tag of pro.tags) {
@@ -64,21 +66,24 @@ export default function LightningPayment(props: LightningInvoiceProps) {
             setPaymentStatusFailed(s);
           }
         }
-        if (!statuses.some(status => status instanceof LightningPaymentSent) && !statuses.some(status => status instanceof Failed)) {
+        if (!statuses.some((status) => status instanceof LightningPaymentSent) && !statuses.some((status) => status instanceof Failed)) {
           await wallet.requestStatuses(props.claimableHash);
         }
         if (props.claimable instanceof mp.Acknowledged.default) {
           // we want to claim on fail, and initial.
-          if (statuses.some(status => status instanceof LightningPaymentSent) || statuses.some(status => status instanceof Failed)) {
-            if (statuses.filter(status => status instanceof Claimed).length < 2) {
+          if (statuses.some((status) => status instanceof LightningPaymentSent) || statuses.some((status) => status instanceof Failed)) {
+            if (statuses.filter((status) => status instanceof Claimed).length < 2) {
               const amountToClaim = hi.computeClaimableRemaining(props.claimable.contents, statuses);
               if (amountToClaim > 0) {
-                await wallet.claimClaimable(props.claimable);
+                if (!Loading) {
+                  setLoading(!Loading);
+                  await wallet.claimClaimable(props.claimable);
+                }
               }
             }
           }
         } else {
-          await wallet.acknowledgeClaimable(props.claimable);
+          // await wallet.acknowledgeClaimable(props.claimable);
         }
       }
     };
@@ -89,14 +94,14 @@ export default function LightningPayment(props: LightningInvoiceProps) {
       return <span>Loading statuses...</span>;
     }
     // we don't know how many claims are required, could be 1, could be 2
-    if (statuses.some(status => status instanceof LightningPaymentSent)) {
+    if (statuses.some((status) => status instanceof LightningPaymentSent)) {
       return (
         <a href="#status" className="btn btn-outline-success status-badge">
           Sent!
         </a>
       );
     }
-    if (statuses.some(status => status instanceof Failed)) {
+    if (statuses.some((status) => status instanceof Failed)) {
       return (
         <a href="#status" className="btn btn-outline-danger status-badge">
           payment has failed!
@@ -105,8 +110,8 @@ export default function LightningPayment(props: LightningInvoiceProps) {
       );
     }
     if (
-      !statuses.some(status => status instanceof LightningPaymentSent) &&
-      !statuses.some(status => status instanceof Failed) &&
+      !statuses.some((status) => status instanceof LightningPaymentSent) &&
+      !statuses.some((status) => status instanceof Failed) &&
       props.claimable instanceof mp.Acknowledged.default
     ) {
       return (
@@ -128,14 +133,14 @@ export default function LightningPayment(props: LightningInvoiceProps) {
   };
 
   return (
-    <div>      
+    <div>
       <ToastContainer />
       <h5>
         <i className="far fa-bolt" /> Lightning Payment!
       </h5>
       <div className="inner-container">
         <GetStatuses />
-        <br/> &nbsp;
+        <br /> &nbsp;
         <div className="qr-code-wrapper">
           <div className="qr-code-container">
             <span>
@@ -185,7 +190,7 @@ export default function LightningPayment(props: LightningInvoiceProps) {
         <Row>
           <Col sm={{ size: 2, offset: 0 }}>
             <p className="address-title">
-              {paymentStatusSuccess.hash != undefined ? 'rPreimage:' : paymentStatusFailed != undefined ? 'Reason for failure:' : 'Waiting for statuses?'}{' '}
+              {paymentStatusSuccess.hash != undefined ? 'Preimage:' : paymentStatusFailed != undefined ? 'Reason for failure:' : 'Waiting for statuses?'}{' '}
             </p>
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
