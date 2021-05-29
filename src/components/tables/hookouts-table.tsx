@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import * as hi from 'moneypot-lib';
 import * as Docs from '../../wallet/docs';
 import { notError } from '../../util';
-import { useClaimableStatuses, getAllStatuses } from '../../state/wallet';
+import { useClaimableStatuses, getAllStatuses, wallet } from '../../state/wallet';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import Failed from 'moneypot-lib/dist/status/failed';
 import { CustomTable } from './table-util';
@@ -47,6 +47,8 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
     });
   }
 
+  const isTestnet = wallet.config.custodian.currency === 'tBTC' 
+
   const columns = useMemo(
     () => [
       {
@@ -61,7 +63,7 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
             Header: 'Address',
             accessor: 'address',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/address/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={isTestnet ? `https://blockstream.info/testnet/address/${e.value}` : `https://blockstream.info/address/${e.value}`} target="_blank" rel="noreferrer">
                 {' '}
                 {e.value}
               </a>
@@ -79,7 +81,7 @@ export default function HookoutsTable({ hookouts }: { hookouts: (Docs.Claimable 
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/tx/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={isTestnet ? `https://blockstream.info/testnet/tx/${e.value}` : `https://blockstream.info/tx/${e.value}`} target="_blank" rel="noreferrer">
                 {e.value}
               </a>
             ),

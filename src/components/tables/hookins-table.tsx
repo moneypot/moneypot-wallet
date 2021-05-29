@@ -61,6 +61,8 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
     });
   }
 
+  const isTestnet = wallet.config.custodian.currency === 'tBTC' 
+
   const columns = useMemo(
     () => [
       {
@@ -75,7 +77,7 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
             Header: 'Address',
             accessor: 'address',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/address/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={isTestnet ? `https://blockstream.info/testnet/address/${e.value}` : `https://blockstream.info/address/${e.value}`} target="_blank" rel="noreferrer">
                 {' '}
                 {e.value}
               </a>
@@ -93,7 +95,7 @@ export default function HookinsTable({ hookins }: { hookins: (Docs.Claimable & h
             Header: 'Txid',
             accessor: 'txid',
             Cell: (e: { value: React.ReactNode }) => (
-              <a href={`https://blockstream.info/tx/${e.value}`} target="_blank" rel="noreferrer">
+              <a href={isTestnet ? `https://blockstream.info/testnet/tx/${e.value}` : `https://blockstream.info/tx/${e.value}`} target="_blank" rel="noreferrer">
                 {e.value}
               </a>
             ),

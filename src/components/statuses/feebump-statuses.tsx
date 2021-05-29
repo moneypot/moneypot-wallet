@@ -129,6 +129,9 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
     }
     return <span>Loading Statuses...</span>;
   };
+
+  const txid = wallet.config.custodian.currency === 'tBTC' ? `https://blockstream.info/testnet/tx/${CurrentTxid}` : `https://blockstream.info/tx/${CurrentTxid}`
+
   return (
     <div>
       <ToastContainer />
@@ -157,7 +160,7 @@ export default function FeeBumpStatuses(props: FeeBumpProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              <a href={`https://blockstream.info/tx/${CurrentTxid}`} target="_blank" rel="noreferrer">
+              <a href={txid} target="_blank" rel="noreferrer">
                 {' '}
                 {CurrentTxid}
               </a>

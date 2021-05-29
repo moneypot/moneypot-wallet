@@ -98,6 +98,9 @@ export default function HookinStatuses(props: HookinProps) {
       );
     }
   };
+
+  const txid = wallet.config.custodian.currency === 'tBTC' ? `https://blockstream.info/testnet/tx/${claimable.txid}` : `https://blockstream.info/tx/${claimable.txid}`
+
   return (
     <div>
       <ToastContainer />
@@ -126,7 +129,7 @@ export default function HookinStatuses(props: HookinProps) {
           </Col>
           <Col sm={{ size: 8, offset: 0 }}>
             <div className="claimable-text-container">
-              <a href={`https://blockstream.info/tx/${claimable.txid}`} target="_blank" rel="noreferrer">
+              <a href={txid} target="_blank" rel="noreferrer">
                 {' '}
                 {claimable.txid}
               </a>

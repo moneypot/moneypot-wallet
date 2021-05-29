@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router';
-import { Collapse, Navbar, Nav, NavItem, Button } from 'reactstrap';
+import { Collapse, Navbar, Nav, NavItem, Button, Alert } from 'reactstrap';
 import { Link, withRouter, useLocation } from 'react-router-dom';
 import { wallet, useBalance } from '../../state/wallet';
 import SyncBtn from './sync-btn';
 
 export default withRouter(TopBar);
+
+// low priority
+const TestnetAlert = () => {
+  const [visible, setVisible] = useState(localStorage.getItem(`dismissedTestnetAlert-${wallet.db.name}`) ? false : true);
+
+  const onDismiss = () => {setVisible(false), localStorage.setItem(`dismissedTestnetAlert-${wallet.db.name}`, 'true')};
+
+  return (
+    <Alert color="warning" isOpen={visible} toggle={onDismiss} style={{width: 'max-content'}}>
+       {' '} Warning! This is a <a href="https://en.bitcoin.it/wiki/Testnet">testnet</a>  wallet!
+    </Alert>
+  ) ;
+}
+
+
+
 
 function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +63,7 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
         )}
         {/* TODO make warning class  */}
         <span className="wallet-info">
-          {warning}
+          {warning} {' '} {TestnetAlert()}
           <b style={{ fontWeight: 'bold' }}>{props.isMobile ? '' : wallet.db.name} </b> {balance + ' sat'}
         </span>
         <div className="nav-item-right">

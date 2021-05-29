@@ -52,6 +52,8 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               <datalist id="default=custodian-urls">
                 <option value="https://main.moneypotcustodian.io/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
                 <option value="http://cz42xaedmgslf3me5orcko3ptxfkntav5bcgk7algci3orgh4ot73rad.onion/#pubmp1qvenvu4nvjcugdul5jzg2py373r8euz2y42ryt3ghr682m58p6l2ynq97v4" />
+                <option value="https://testnet.moneypot.dev" />
+
               </datalist>
             </Col>
           </FormGroup>
