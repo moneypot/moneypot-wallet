@@ -7,16 +7,7 @@ import { useClaimableStatuses, wallet } from '../../state/wallet';
 import Claimed from 'moneypot-lib/dist/status/claimed';
 import BitcoinTransactionSent from 'moneypot-lib/dist/status/bitcoin-transaction-sent';
 import { Link } from 'react-router-dom';
-import {
-  legacyTransactionWeight,
-  wrappedTransactionWeight,
-  segmultiTransactionWeight,
-  templateTransactionWeight,
-  legacyOutput,
-  wrappedOutput,
-  segmultiOutput,
-  segwitOutput,
-} from '../../config';
+import * as config from '../../config';
 import fetchTxReceives from '../../wallet/requests/bitcoin-txs';
 import { RequestError } from '../../wallet/requests/make-request';
 import Failed from 'moneypot-lib/dist/status/failed';
@@ -73,25 +64,29 @@ export default function HookoutStatuses(props: HookoutProps) {
     if (claimable.priority === 'IMMEDIATE' || claimable.priority === 'CUSTOM') {
       switch (addressType.kind) {
         case 'p2pkh':
-          return claimable.fee / legacyTransactionWeight;
+          return claimable.fee / config.p2pkhTransactionWeight;
         case 'p2sh':
-          return claimable.fee / wrappedTransactionWeight;
+          return claimable.fee / config.p2shp2wpkhTransactionWeight;
         case 'p2wsh':
-          return claimable.fee / segmultiTransactionWeight;
-        default:
-          return claimable.fee / templateTransactionWeight;
+          return claimable.fee / config.p2wshTransactionWeight;
+        case 'p2tr':
+          return claimable.fee / config.p2trTransactionWeight;  
+        case 'p2wpkh':
+          return claimable.fee / config.p2wpkhTransactionWeight;
       }
     }
     if (claimable.priority === 'BATCH') {
       switch (addressType.kind) {
         case 'p2pkh':
-          return claimable.fee / legacyOutput;
+          return claimable.fee / config.p2pkh;
         case 'p2sh':
-          return claimable.fee / wrappedOutput;
+          return claimable.fee / config.p2shp2wpkh;
         case 'p2wsh':
-          return claimable.fee / segmultiOutput;
-        default:
-          return claimable.fee / segwitOutput;
+          return claimable.fee / config.p2wsh;
+        case 'p2tr':
+          return claimable.fee / config.p2tr;  
+        case 'p2wpkh':
+          return claimable.fee / config.p2wpkh;
       }
     } else return 0.25; // free
   };

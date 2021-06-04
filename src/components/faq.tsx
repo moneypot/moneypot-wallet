@@ -17,7 +17,7 @@ export default function Faq() {
     getKeys();
   }, []);
 
-  const url = `https://1ml.com/node/` + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
+  const url = (wallet.config.custodian.currency === 'tBTC' ? `https://1ml.com/testnet/node/`: `https://1ml.com/node/`) + (lightninginfo && lightninginfo.identity_pubkey ? lightninginfo.identity_pubkey : undefined);
   return (
     <div>
       <ToastContainer />

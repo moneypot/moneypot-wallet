@@ -10,16 +10,7 @@ import getEstimatedCustomFee, { BitcoinFees } from '../../wallet/requests/estima
 import QrScanner from './qr-scanner';
 import FeeOptionIcon from './fee-option-icon';
 import BitcoinAmountInput from '../../util/bitcoin-amount-input';
-import {
-  templateTransactionWeight,
-  legacyTransactionWeight,
-  segwitOutput,
-  wrappedTransactionWeight,
-  legacyOutput,
-  wrappedOutput,
-  segmultiOutput,
-  segmultiTransactionWeight,
-} from '../../config';
+import * as config from '../../config';
 import { decodeBitcoinAddress } from 'moneypot-lib';
 import { notError } from '../../util';
 
@@ -187,25 +178,29 @@ export default function Send({ history }: Props) {
       // don't send non-integers, ceil in case of 1/sat/b etc (140.25 eg)
       switch (isType.kind) {
         case 'p2pkh':
-          return Math.ceil(feeSchedule.immediateFeeRate * legacyTransactionWeight);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2pkhTransactionWeight);
         case 'p2sh':
-          return Math.ceil(feeSchedule.immediateFeeRate * wrappedTransactionWeight);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2shp2wpkhTransactionWeight);
         case 'p2wsh':
-          return Math.ceil(feeSchedule.immediateFeeRate * segmultiTransactionWeight);
-        default:
-          return Math.ceil(feeSchedule.immediateFeeRate * templateTransactionWeight);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2wshTransactionWeight);
+        case 'p2tr':
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2trTransactionWeight);
+        case 'p2wpkh':
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2wpkhTransactionWeight);
       }
     }
     if (prioritySelection === 'BATCH') {
       switch (isType.kind) {
         case 'p2pkh':
-          return Math.ceil(feeSchedule.immediateFeeRate * legacyOutput);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2pkh);
         case 'p2sh':
-          return Math.ceil(feeSchedule.immediateFeeRate * wrappedOutput);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2shp2wpkh);
         case 'p2wsh':
-          return Math.ceil(feeSchedule.immediateFeeRate * segmultiOutput);
-        default:
-          return Math.ceil(feeSchedule.immediateFeeRate * segwitOutput);
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2wsh);
+        case 'p2tr':
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2tr);
+        case 'p2wpkh':
+          return Math.ceil(feeSchedule.immediateFeeRate * config.p2wpkh);
       }
     }
 
@@ -213,13 +208,15 @@ export default function Send({ history }: Props) {
       switch (isType.kind) {
         case 'p2pkh':
           // don't send non-integers, per vbyte
-          return Math.ceil((Number(feeText) * legacyTransactionWeight) / 4);
+          return Math.ceil((Number(feeText) * config.p2pkhTransactionWeight) / 4);
         case 'p2sh':
-          return Math.ceil((Number(feeText) * wrappedTransactionWeight) / 4);
+          return Math.ceil((Number(feeText) * config.p2shp2wpkhTransactionWeight) / 4);
         case 'p2wsh':
-          return Math.ceil((Number(feeText) * segmultiTransactionWeight) / 4);
-        default:
-          return Math.ceil((Number(feeText) * templateTransactionWeight) / 4);
+          return Math.ceil((Number(feeText) * config.p2wshTransactionWeight) / 4);
+        case 'p2tr':
+          return Math.ceil((Number(feeText) * config.p2trTransactionWeight) / 4);
+        case 'p2wpkh':
+          return Math.ceil((Number(feeText) * config.p2wpkhTransactionWeight) / 4);
       }
     }
     if (prioritySelection == 'FREE') {
@@ -367,11 +364,11 @@ export default function Send({ history }: Props) {
             <small className="text-muted">
               This transaction will be sent with{' '}
               {prioritySelection === 'IMMEDIATE'
-                ? feeSchedule.immediateFeeRate * 4
+                ? (feeSchedule.immediateFeeRate * 4).toFixed(3)
                 : prioritySelection === 'CUSTOM'
                 ? feeText
                 : prioritySelection === 'BATCH'
-                ? feeSchedule.immediateFeeRate * 4
+                ? (feeSchedule.immediateFeeRate * 4).toFixed(3)
                 : 1}{' '}
               sat/vbyte
             </small>
