@@ -950,12 +950,21 @@ export default class Database extends EventEmitter {
 
       let hookin = new hi.Hookin(receive.txid, receive.vout, receive.amount, claimant, bitcoinAddressDoc.address);
 
+      // get ~ time of broadcast from blockstream -- custodian rpc also only offers blocktime
+      // stupid logic, because this gets replaced by acked claimable. 
+      let time: Date = new Date();
+
+      if (receive.time) { 
+        if (receive.time < (new Date().getTime() / 1000)) { 
+          time = new Date(receive.time * 1000)
+        } 
+      }
       let hookinDoc = await transaction.objectStore('claimables').get(hookin.hash().toPOD());
 
       if (!hookinDoc) {
         hookinDoc = {
           ...hi.claimableToPOD(hookin),
-          created: new Date(),
+          created: time,
         };
         await transaction.objectStore('claimables').add(hookinDoc);
         toEmit = true;
@@ -1000,9 +1009,24 @@ export default class Database extends EventEmitter {
       }
     }
     const ackPOD = ackd.toPOD();
+
+    const transaction = this.db.transaction(['claimables'], 'readwrite');
+    // get claimable with (more) correct time
+    const c = await transaction.objectStore('claimables').get(ackPOD.hash)
+
+    let time: Date = new Date(); 
+    if (c && ackPOD.initCreated) { 
+      if (c.created.getTime() < ackPOD.initCreated ) { 
+        time = c.created
+      } else { 
+        time = new Date(ackPOD.initCreated)
+      }
+    }
+
+
     await this.db.put('claimables', {
       ...ackPOD,
-      created: ackPOD.initCreated ? new Date(ackPOD.initCreated) : new Date(), // fix recovery date, TODO: only works if the custodian has seen the claimable, and only shows when the custodian became aware of the custodian. on-chain times may differ significantly?!
+      created: time, // fix recovery date, TODO: only works if the custodian has seen the claimable, and only shows when the custodian became aware of the custodian. on-chain times may differ significantly?!
     });
     await this.emit('table:claimables');
 
