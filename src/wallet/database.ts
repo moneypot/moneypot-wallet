@@ -587,6 +587,7 @@ export default class Database extends EventEmitter {
 
       const claimant = this.deriveClaimableClaimant(index, purpose).toPublicKey();
       const invoice = await getInvoicesByClaimant(this.config, claimant);
+      console.log('[sync:lightning-invoice] checking invoice: ', claimant.toPOD(), ' index ', index);
 
       if (!invoice) {
         gapCount++;
@@ -681,8 +682,10 @@ export default class Database extends EventEmitter {
           if (this.settings.setting7_randomize_recovery) {
             await delay(Math.random() * 10000);
           }
+          console.log('[sync:moneypot-claimables] checking claimable statuses: ', claimable.hash);
           await this.requestStatuses(claimable.hash);
-          await this.claimClaimable(claimable);
+          console.log('[sync:moneypot-claimables] checking claimable claims: ', claimable.hash);
+          await this.claimClaimable(claimable); // it's not a problem if this fails because not all coins are found yet - makes sense. maybe remove logs?
         } catch (e) {
           continue;
         }
@@ -770,6 +773,7 @@ export default class Database extends EventEmitter {
           await getClaimableByInputOwner(this.config, hi.PrivateKey.fromRand().toPublicKey().toPOD());
         }
       }
+      console.log('[sync:moneypot-coins] checking coins for status: ', checkCoin.owner);
       const claimable = await getClaimableByInputOwner(this.config, checkCoin.owner);
       if (!claimable) {
         emptySyncedCoins.push(checkCoin);
@@ -1018,15 +1022,17 @@ export default class Database extends EventEmitter {
     if (c && ackPOD.initCreated) { 
       if (c.created.getTime() < ackPOD.initCreated ) { 
         time = c.created
-      } else { 
+      } else if (c.created.getTime() > ackPOD.initCreated ) { // prevent new hookins from having false time on first sync 
         time = new Date(ackPOD.initCreated)
       }
+    } else if (c && ackPOD.initCreated === undefined) { 
+      time = c.created
     }
 
 
     await this.db.put('claimables', {
       ...ackPOD,
-      created: time, // fix recovery date, TODO: only works if the custodian has seen the claimable, and only shows when the custodian became aware of the custodian. on-chain times may differ significantly?!
+      created: time, 
     });
     await this.emit('table:claimables');
 

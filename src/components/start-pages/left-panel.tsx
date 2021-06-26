@@ -32,5 +32,5 @@ const Mobile = () => {
 };
 
 export default function LeftPanel(props: { isMobile: boolean }) {
-  return props.isMobile ? Mobile() : Desktop();
+  return props.isMobile ? null : Desktop(); // cleaner for now
 }

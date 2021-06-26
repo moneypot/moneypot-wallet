@@ -29,7 +29,7 @@ export function decodeBitcoinBip21(text: string) {
   const options = qs.parse(otherVariables) as bip21Options;
 
   if (options.amount) {
-    options.amount = Number(options.amount) * 1e8; // we use satoshis
+    options.amount = Math.round(Number(options.amount) * 1e8); // we use satoshis, fix arithmetic error, ugly?
     if (!isFinite(options.amount)) throw new Error('Invalid amount');
     if (options.amount < 0) throw new Error('Invalid amount');
   }

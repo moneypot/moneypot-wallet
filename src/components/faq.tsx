@@ -35,7 +35,7 @@ export default function Faq() {
             Of that capacity <b>{lightninginfo.remote_balance} sat</b> is Inbound capacity.
           </p>
           <p>
-            Currently number of open channels: <b>{lightninginfo.num_channels}</b>
+            Current number of open channels: <b>{lightninginfo.num_channels}</b>
           </p>
           <p>
             For additional information, it might be possible to check external explorers{' '}

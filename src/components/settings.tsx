@@ -146,11 +146,11 @@ export default function Settings() {
         <h5>Settings</h5>
         <div className="inner-container">
           <p>
-            Within Moneypot, there are a number of settings you can change. <br /> <br /> For example, if your current wallet does not support sending to native
-            segwit (These start with bc1..), you can also use nested segwit (These start with 3...){' '}
+            Within moneypot, there are a number of settings you can change. <br /> <br /> For example, if your current wallet does not support sending to native
+            segwit (these start with bc1...) you can also use nested segwit! (these start with 3...){' '}
           </p>
           <small>
-            We do recommend you use to use native segwit as it greatly reduces fees for both parties!{' '}
+            we do recommend you use the default native segwit addresses as it greatly reduces fees for both parties!{' '}
             <span role="img" aria-label="wink">
               😉
             </span>
@@ -164,7 +164,7 @@ export default function Settings() {
                 <Input id="setting1" type="checkbox" onChange={updateOne} checked={Setting1} /> Switch to P2SH-P2WPKH addresses. (3...).
                 <p>
                   <b>Note:</b> you should only do this if you have not yet received any Ƀ in this particular wallet!
-                  {<br />} You can only sync 1 address type simultaneously.
+                  <br /> You can only sync 1 address type simultaneously.
                 </p>
               </Label>
               <br />
@@ -173,7 +173,7 @@ export default function Settings() {
               <Label check>
                 <Input id="setting2" type="checkbox" onChange={updateTwo} checked={Setting2} /> Increase the gaplimit by "..." retroactively.
                 <p>
-                  <b>Note:</b> Unless you're scanning addresses for funds (merchant activity), it is not recommended to enable and or change this option, as it
+                  <b>Note:</b> Unless you're scanning addresses for funds (merchant activity) it is not recommended to enable and or change this option, as it
                   will just put unnecessary strain on your local resources when syncing.
                   <br />
                 </p>
@@ -188,7 +188,7 @@ export default function Settings() {
                     onChange={(e) => setAmountInput(Number(e.target.value))}
                   />
                 </InputGroup>
-                <small>Default gaplimit = 10.</small>
+                <small>Default gaplimit = 10!</small>
               </Label>
               <br />
               <hr />
@@ -226,7 +226,7 @@ export default function Settings() {
                 <Input id="setting6" type="checkbox" onChange={updateSix} checked={Setting6} /> Enable 0-Conf Hookins against a small fee.
                 <p>
                   <b>Note:</b> This will enable 0-conf hookins. The custodian you are using might have several constraints on this such as only accepting
-                  non-RBF transactions, transactions with a certain fee, and up to a certain amount. Custodians may charge a hookin fee that differs from the
+                  non-RBF transactions, transactions with a certain fee, and up to a certain amount. Custodians may charge an additional hookin fee that differs from the
                   standard fees to prevent cheating attempts.
                 </p>
               </Label>

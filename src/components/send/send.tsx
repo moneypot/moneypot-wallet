@@ -146,6 +146,14 @@ export default function Send({ history }: Props) {
 
   // make this a hook?
   function calcFee(PTMaddress?: string): number {
+    if (sendType.kind === 'error') { 
+      return 0 
+    }
+    if (sendType.kind === 'empty') { 
+      if (!PTMaddress) { 
+        return 0
+      }
+    }
     if (sendType.kind === 'lightning') {
       return feeLimit;
     }
@@ -415,7 +423,6 @@ export default function Send({ history }: Props) {
             </InputGroup>
           </Col>
         </Row>
-        {/* // lame shit right here */}
         <Row className="lame-duck">
           <small className="text-muted">
             This transaction will be sent with {feeText} sat/vbyte or <b>{calcFee()} sats</b> and has an ETA of confirming within{' '}
@@ -525,18 +532,18 @@ export default function Send({ history }: Props) {
       return (
         <FormGroup row className="bordered-form-group" key={bip21Invoice.address}>
           <Col xl={{ size: 1, offset: 0 }}>
-            <p>Address & Amount:</p>
+            <p>Address:</p>
           </Col>
           <Col xl={{ size: 6, offset: 1 }}>
             <InputGroup>
               <Input value={bip21Invoice.address} disabled />
             </InputGroup>
           </Col>
-          <Col xl={{ size: 3, offset: 0 }}>
+          {/* <Col xl={{ size: 3, offset: 0 }}>
             <InputGroup>
               <Input value={bip21Invoice.options.amount ? bip21Invoice.options.amount : 'any'} disabled />
             </InputGroup>
-          </Col>
+          </Col> */}
         </FormGroup>
       );
     }
@@ -568,10 +575,13 @@ export default function Send({ history }: Props) {
   // const maxAmount = balance; // TODO: Reduce the tx fee
 
   function isValid(toText: string) {
-    if (hi.decodeBitcoinAddress(toText) instanceof Error) {
-      return false;
+    if (!(hi.decodeBolt11(toText) instanceof Error)) { 
+      return true
     }
-    return true;
+    if (!(hi.decodeBitcoinAddress(toText) instanceof Error)) {
+      return true
+    }
+    return false;
   }
   return (
     <div>
@@ -637,7 +647,7 @@ export default function Send({ history }: Props) {
           ) : undefined}
           {/* {sendType.kind === 'lightning' || sendType.kind === "bitcoinInvoice" ? showLightningFeeSelection() : undefined} */}
           {sendType.kind === 'lightning' ? showLightningFeeSelection() : undefined}
-          {sendType.kind === 'bitcoinbip21Invoice' ? (ShowBitcoinInvoiceAddresses(), showBitcoinInvoiceFeeSelection()) : undefined}
+          {sendType.kind === 'bitcoinbip21Invoice' ? (ShowBitcoinInvoiceAddresses()) : undefined}
           {sendType.kind === 'lightning' || sendType.kind === 'bitcoinbip21Invoice' ? showLightningDescription() : undefined}
           {(toPTM === '' && sendType.kind === 'bitcoin') || sendType.kind === 'bitcoinbip21Invoice' ? showBitcoinFeeSelection() : undefined}
           {(sendType.kind === 'bitcoin' && (prioritySelection === 'CUSTOM' || prioritySelection === 'IMMEDIATE')) ||
