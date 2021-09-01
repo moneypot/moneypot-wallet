@@ -13,16 +13,25 @@ export default function App() {
   let mobileView = windowSize.innerWidth < 576;
 
   const [existingDbs, setExistingDbs] = useState<string[] | null>(null);
+  const [hasIDB, sethasIDB] = useState<boolean | undefined>(undefined);
   useEffect(() => {
+
+    // we can also just catch the list instead of another function...? todo
     dbInfo.list().then((dbs) => {
       setExistingDbs(dbs);
     });
+    dbInfo.tryIDB().then(b => sethasIDB(b))
   }, []);
 
   const [isWalletSet, setIsWalletSet] = useState<boolean>(false);
 
   if (isWalletSet) {
     return <LoadedApp />;
+  }
+  if (!existingDbs && hasIDB != undefined) { 
+    if (!hasIDB) {
+      return <p>Indexeddb is not working. Are you perhaps using the TOR browser or the incognito functionality of your browser? if so, please switch these off!</p>
+    }
   }
   if (!existingDbs) {
     return <p>Loading...</p>;
