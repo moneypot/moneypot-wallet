@@ -48,13 +48,13 @@ function TopBar(props: RouteComponentProps & { isMobile: boolean }) {
   let warning: undefined | JSX.Element = undefined;
   if (TDifference && TDifference / (1000 * 60 * 60 * 24) < 7 && location.pathname === '/') {
     warning = props.isMobile ? (
-      <Button color="danger">
-        <Link to="/faq">Warning!</Link>
-      </Button>
+      <Link to="/faq"><Button color="danger">
+      Warning!
+      </Button></Link>
     ) : (
       <Button color="danger">
         {' '}
-        Warning! <Link to="/faq">It seems that </Link> this custodian will wipe in {'>'}7D!{' '}
+        Warning! <Link to="/faq">It seems that </Link> this custodian will soon wipe or has already wiped!
       </Button>
     );
   }

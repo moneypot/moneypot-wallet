@@ -2,7 +2,7 @@ import * as hi from 'moneypot-lib';
 import Config from '../config';
 import makeRequest, { RequestError } from './make-request';
 
-export default async function genInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number): Promise<hi.Acknowledged.Claimable> {
+export default async function genInvoice(config: Config, claimant: hi.PublicKey, memo: string, amount: number): Promise<hi.Acknowledged.Claimable | Error> {
   const url = config.custodianUrl + '/gen-invoice';
 
   const invoicePOD = await makeRequest<hi.POD.Claimable & hi.POD.Acknowledged>(url, {
@@ -12,7 +12,7 @@ export default async function genInvoice(config: Config, claimant: hi.PublicKey,
   });
 
   if (invoicePOD instanceof RequestError) {
-    throw invoicePOD;
+    throw new Error(invoicePOD.message); // refactor into error?
   }
 
   if (invoicePOD.kind !== 'LightningInvoice') {

@@ -101,6 +101,10 @@ export default class Database extends EventEmitter {
     return value;
   }
 
+  private async deleteCounter<S extends StoreName>(key: string, transaction: idb.IDBPTransaction<Schema, (S | 'counters')[]>) { 
+    await transaction.objectStore('counters').delete(key)
+  }
+
   private async nextCounter<S extends StoreName, Stringable extends { toPOD(): string }>(
     purpose: string,
     transform: (i: number) => Stringable,
@@ -463,6 +467,8 @@ export default class Database extends EventEmitter {
     await transaction.done;
   }
 
+  // If you generated more invoices than allowed (spam-clicked), counters would still be stored, and if tried to recover, the gaplimit would not be great enough to surpass the empty counters.
+
   public async requestLightningInvoice(memo: string, amount: number) {
     const counterTransaction = this.db.transaction(['counters'], 'readwrite');
 
@@ -470,7 +476,22 @@ export default class Database extends EventEmitter {
 
     let claimant = await this.nextCounter(purpose, (index) => this.deriveClaimableClaimant(index, purpose).toPublicKey(), counterTransaction);
 
-    const invoice = await genInvoice(this.config, claimant, memo, amount);
+    let invoice: hi.Acknowledged.Claimable | Error;
+    try {
+      invoice = await genInvoice(this.config, claimant, memo, amount);
+    } catch (error) {
+      invoice = error
+    }
+
+    // delete counter TODO?
+    if (invoice instanceof Error) {
+      const transactionC = this.db.transaction(['counters'], 'readwrite');
+      //transactionC.objectStore('counters').delete(claimant.toPOD())
+      await this.deleteCounter(claimant.toPOD(), transactionC)
+
+      throw invoice
+    }
+
     const invoiceDoc = {
       created: new Date(),
       ...invoice.toPOD(),

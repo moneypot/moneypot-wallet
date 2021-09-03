@@ -53,6 +53,16 @@ function show(addressDoc: Docs.BitcoinAddress) {
             After N confirmations, funds will be usable.
           </p>
         </div>
+        {wallet.config.custodian.wipeDate  && (new Date(wallet.config.custodian.wipeDate) < new Date(Date.now() + 48*60*60*1000)) && (
+                <div className="text-container">
+                <p >
+                  <span>
+                  <i className="fad fa-exclamation-triangle" />{' '}
+                  </span>
+                  The custodian will wipe in less than two days or has already wiped. Please do not deposit any more funds!
+                </p>
+              </div>
+        )  }
         <Button color="secondary" onClick={() => wallet.checkBitcoinAddress(addressDoc)}>
           Check
         </Button>{' '}
