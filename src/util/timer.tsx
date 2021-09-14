@@ -81,8 +81,8 @@ export default class Timer extends Component<{ p: number }, { seconds: number; m
       if (minutes < 30 && hours <= 0 && days === 0) { 
         return <i className="fad fa-hourglass-half" /> // less than 30 minutes
       }
-      if (minutes <= 10 && hours <= 0 && days === 0) { 
-        <i className="fad fa-hourglass-end" />
+      if (minutes <= 10 && hours <= 0 && days <= 0) { 
+        return <i className="fad fa-hourglass-end" />
       }
       return <i className="fad fa-hourglass-start" />
     };

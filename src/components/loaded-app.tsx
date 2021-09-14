@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import BitcoinAddressInfo from './tables/bitcoin-address-info';
 import ReceiveBitcoin from './receive/receive';
@@ -26,6 +26,10 @@ import Settings from './settings';
 import Faq from './faq';
 import Invoices from './tables/invoices';
 import Payments from './tables/payments';
+import { wallet } from '../state/wallet';
+import { ToastContainer, toast } from 'react-toastify';
+import makeRequest from '../wallet/requests/make-request';
+
 function NoMatch(params: RouteComponentProps<any>) {
   return (
     <div>
@@ -43,6 +47,19 @@ export default function LoadedApp() {
   // console.log('window size is: ', windowSize);
   let mobileView = windowSize.innerWidth < 576;
   const Router: any = window.location.protocol === 'file:' ? HashRouter : BrowserRouter;
+  
+  useEffect(() => {
+    (async () => {
+      const response = await makeRequest(`${wallet.config.custodianUrl}/tor-check`) as boolean
+    
+      if (response === true) {
+        toast.success("It looks like you're using tor!");
+      } else {
+        toast.error("Are you sure you're using TOR? You might miss out on additional privacy.");
+      }
+    })();
+
+  }, []);
 
   return (
     <Router>
@@ -50,6 +67,7 @@ export default function LoadedApp() {
         <TopBar isMobile={mobileView} />
         {!mobileView ? <Navbar isMobile={mobileView} /> : ''}
         <div className="main-container">
+        <ToastContainer/>
           <Switch>
             <Route path="/create-wallet" exact render={() => <Redirect to="/" />} />
             <Route path="/" exact component={() => <Transactions isMobile={mobileView} />} />

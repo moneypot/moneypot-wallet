@@ -1122,6 +1122,10 @@ export default class Database extends EventEmitter {
     const tweak = util.notError(hi.PrivateKey.fromBytes(tweakBytes));
 
     const tweakPubkey = tweak.toPublicKey();
+    // this has no function (yet?)
+    if (this.config.custodian.fundingKey instanceof Array) {
+      return tweakPubkey.toMultisig(this.config.custodian.currency === 'BTC' ? false : true, this.config.custodian.fundingKey, this.config.custodian.fundingKey.length)
+    }
     const pubkey = this.config.custodian.fundingKey.tweak(tweakPubkey);
     const usesNested = this.settings.setting1_hasNested;
     if (usesNested) {
