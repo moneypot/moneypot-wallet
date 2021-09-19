@@ -59,7 +59,7 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               </datalist>
             </Col>
             <UncontrolledCollapse toggler="#toggler">
-              <p className="custodian-url-text">The Custodian Url is the one for connecting to the server that is responsible of managing your funds.</p>
+              <p className="custodian-url-text">The custodian URL is used to connect to the server that is responsible of managing your funds.</p>
             </UncontrolledCollapse>
           </FormGroup>
           <FormGroup row>
@@ -79,10 +79,10 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
             </Col>
           </FormGroup>
 
-          <small className="text-secondary">
+          {/* <small className="text-secondary">
             By creating a wallet submit you are agreeing to moneypot's <a href="https://moneypot.com/tos">Terms and Conditions</a>,{' '}
             <a href="https://moneypot.com/cookies">Cookies</a> and <a href="https://moneypot.com/privacy-policy">Privacy Policy</a>.
-          </small>
+          </small> */}
         </Form>
         <p>
           Already have a wallet? <a href="/restore">Restore</a>{' '}

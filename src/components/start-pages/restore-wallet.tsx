@@ -80,10 +80,10 @@ export default function CreateWallet(props: any & { isMobile: boolean }) {
               </Button>
             </Col>
           </FormGroup>
-          <small className="text-secondary">
+          {/* <small className="text-secondary">
             By creating a wallet submit you are agreeing to moneypot's <a href="">Terms and Conditions</a>, <a href="">Cookies</a> and{' '}
             <a href="">Privacy Policy</a>.
-          </small>
+          </small> */}
         </Form>
       </div>
     </div>
